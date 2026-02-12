@@ -90,7 +90,7 @@ th{background:#fafafa;position:sticky;top:0}
 
   <div class="header">
     <div class="title">📊 Analítico do Buffet</div>
-    <div class="sub">Montagem • Reposição • Retirada • Devolução</div>
+    <div class="sub">Montagem • Reposição • Retirada • Desperdício</div>
   </div>
 
   <div class="card">
@@ -130,7 +130,7 @@ th{background:#fafafa;position:sticky;top:0}
             <th>Reposto</th>
             <th>Total</th>
             <th>Retirado</th>
-            <th>Devolvido</th>
+            <th>Desperdicado</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -174,7 +174,7 @@ async function carregar(){
   const porDia = {};
 
   data?.forEach(r=>{
-    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
+    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DESPERDICIO:0, UNIDADE:r.unidade};
     porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
 
     if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
@@ -192,7 +192,7 @@ async function carregar(){
         <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
         <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
         <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge dev">Devolvido</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge dev">Desperdiçado</span><b>${v.DESPERDICADO.toFixed(2)} ${v.UNIDADE}</b></div>
       </div>
     `;
   }).join("");
@@ -207,7 +207,7 @@ async function carregar(){
         <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
         <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
         <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
-        <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
+        <td>${v.DESPERDICADO.toFixed(2)} ${v.UNIDADE}</td>
       </tr>
     `;
   }).join("");
