@@ -22,9 +22,10 @@
   --radius:18px;
   --shadow:0 16px 40px rgba(0,0,0,.12);
 }
-*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-html, body{margin:0;background:linear-gradient(180deg,#fff, var(--bg))}
-.app{max-width:1400px;margin:0 auto;padding:14px;min-height:100dvh;display:flex;flex-direction:column}
+*{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;background:linear-gradient(180deg,#fff, var(--bg));overscroll-behavior:none}
+body{overflow:hidden}
+.app{max-width:1400px;margin:0 auto;padding:14px 14px 22px;min-height:100dvh;display:flex;flex-direction:column}
 .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .title{font-size:22px;font-weight:900}
 .badge{background:#111827;color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
@@ -32,12 +33,12 @@ html, body{margin:0;background:linear-gradient(180deg,#fff, var(--bg))}
 .company-row{display:flex;gap:10px;align-items:center}
 .company-row select{flex:1}
 .form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
-input, select, button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:16px}
+input,select,button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:16px}
 button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
 button.ghost{background:#fff;border:1px dashed var(--border)}
 small{color:var(--muted)}
-.list{display:grid;gap:10px;margin-top:8px;overflow:auto;max-height:calc(100dvh - 360px)}
-.item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--border)}
+.list{display:grid;gap:10px;margin-top:8px;overflow:auto;max-height:calc(100dvh - 360px);padding-right:4px}
+.item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--border);background:#fff}
 .item .name{font-weight:800}
 .meta{font-size:13px;color:var(--muted)}
 .tag{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
@@ -49,7 +50,10 @@ small{color:var(--muted)}
 .icon-btn.danger{border-color:#fecaca;color:#b91c1c}
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:999}
 .modal{width:100%;max-width:560px;background:#fff;border-radius:22px 22px 0 0;padding:16px;box-shadow:0 -20px 40px rgba(0,0,0,.25)}
-@media (max-width: 720px){.form-grid{grid-template-columns:1fr}}
+.modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:720px){.form-grid{grid-template-columns:1fr}.title{font-size:20px}.list{max-height:calc(100dvh - 400px)}}
+body,.app{overflow-x:hidden}
 </style>
 </head>
 
@@ -57,14 +61,14 @@ small{color:var(--muted)}
 <div class="app">
 
   <div class="header">
-    <div class="title">🍽️ Buffet • Delícia Gourmet</div>
+    <div class="title">🍽️ Buffet • Mercatto Delícia</div>
     <span class="badge">Hoje: <b id="dataHoje"></b></span>
   </div>
 
   <div class="card company-row">
     <b>Empresa:</b>
     <select id="empresaSelect">
-      <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+      <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
     </select>
   </div>
 
@@ -72,7 +76,10 @@ small{color:var(--muted)}
     <div class="form-grid">
       <input id="produto" placeholder="Digite o prato (busca + cadastra)" list="produtosList">
       <input id="quantidade" type="number" step="0.001" placeholder="Qtd">
-      <select id="unidade"><option value="KG">KG</option><option value="UN">UN</option></select>
+      <select id="unidade">
+        <option value="KG">KG</option>
+        <option value="UN">UN</option>
+      </select>
       <select id="tipo">
         <option value="MONTAGEM">Montagem</option>
         <option value="REPOSICAO">Reposição</option>
@@ -84,6 +91,7 @@ small{color:var(--muted)}
       <button class="primary" id="btnSalvar">Salvar</button>
       <button class="ghost" id="btnLimpar">Limpar</button>
     </div>
+    <small>Data travada no dia atual e hora automática.</small>
   </div>
 
   <div class="card">
@@ -95,10 +103,69 @@ small{color:var(--muted)}
 
 <datalist id="produtosList"></datalist>
 
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>✏️ Editar lançamento</h3>
+    <div class="grid">
+      <input id="editQuantidade" type="number" step="0.001">
+      <select id="editUnidade"><option>KG</option><option>UN</option></select>
+      <select id="editTipo" style="grid-column:1/-1">
+        <option value="MONTAGEM">Montagem</option>
+        <option value="REPOSICAO">Reposição</option>
+        <option value="RETIRADA">Retirada</option>
+        <option value="DESPERDICIO">Desperdício</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="primary" onclick="confirmarEdicao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const sb = window.supabase.createClient("https://dxkszikemntfusfyrzos.supabase.co","sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed");
-const hoje = new Date();
+const sb = supabase.createClient("https://dxkszikemntfusfyrzos.supabase.co","sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed");
+const hoje = new Date(); const dataISO = hoje.toISOString().slice(0,10);
 document.getElementById("dataHoje").innerText = hoje.toLocaleDateString("pt-BR");
+
+const produto=document.getElementById("produto"), quantidade=document.getElementById("quantidade"),
+unidade=document.getElementById("unidade"), tipo=document.getElementById("tipo"),
+lista=document.getElementById("lista"), empresa=document.getElementById("empresaSelect");
+
+let editId=null;
+
+async function carregarLancamentos(){
+  const { data } = await sb.from("buffet_lancamentos").select("*").eq("empresa", empresa.value).eq("data", dataISO).order("created_at",{ascending:false});
+  lista.innerHTML="";
+  data?.forEach(l=>{
+    lista.innerHTML+=`
+      <div class="item">
+        <div>
+          <div class="name">${l.produto_nome}</div>
+          <div class="meta">${l.quantidade} ${l.unidade} • ${l.hora}</div>
+          <span class="tag ${l.tipo}">${l.tipo}</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="icon-btn" onclick="abrirModal('${l.id}',${l.quantidade},'${l.unidade}','${l.tipo}')">✏️</button>
+          <button class="icon-btn danger" onclick="excluir('${l.id}')">🗑️</button>
+        </div>
+      </div>`;
+  });
+}
+
+async function salvar(){
+  if(!produto.value||!quantidade.value) return alert("Preencha tudo");
+  const hora=new Date().toTimeString().slice(0,8);
+  await sb.from("buffet_lancamentos").insert({
+    empresa:empresa.value, produto_nome:produto.value.toUpperCase(),
+    tipo:tipo.value, quantidade:parseFloat(quantidade.value),
+    unidade:unidade.value, data:dataISO, hora
+  });
+  produto.value=""; quantidade.value=""; carregarLancamentos();
+}
+document.getElementById("btnSalvar").onclick=salvar;
+document.getElementById("btnLimpar").onclick=()=>{produto.value="";quantidade.value=""};
+carregarLancamentos();
 </script>
 </body>
 </html>
