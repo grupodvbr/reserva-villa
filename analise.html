@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Buffet • Analítico</title>
+<title>Buffet • Analítico Operacional</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -12,13 +12,8 @@
 
 <style>
 :root{
-  --primary:#ff6a00;
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --muted:#6b7280;
-  --radius:18px;
-  --shadow:0 14px 36px rgba(0,0,0,.12);
+  --primary:#ff6a00; --bg:#f4f6fb; --card:#fff; --border:#e5e7eb;
+  --muted:#6b7280; --radius:18px; --shadow:0 14px 36px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;font-family:Inter}
 html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff, var(--bg))}
@@ -27,22 +22,23 @@ html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff, var(--bg)
 .title{font-size:22px;font-weight:900}
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:10px}
 .filters{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
-input,button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:15px}
+input,select,button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:15px}
 button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
 
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.kpi{border:1px solid var(--border);border-radius:14px;padding:10px}
-.kpi b{font-size:16px}
-.kpi small{color:var(--muted)}
+.chart-card{height:220px}
+.table{overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+th{background:#fafafa;position:sticky;top:0}
 
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.chart-card{height:260px}
+.cards{display:none;gap:8px}
+.card-item{border:1px solid var(--border);border-radius:14px;padding:10px}
 
 @media (max-width: 900px){
   .filters{grid-template-columns:1fr}
-  .charts{grid-template-columns:1fr}
-  .kpis{grid-template-columns:1fr}
-  .chart-card{height:220px}
+  .chart-card{height:200px}
+  .table{display:none}
+  .cards{display:grid}
 }
 </style>
 </head>
@@ -50,7 +46,7 @@ button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
 <body>
 <div class="app">
   <div class="header">
-    <div class="title">📊 Buffet • Analítico</div>
+    <div class="title">📊 Buffet • Analítico Operacional</div>
     <a href="./index.html" style="text-decoration:none">⬅️ Voltar</a>
   </div>
 
@@ -62,21 +58,29 @@ button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
     </div>
   </div>
 
-  <div class="card">
-    <b>Resumo por empresa (período)</b>
-    <div id="kpisEmpresas" class="kpis"></div>
+  <div class="card chart-card">
+    <b>Total produzido por dia (Montado + Reposto)</b>
+    <canvas id="chartTotal"></canvas>
   </div>
 
-  <div class="charts">
-    <div class="card chart-card">
-      <b>Evolução diária</b>
-      <canvas id="chartLinhas"></canvas>
-    </div>
-    <div class="card chart-card">
-      <b>Distribuição por tipo</b>
-      <canvas id="chartTipos"></canvas>
-    </div>
+  <div class="card table">
+    <b>Resumo por prato (período)</b>
+    <table>
+      <thead>
+        <tr>
+          <th>Prato</th>
+          <th>Montado</th>
+          <th>Reposto</th>
+          <th>Total Produzido</th>
+          <th>Retirado</th>
+          <th>Devolvido</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
   </div>
+
+  <div class="cards" id="cards"></div>
 </div>
 
 <script>
@@ -88,7 +92,8 @@ const sb = window.supabase.createClient(
 const dtInicio = document.getElementById("dtInicio");
 const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
-let chartLinhas, chartTipos;
+
+let chartTotal;
 
 function formatBR(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 
@@ -103,61 +108,59 @@ async function carregar(){
   const { data, error } = await q.order("data", { ascending:true });
   if(error){ console.error(error); return; }
 
-  const empresas = [...new Set(data.map(r=>r.empresa))];
-  const dias = [...new Set(data.map(r=>r.data))];
-
-  const porEmpresaDia = {};
-  const kpis = {};
-
-  empresas.forEach(e=>{
-    porEmpresaDia[e] = {};
-    dias.forEach(d=> porEmpresaDia[e][d] = 0);
-    kpis[e] = {MONTAGEM:0, REPOSICAO:0, RETIRADA:0, DEVOLUCAO:0};
-  });
+  // Agregação por prato
+  const porPrato = {};
+  const porDia = {};
 
   data.forEach(r=>{
-    porEmpresaDia[r.empresa][r.data] += Number(r.quantidade||0);
-    kpis[r.empresa][r.tipo] += Number(r.quantidade||0);
+    porPrato[r.produto_nome] ||= {MONTAGEM:0, REPOSICAO:0, RETIRADA:0, DEVOLUCAO:0};
+    porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
+
+    if(r.tipo === 'MONTAGEM' || r.tipo === 'REPOSICAO'){
+      porDia[r.data] = (porDia[r.data]||0) + Number(r.quantidade||0);
+    }
   });
 
-  // KPIs
-  kpisEmpresas.innerHTML = empresas.map(e=>`
-    <div class="kpi">
-      <b>${e}</b><br>
-      <small>M: ${kpis[e].MONTAGEM.toFixed(1)} | R: ${kpis[e].REPOSICAO.toFixed(1)}</small><br>
-      <small>Ret: ${kpis[e].RETIRADA.toFixed(1)} | Dev: ${kpis[e].DEVOLUCAO.toFixed(1)}</small>
-    </div>
-  `).join("");
+  // Tabela / Cards
+  const linhas = Object.entries(porPrato).map(([nome, v])=>{
+    const totalProd = v.MONTAGEM + v.REPOSICAO;
+    return `
+      <tr>
+        <td><b>${nome}</b></td>
+        <td>${v.MONTAGEM.toFixed(2)}</td>
+        <td>${v.REPOSICAO.toFixed(2)}</td>
+        <td><b>${totalProd.toFixed(2)}</b></td>
+        <td>${v.RETIRADA.toFixed(2)}</td>
+        <td>${v.DEVOLUCAO.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join("");
 
-  // Chart Linhas
-  if(chartLinhas) chartLinhas.destroy();
-  chartLinhas = new Chart(document.getElementById("chartLinhas"), {
+  tbody.innerHTML = linhas || `<tr><td colspan="6">Sem dados</td></tr>`;
+
+  cards.innerHTML = Object.entries(porPrato).map(([nome, v])=>{
+    const totalProd = v.MONTAGEM + v.REPOSICAO;
+    return `
+      <div class="card-item">
+        <b>${nome}</b><br>
+        Montado: ${v.MONTAGEM.toFixed(2)}<br>
+        Reposto: ${v.REPOSICAO.toFixed(2)}<br>
+        <b>Total: ${totalProd.toFixed(2)}</b><br>
+        Retirado: ${v.RETIRADA.toFixed(2)}<br>
+        Devolvido: ${v.DEVOLUCAO.toFixed(2)}
+      </div>
+    `;
+  }).join("");
+
+  // Gráfico (Total produzido por dia)
+  const dias = Object.keys(porDia).sort();
+  const valores = dias.map(d=>porDia[d]);
+
+  if(chartTotal) chartTotal.destroy();
+  chartTotal = new Chart(document.getElementById("chartTotal"), {
     type:'line',
-    data:{
-      labels: dias.map(formatBR),
-      datasets: empresas.map((e)=>({
-        label:e,
-        data: dias.map(d=>porEmpresaDia[e][d]),
-        tension:.35,
-        fill:false
-      }))
-    },
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
-  });
-
-  // Chart Tipos
-  const tipos = ['MONTAGEM','REPOSICAO','RETIRADA','DEVOLUCAO'];
-  if(chartTipos) chartTipos.destroy();
-  chartTipos = new Chart(document.getElementById("chartTipos"), {
-    type:'bar',
-    data:{
-      labels: empresas,
-      datasets: tipos.map(t=>({
-        label:t,
-        data: empresas.map(e=>kpis[e][t])
-      }))
-    },
-    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+    data:{ labels:dias.map(formatBR), datasets:[{ label:'Total produzido', data: valores, tension:.35 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
   });
 }
 
