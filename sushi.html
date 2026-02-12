@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Controle de Buffet • Premium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Buffet • Controle Premium</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -12,48 +12,88 @@
 <style>
 :root{
   --primary:#ff6a00;
+  --primary-dark:#ea580c;
   --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --radius:20px;
-  --shadow:0 20px 40px rgba(0,0,0,.08);
+  --success:#16a34a;
+  --danger:#dc2626;
+  --radius:18px;
+  --shadow:0 16px 40px rgba(0,0,0,.10);
 }
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:var(--bg);padding:22px}
-.app{max-width:1100px;margin:auto}
-.header{font-size:26px;font-weight:900;margin-bottom:18px}
 
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px}
-.grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px}
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:linear-gradient(180deg,#fff, var(--bg));padding:14px}
+.app{max-width:1100px;margin:auto}
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:14px
+}
+.title{font-size:22px;font-weight:900}
+.badge{background:#111827;color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
+
+.card{
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:14px;margin-bottom:14px
+}
+.form-grid{
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px
+}
 input,select,button{
-  padding:14px 16px;border-radius:14px;border:1px solid var(--border);
+  padding:12px 14px;border-radius:12px;border:1px solid var(--border);
   font-size:15px;outline:none
 }
-button{
-  background:var(--primary);color:#fff;border:none;font-weight:700;cursor:pointer
+button.primary{
+  background:var(--primary);color:#fff;border:none;font-weight:800
 }
-button:hover{opacity:.9}
+button.primary:active{transform:scale(.98)}
+button.ghost{
+  background:#fff;border:1px dashed var(--border);color:#111827
+}
 
-.lista{margin-top:12px}
-.item{display:grid;grid-template-columns:1fr 120px 100px 120px;gap:10px;padding:12px;border-bottom:1px solid var(--border)}
-.tag{padding:6px 10px;border-radius:10px;font-size:12px;font-weight:700;text-align:center}
+small{color:var(--muted)}
+
+.list{display:grid;gap:10px;margin-top:8px}
+.item{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  padding:12px;border-radius:14px;border:1px solid var(--border)
+}
+.item .left{display:grid;gap:4px}
+.item .name{font-weight:800}
+.item .meta{font-size:13px;color:var(--muted)}
+.item .right{display:flex;gap:8px;align-items:center}
+
+.tag{
+  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800
+}
 .MONTAGEM{background:#dcfce7;color:#166534}
 .REPOSICAO{background:#e0f2fe;color:#075985}
 .RETIRADA{background:#fee2e2;color:#991b1b}
 .DEVOLUCAO{background:#fef3c7;color:#92400e}
 
-small{color:var(--muted)}
+.icon-btn{
+  border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px
+}
+.icon-btn.danger{border-color:#fecaca;color:#b91c1c}
+
+@media (max-width: 720px){
+  .form-grid{grid-template-columns:1fr}
+  .title{font-size:20px}
+}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-  <div class="header">🍽️ Controle de Buffet</div>
+  <div class="header">
+    <div class="title">🍽️ Buffet • Controle Premium</div>
+    <span class="badge">Hoje: <b id="dataHoje"></b></span>
+  </div>
 
   <div class="card">
-    <div class="grid">
+    <div class="form-grid">
       <input id="produto" placeholder="Digite o prato (busca + cadastra)" list="produtosList">
       <input id="quantidade" type="number" step="0.001" placeholder="Qtd">
       <select id="unidade">
@@ -67,13 +107,16 @@ small{color:var(--muted)}
         <option value="DEVOLUCAO">Devolução</option>
       </select>
     </div>
-    <button style="margin-top:12px;width:100%" id="btnSalvar">Salvar lançamento</button>
-    <small>📅 Data salva automaticamente: <b id="dataHoje"></b></small>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
+      <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
+    </div>
+    <small>Data é travada no dia atual e hora é automática.</small>
   </div>
 
   <div class="card">
     <b>📋 Lançamentos de Hoje</b>
-    <div class="lista" id="lista"></div>
+    <div class="list" id="lista"></div>
   </div>
 
 </div>
@@ -81,38 +124,25 @@ small{color:var(--muted)}
 <datalist id="produtosList"></datalist>
 
 <script>
-  // =========================
-  // SUPABASE (sem conflito)
-  // =========================
   const sb = window.supabase.createClient(
     "https://dxkszikemntfusfyrzos.supabase.co",
     "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
   );
 
-  // =========================
-  // VARIÁVEIS DE DOM
-  // =========================
   const produtoInput = document.getElementById("produto");
   const quantidadeInput = document.getElementById("quantidade");
   const unidadeSelect = document.getElementById("unidade");
   const tipoSelect = document.getElementById("tipo");
   const lista = document.getElementById("lista");
   const btnSalvar = document.getElementById("btnSalvar");
+  const btnLimpar = document.getElementById("btnLimpar");
 
-  // =========================
-  // DATA FIXA DO DIA
-  // =========================
   const hoje = new Date();
   const dataHoje = hoje.toISOString().slice(0,10);
   document.getElementById("dataHoje").innerText = dataHoje;
 
-  // =========================
-  // CARREGAR PRODUTOS
-  // =========================
   async function carregarProdutos(){
-    const { data, error } = await sb.from("buffet_produtos").select("nome");
-    if(error){ console.error(error); return; }
-
+    const { data } = await sb.from("buffet_produtos").select("nome").order("nome");
     const list = document.getElementById("produtosList");
     list.innerHTML = "";
     data?.forEach(p=>{
@@ -121,11 +151,36 @@ small{color:var(--muted)}
       list.appendChild(o);
     });
   }
-  carregarProdutos();
 
-  // =========================
-  // SALVAR LANÇAMENTO
-  // =========================
+  async function carregarLancamentos(){
+    const { data } = await sb
+      .from("buffet_lancamentos")
+      .select("*")
+      .eq("data", dataHoje)
+      .order("created_at", { ascending:false });
+
+    lista.innerHTML = "";
+    data?.forEach(l=>{
+      lista.innerHTML += `
+        <div class="item">
+          <div class="left">
+            <div class="name">${l.produto_nome}</div>
+            <div class="meta">${l.quantidade} ${l.unidade} • ${l.hora}</div>
+            <span class="tag ${l.tipo}">${l.tipo}</span>
+          </div>
+          <div class="right">
+            <button class="icon-btn" onclick="editar('${l.id}', '${l.quantidade}', '${l.unidade}', '${l.tipo}')">
+              <i class="ri-edit-2-line"></i>
+            </button>
+            <button class="icon-btn danger" onclick="excluir('${l.id}')">
+              <i class="ri-delete-bin-6-line"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
   async function salvar(){
     const produtoNome = produtoInput.value.trim().toUpperCase();
     const quantidade = parseFloat(quantidadeInput.value);
@@ -137,32 +192,19 @@ small{color:var(--muted)}
       return;
     }
 
-    // Busca produto
-    let { data:prod, error:errProd } = await sb
-      .from("buffet_produtos")
-      .select("*")
-      .eq("nome", produtoNome)
-      .maybeSingle();
-
-    if(errProd){ console.error(errProd); return; }
-
-    // Cria se não existir
+    let { data:prod } = await sb.from("buffet_produtos").select("*").eq("nome", produtoNome).maybeSingle();
     if(!prod){
-      const { data:nova, error:errInsert } = await sb
+      const { data:nova } = await sb
         .from("buffet_produtos")
         .insert({ nome: produtoNome, unidade_padrao: unidade })
         .select().single();
-
-      if(errInsert){ console.error(errInsert); return; }
-
       prod = nova;
       carregarProdutos();
     }
 
-    const agora = new Date();
-    const hora = agora.toTimeString().slice(0,8);
+    const hora = new Date().toTimeString().slice(0,8);
 
-    const { error:errLanc } = await sb.from("buffet_lancamentos").insert({
+    await sb.from("buffet_lancamentos").insert({
       produto_id: prod.id,
       produto_nome: produtoNome,
       tipo,
@@ -172,39 +214,41 @@ small{color:var(--muted)}
       hora
     });
 
-    if(errLanc){ console.error(errLanc); return; }
-
-    produtoInput.value = "";
-    quantidadeInput.value = "";
+    limpar();
     carregarLancamentos();
   }
 
-  btnSalvar.addEventListener("click", salvar);
+  async function editar(id, qtd, un, tipo){
+    const novaQtd = prompt("Nova quantidade:", qtd);
+    if(!novaQtd) return;
 
-  // =========================
-  // CARREGAR LANÇAMENTOS DO DIA
-  // =========================
-  async function carregarLancamentos(){
-    const { data, error } = await sb
-      .from("buffet_lancamentos")
-      .select("*")
-      .eq("data", dataHoje)
-      .order("created_at", { ascending:false });
+    const novaUn = prompt("Unidade (KG ou UN):", un) || un;
+    const novoTipo = prompt("Tipo (MONTAGEM, REPOSICAO, RETIRADA, DEVOLUCAO):", tipo) || tipo;
 
-    if(error){ console.error(error); return; }
+    await sb.from("buffet_lancamentos")
+      .update({ quantidade: parseFloat(novaQtd), unidade: novaUn, tipo: novoTipo })
+      .eq("id", id);
 
-    lista.innerHTML = "";
-    data?.forEach(l=>{
-      lista.innerHTML += `
-        <div class="item">
-          <b>${l.produto_nome}</b>
-          <div>${l.quantidade} ${l.unidade}</div>
-          <span class="tag ${l.tipo}">${l.tipo}</span>
-          <small>${l.hora}</small>
-        </div>
-      `;
-    });
+    carregarLancamentos();
   }
+
+  async function excluir(id){
+    if(!confirm("Excluir esse lançamento?")) return;
+    await sb.from("buffet_lancamentos").delete().eq("id", id);
+    carregarLancamentos();
+  }
+
+  function limpar(){
+    produtoInput.value = "";
+    quantidadeInput.value = "";
+    unidadeSelect.value = "KG";
+    tipoSelect.value = "MONTAGEM";
+  }
+
+  btnSalvar.onclick = salvar;
+  btnLimpar.onclick = limpar;
+
+  carregarProdutos();
   carregarLancamentos();
 </script>
 
