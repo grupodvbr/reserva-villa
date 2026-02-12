@@ -2,126 +2,80 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Buffet • Analítico por Item</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Buffet • Analítico</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
   --primary:#ff6a00;
-  --bg:#f6f7fb;
+  --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --radius:16px;
-  --shadow:0 10px 28px rgba(0,0,0,.10);
+  --radius:18px;
+  --shadow:0 14px 36px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;font-family:Inter}
-html,body{margin:0;background:var(--bg)}
-.app{max-width:100%;margin:auto;padding:8px 8px 72px}
-.header{padding:8px 0 6px;margin-bottom:6px}
-.title{font-size:18px;font-weight:900}
-.sub{font-size:11px;color:var(--muted)}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff, var(--bg))}
+.app{max-width:1200px;margin:0 auto;padding:12px;min-height:100dvh;display:flex;flex-direction:column}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.title{font-size:22px;font-weight:900}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:10px}
+.filters{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
+input,button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:15px}
+button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
 
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;margin-bottom:8px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{border:1px solid var(--border);border-radius:14px;padding:10px}
+.kpi b{font-size:16px}
+.kpi small{color:var(--muted)}
 
-/* Filtros */
-.filters{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-}
-.filters select,.filters input,.filters button{
-  width:100%;
-  padding:9px 10px;border-radius:10px;border:1px solid var(--border);font-size:13px
-}
-.filters button{
-  grid-column:1/-1;
-  background:var(--primary);color:#fff;border:none;font-weight:800
-}
-@media(min-width:900px){
-  .app{max-width:1100px}
-  .filters{grid-template-columns:1fr 1fr auto}
-  .filters button{grid-column:auto}
-}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chart-card{height:260px}
 
-/* Lista */
-.list{display:grid;gap:6px}
-.item{
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:8px;
-  display:grid;gap:6px;
-  cursor:pointer;
-}
-.item:hover{background:#fafafa}
-.item .name{font-weight:800;font-size:13px}
-.row{display:grid;grid-template-columns:1fr auto;gap:6px;font-size:12px}
-.badge{padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800}
-.mont{background:#dcfce7;color:#166534}
-.rep{background:#e0f2fe;color:#075985}
-.ret{background:#fee2e2;color:#991b1b}
-.dev{background:#fef3c7;color:#92400e}
-.tot{background:#f1f5f9;color:#0f172a}
-
-/* Modal */
-.backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);
-  display:none;align-items:flex-end;justify-content:center;z-index:999;
-}
-.modal{
-  width:100%;max-width:520px;background:#fff;border-radius:16px 16px 0 0;
-  padding:12px;box-shadow:0 -16px 40px rgba(0,0,0,.25);
-}
-.modal h3{margin:4px 0 8px 0}
-.modal .log{display:grid;gap:6px;max-height:60vh;overflow:auto}
-.log-item{
-  border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;
-  display:grid;grid-template-columns:1fr auto;gap:6px
-}
-@media(min-width:900px){
-  .backdrop{align-items:center}
-  .modal{border-radius:16px}
+@media (max-width: 900px){
+  .filters{grid-template-columns:1fr}
+  .charts{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr}
+  .chart-card{height:220px}
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-
   <div class="header">
-    <div class="title">📊 Analítico por Item</div>
-    <div class="sub">Empresa • Período • Movimentações</div>
+    <div class="title">📊 Buffet • Analítico</div>
+    <a href="./index.html" style="text-decoration:none">⬅️ Voltar</a>
   </div>
 
   <div class="card">
     <div class="filters">
-      <select id="empresaSelect">
-        <option value="VILLA GOURMET">Villa Gourmet</option>
-        <option value="CHURRASCADA">Churrascada</option>
-        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-      </select>
-      <input type="text" id="periodo" placeholder="DD/MM/AAAA - DD/MM/AAAA" />
-      <button id="btnFiltrar">Atualizar</button>
+      <input type="date" id="dtInicio">
+      <input type="date" id="dtFim">
+      <button class="primary" id="btnFiltrar"><i class="ri-filter-3-line"></i> Atualizar</button>
     </div>
   </div>
 
   <div class="card">
-    <b style="font-size:13px">Itens do período</b>
-    <div class="list" id="list"></div>
+    <b>Resumo por empresa (período)</b>
+    <div id="kpisEmpresas" class="kpis"></div>
   </div>
 
-</div>
-
-<!-- MODAL -->
-<div class="backdrop" id="backdrop" onclick="fecharModal()">
-  <div class="modal" onclick="event.stopPropagation()">
-    <h3 id="modalTitle">Movimentações</h3>
-    <div class="log" id="log"></div>
+  <div class="charts">
+    <div class="card chart-card">
+      <b>Evolução diária</b>
+      <canvas id="chartLinhas"></canvas>
+    </div>
+    <div class="card chart-card">
+      <b>Distribuição por tipo</b>
+      <canvas id="chartTipos"></canvas>
+    </div>
   </div>
 </div>
 
@@ -131,94 +85,87 @@ const sb = window.supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-const empresaSelect = document.getElementById("empresaSelect");
-const periodoInput = document.getElementById("periodo");
+const dtInicio = document.getElementById("dtInicio");
+const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
-const list = document.getElementById("list");
-const backdrop = document.getElementById("backdrop");
-const logEl = document.getElementById("log");
-const modalTitle = document.getElementById("modalTitle");
+let chartLinhas, chartTipos;
 
-// Período padrão (últimos 7 dias)
-const hoje = new Date();
-const fimISO = hoje.toISOString().slice(0,10);
-const iniISO = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
-periodoInput.value = `${new Date(iniISO).toLocaleDateString("pt-BR")} - ${new Date(fimISO).toLocaleDateString("pt-BR")}`;
-
-function parsePeriodo(){
-  const [iniBR,fimBR] = periodoInput.value.split(" - ");
-  if(!iniBR || !fimBR) return {};
-  const [di,mi,yi] = iniBR.split("/");
-  const [df,mf,yf] = fimBR.split("/");
-  return { ini:`${yi}-${mi}-${di}`, fim:`${yf}-${mf}-${df}` };
-}
+function formatBR(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 
 async function carregar(){
-  const empresa = empresaSelect.value;
-  const { ini, fim } = parsePeriodo();
-  if(!ini || !fim){ alert("Informe o período no formato DD/MM/AAAA - DD/MM/AAAA"); return; }
+  const ini = dtInicio.value;
+  const fim = dtFim.value;
 
-  const { data } = await sb.from("buffet_lancamentos")
-    .select("*")
-    .eq("empresa", empresa)
-    .gte("data", ini)
-    .lte("data", fim)
-    .order("created_at",{ascending:false});
+  let q = sb.from("buffet_lancamentos").select("*");
+  if(ini) q = q.gte("data", ini);
+  if(fim) q = q.lte("data", fim);
 
-  const porItem = {};
-  data?.forEach(r=>{
-    porItem[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
-    porItem[r.produto_nome][r.tipo] += Number(r.quantidade||0);
+  const { data, error } = await q.order("data", { ascending:true });
+  if(error){ console.error(error); return; }
+
+  const empresas = [...new Set(data.map(r=>r.empresa))];
+  const dias = [...new Set(data.map(r=>r.data))];
+
+  const porEmpresaDia = {};
+  const kpis = {};
+
+  empresas.forEach(e=>{
+    porEmpresaDia[e] = {};
+    dias.forEach(d=> porEmpresaDia[e][d] = 0);
+    kpis[e] = {MONTAGEM:0, REPOSICAO:0, RETIRADA:0, DEVOLUCAO:0};
   });
 
-  list.innerHTML = Object.entries(porItem).map(([nome,v])=>{
-    const total = v.MONTAGEM + v.REPOSICAO;
-    return `
-      <div class="item" onclick="abrirModal('${nome.replace(/'/g,"\\'")}')">
-        <div class="name">${nome}</div>
-        <div class="row"><span class="badge mont">Mont</span><b>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge rep">Rep</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge ret">Ret</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge dev">Dev</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
-      </div>
-    `;
-  }).join("") || "<small>Sem dados no período.</small>";
-}
+  data.forEach(r=>{
+    porEmpresaDia[r.empresa][r.data] += Number(r.quantidade||0);
+    kpis[r.empresa][r.tipo] += Number(r.quantidade||0);
+  });
 
-async function abrirModal(produto){
-  const empresa = empresaSelect.value;
-  const { ini, fim } = parsePeriodo();
-
-  modalTitle.textContent = `Movimentações • ${produto}`;
-  backdrop.style.display = "flex";
-  logEl.innerHTML = "Carregando...";
-
-  const { data } = await sb.from("buffet_lancamentos")
-    .select("*")
-    .eq("empresa", empresa)
-    .eq("produto_nome", produto)
-    .gte("data", ini)
-    .lte("data", fim)
-    .order("created_at",{ascending:false});
-
-  logEl.innerHTML = data?.map(r=>`
-    <div class="log-item">
-      <div>
-        <b>${r.tipo}</b><br>
-        <small>${new Date(r.data).toLocaleDateString("pt-BR")} • ${r.hora}</small>
-      </div>
-      <b>${Number(r.quantidade).toFixed(2)} ${r.unidade}</b>
+  // KPIs
+  kpisEmpresas.innerHTML = empresas.map(e=>`
+    <div class="kpi">
+      <b>${e}</b><br>
+      <small>M: ${kpis[e].MONTAGEM.toFixed(1)} | R: ${kpis[e].REPOSICAO.toFixed(1)}</small><br>
+      <small>Ret: ${kpis[e].RETIRADA.toFixed(1)} | Dev: ${kpis[e].DEVOLUCAO.toFixed(1)}</small>
     </div>
-  `).join("") || "<small>Sem movimentações.</small>";
+  `).join("");
+
+  // Chart Linhas
+  if(chartLinhas) chartLinhas.destroy();
+  chartLinhas = new Chart(document.getElementById("chartLinhas"), {
+    type:'line',
+    data:{
+      labels: dias.map(formatBR),
+      datasets: empresas.map((e)=>({
+        label:e,
+        data: dias.map(d=>porEmpresaDia[e][d]),
+        tension:.35,
+        fill:false
+      }))
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+  });
+
+  // Chart Tipos
+  const tipos = ['MONTAGEM','REPOSICAO','RETIRADA','DEVOLUCAO'];
+  if(chartTipos) chartTipos.destroy();
+  chartTipos = new Chart(document.getElementById("chartTipos"), {
+    type:'bar',
+    data:{
+      labels: empresas,
+      datasets: tipos.map(t=>({
+        label:t,
+        data: empresas.map(e=>kpis[e][t])
+      }))
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+  });
 }
 
-function fecharModal(){ backdrop.style.display="none"; }
-
+const hoje = new Date();
+dtFim.value = hoje.toISOString().slice(0,10);
+dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
 btnFiltrar.onclick = carregar;
-empresaSelect.onchange = carregar;
 
-// Primeira carga
 carregar();
 </script>
 </body>
