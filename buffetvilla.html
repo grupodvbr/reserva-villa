@@ -22,55 +22,178 @@
   --radius:18px;
   --shadow:0 16px 40px rgba(0,0,0,.12);
 }
-*{box-sizing:border-box;font-family:Inter}
-body{margin:0;background:linear-gradient(180deg,#fff, var(--bg));padding:14px}
-.app{max-width:1100px;margin:auto}
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+
+/* Reset e base */
+*{
+  box-sizing:border-box;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  background:linear-gradient(180deg,#fff, var(--bg));
+  overscroll-behavior: none;
+}
+body{
+  overflow:hidden;              /* tela cheia sem scroll da página */
+}
+
+/* Container principal ocupa a tela */
+.app{
+  max-width:1400px;             /* usa melhor telas grandes */
+  margin:0 auto;
+  padding:14px 14px 22px;
+  min-height:100dvh;            /* altura real da viewport (mobile safe) */
+  display:flex;
+  flex-direction:column;
+}
+
+/* Header fixo no topo */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
 .title{font-size:22px;font-weight:900}
-.badge{background:#111827;color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
+.badge{
+  background:#111827;color:#fff;
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;white-space:nowrap
+}
 
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px}
-.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
-input,select,button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:15px}
-button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
-button.ghost{background:#fff;border:1px dashed var(--border)}
-small{color:var(--muted)}
+/* Cards */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px;
+  margin-bottom:12px;
+}
 
-.company-row{display:flex;gap:10px;align-items:center}
+/* Linha empresa */
+.company-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
 .company-row select{flex:1}
 
-.list{display:grid;gap:10px;margin-top:8px}
-.item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--border)}
+/* Formulário responsivo */
+.form-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:10px;
+}
+
+/* Inputs e botões com toque confortável */
+input, select, button{
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-size:16px;               /* evita zoom no iOS */
+  outline:none;
+}
+input:focus, select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.15);
+}
+
+button.primary{
+  background:var(--primary);
+  color:#fff;border:none;
+  font-weight:800;
+}
+button.primary:active{transform:scale(.98)}
+button.ghost{
+  background:#fff;border:1px dashed var(--border)
+}
+small{color:var(--muted)}
+
+/* Lista com scroll interno (tela cheia) */
+.list{
+  display:grid;
+  gap:10px;
+  margin-top:8px;
+  overflow:auto;
+  max-height:calc(100dvh - 360px); /* ajusta conforme header + cards */
+  padding-right:4px;
+}
+.item{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#fff;
+}
 .item .name{font-weight:800}
 .meta{font-size:13px;color:var(--muted)}
-.tag{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.tag{
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;font-weight:800
+}
 .MONTAGEM{background:#dcfce7;color:#166534}
 .REPOSICAO{background:#e0f2fe;color:#075985}
 .RETIRADA{background:#fee2e2;color:#991b1b}
 .DEVOLUCAO{background:#fef3c7;color:#92400e}
-.icon-btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px}
+.icon-btn{
+  border:1px solid var(--border);
+  background:#fff;border-radius:10px;padding:8px
+}
 .icon-btn.danger{border-color:#fecaca;color:#b91c1c}
 
+/* Modal fullscreen no mobile */
 .modal-backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);
-  display:none;align-items:flex-end;justify-content:center;z-index:999;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:999;
 }
 .modal{
-  width:100%;max-width:520px;background:#fff;border-radius:22px 22px 0 0;
-  padding:16px;box-shadow:0 -20px 40px rgba(0,0,0,.25);
-  animation:slideUp .2s ease-out;
+  width:100%;
+  max-width:560px;
+  background:#fff;
+  border-radius:22px 22px 0 0;
+  padding:16px;
+  box-shadow:0 -20px 40px rgba(0,0,0,.25);
+  animation:slideUp .18s ease-out;
 }
-@keyframes slideUp{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes slideUp{
+  from{transform:translateY(24px);opacity:.6}
+  to{transform:none;opacity:1}
+}
 .modal h3{margin:0 0 8px 0}
 .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 
+/* Desktop: modal centralizado */
 @media (min-width: 900px){
   .modal-backdrop{align-items:center}
   .modal{border-radius:22px}
 }
+
+/* Mobile: tudo em coluna, sem zoom */
 @media (max-width: 720px){
   .form-grid{grid-template-columns:1fr}
+  .title{font-size:20px}
+  .badge{font-size:11px}
+  .list{
+    max-height:calc(100dvh - 400px); /* mais espaço pro teclado */
+  }
+}
+
+/* Evita rolagem lateral */
+body, .app{
+  overflow-x:hidden;
 }
 </style>
 </head>
