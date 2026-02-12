@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Buffet • Controle Premium</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -20,66 +20,55 @@
   --success:#16a34a;
   --danger:#dc2626;
   --radius:18px;
-  --shadow:0 16px 40px rgba(0,0,0,.10);
+  --shadow:0 16px 40px rgba(0,0,0,.12);
 }
 
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:linear-gradient(180deg,#fff, var(--bg));padding:14px}
 .app{max-width:1100px;margin:auto}
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;margin-bottom:14px
-}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .title{font-size:22px;font-weight:900}
 .badge{background:#111827;color:#fff;padding:6px 10px;border-radius:999px;font-size:12px}
 
-.card{
-  background:var(--card);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:14px;margin-bottom:14px
-}
-.form-grid{
-  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px
-}
-input,select,button{
-  padding:12px 14px;border-radius:12px;border:1px solid var(--border);
-  font-size:15px;outline:none
-}
-button.primary{
-  background:var(--primary);color:#fff;border:none;font-weight:800
-}
-button.primary:active{transform:scale(.98)}
-button.ghost{
-  background:#fff;border:1px dashed var(--border);color:#111827
-}
-
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+input,select,button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:15px}
+button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
+button.ghost{background:#fff;border:1px dashed var(--border)}
 small{color:var(--muted)}
 
 .list{display:grid;gap:10px;margin-top:8px}
-.item{
-  display:grid;grid-template-columns:1fr auto;gap:10px;
-  padding:12px;border-radius:14px;border:1px solid var(--border)
-}
-.item .left{display:grid;gap:4px}
+.item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--border)}
 .item .name{font-weight:800}
-.item .meta{font-size:13px;color:var(--muted)}
-.item .right{display:flex;gap:8px;align-items:center}
-
-.tag{
-  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800
-}
+.meta{font-size:13px;color:var(--muted)}
+.tag{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800}
 .MONTAGEM{background:#dcfce7;color:#166534}
 .REPOSICAO{background:#e0f2fe;color:#075985}
 .RETIRADA{background:#fee2e2;color:#991b1b}
 .DEVOLUCAO{background:#fef3c7;color:#92400e}
-
-.icon-btn{
-  border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px
-}
+.icon-btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px}
 .icon-btn.danger{border-color:#fecaca;color:#b91c1c}
 
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:none;align-items:flex-end;justify-content:center;z-index:999;
+}
+.modal{
+  width:100%;max-width:520px;background:#fff;border-radius:22px 22px 0 0;
+  padding:16px;box-shadow:0 -20px 40px rgba(0,0,0,.25);
+  animation:slideUp .2s ease-out;
+}
+@keyframes slideUp{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+.modal h3{margin:0 0 8px 0}
+.modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+
+@media (min-width: 900px){
+  .modal-backdrop{align-items:center}
+  .modal{border-radius:22px}
+}
 @media (max-width: 720px){
   .form-grid{grid-template-columns:1fr}
-  .title{font-size:20px}
 }
 </style>
 </head>
@@ -123,6 +112,30 @@ small{color:var(--muted)}
 
 <datalist id="produtosList"></datalist>
 
+<!-- MODAL DE EDIÇÃO -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>✏️ Editar lançamento</h3>
+    <div class="grid">
+      <input id="editQuantidade" type="number" step="0.001" placeholder="Quantidade">
+      <select id="editUnidade">
+        <option value="KG">KG</option>
+        <option value="UN">UN</option>
+      </select>
+      <select id="editTipo" style="grid-column:1/-1">
+        <option value="MONTAGEM">Montagem</option>
+        <option value="REPOSICAO">Reposição</option>
+        <option value="RETIRADA">Retirada</option>
+        <option value="DEVOLUCAO">Devolução</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="primary" onclick="confirmarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const sb = window.supabase.createClient(
     "https://dxkszikemntfusfyrzos.supabase.co",
@@ -140,6 +153,8 @@ small{color:var(--muted)}
   const hoje = new Date();
   const dataHoje = hoje.toISOString().slice(0,10);
   document.getElementById("dataHoje").innerText = dataHoje;
+
+  let editId = null;
 
   async function carregarProdutos(){
     const { data } = await sb.from("buffet_produtos").select("nome").order("nome");
@@ -163,13 +178,13 @@ small{color:var(--muted)}
     data?.forEach(l=>{
       lista.innerHTML += `
         <div class="item">
-          <div class="left">
+          <div>
             <div class="name">${l.produto_nome}</div>
             <div class="meta">${l.quantidade} ${l.unidade} • ${l.hora}</div>
             <span class="tag ${l.tipo}">${l.tipo}</span>
           </div>
-          <div class="right">
-            <button class="icon-btn" onclick="editar('${l.id}', '${l.quantidade}', '${l.unidade}', '${l.tipo}')">
+          <div style="display:flex;gap:8px">
+            <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
               <i class="ri-edit-2-line"></i>
             </button>
             <button class="icon-btn danger" onclick="excluir('${l.id}')">
@@ -187,19 +202,12 @@ small{color:var(--muted)}
     const unidade = unidadeSelect.value;
     const tipo = tipoSelect.value;
 
-    if(!produtoNome || !quantidade){
-      alert("Preencha o prato e a quantidade");
-      return;
-    }
+    if(!produtoNome || !quantidade){ alert("Preencha tudo"); return; }
 
     let { data:prod } = await sb.from("buffet_produtos").select("*").eq("nome", produtoNome).maybeSingle();
     if(!prod){
-      const { data:nova } = await sb
-        .from("buffet_produtos")
-        .insert({ nome: produtoNome, unidade_padrao: unidade })
-        .select().single();
-      prod = nova;
-      carregarProdutos();
+      const { data:nova } = await sb.from("buffet_produtos").insert({ nome: produtoNome, unidade_padrao: unidade }).select().single();
+      prod = nova; carregarProdutos();
     }
 
     const hora = new Date().toTimeString().slice(0,8);
@@ -207,29 +215,31 @@ small{color:var(--muted)}
     await sb.from("buffet_lancamentos").insert({
       produto_id: prod.id,
       produto_nome: produtoNome,
-      tipo,
-      quantidade,
-      unidade,
-      data: dataHoje,
-      hora
+      tipo, quantidade, unidade, data: dataHoje, hora
     });
 
-    limpar();
-    carregarLancamentos();
+    limpar(); carregarLancamentos();
   }
 
-  async function editar(id, qtd, un, tipo){
-    const novaQtd = prompt("Nova quantidade:", qtd);
-    if(!novaQtd) return;
+  function abrirModal(id, qtd, un, tipo){
+    editId = id;
+    document.getElementById("editQuantidade").value = qtd;
+    document.getElementById("editUnidade").value = un;
+    document.getElementById("editTipo").value = tipo;
+    document.getElementById("modalBackdrop").style.display = "flex";
+  }
+  function fecharModal(){
+    document.getElementById("modalBackdrop").style.display = "none";
+    editId = null;
+  }
+  async function confirmarEdicao(){
+    const qtd = parseFloat(document.getElementById("editQuantidade").value);
+    const un = document.getElementById("editUnidade").value;
+    const tipo = document.getElementById("editTipo").value;
+    if(!qtd){ alert("Quantidade inválida"); return; }
 
-    const novaUn = prompt("Unidade (KG ou UN):", un) || un;
-    const novoTipo = prompt("Tipo (MONTAGEM, REPOSICAO, RETIRADA, DEVOLUCAO):", tipo) || tipo;
-
-    await sb.from("buffet_lancamentos")
-      .update({ quantidade: parseFloat(novaQtd), unidade: novaUn, tipo: novoTipo })
-      .eq("id", id);
-
-    carregarLancamentos();
+    await sb.from("buffet_lancamentos").update({ quantidade:qtd, unidade:un, tipo }).eq("id", editId);
+    fecharModal(); carregarLancamentos();
   }
 
   async function excluir(id){
