@@ -45,30 +45,18 @@ html,body{margin:0;background:var(--bg)}
 }
 
 .filters{
-  display:grid;grid-template-columns:1fr 1fr auto;gap:8px;
+  display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;
 }
-.filters input, .filters button{
+.filters input, .filters select, .filters button{
   padding:12px 14px;border-radius:14px;border:1px solid var(--border);font-size:15px
 }
 .filters button{
   background:var(--primary);color:#fff;border:none;font-weight:900
 }
 
-.chart-wrap{
-  height:220px;
-}
-.kpis{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px
-}
-.kpi{
-  border:1px solid var(--border);border-radius:16px;padding:12px
-}
-.kpi b{font-size:18px}
-.kpi small{color:var(--muted)}
+.chart-wrap{height:220px}
 
-.list{
-  display:grid;gap:10px
-}
+.list{display:grid;gap:10px}
 .item{
   border:1px solid var(--border);
   border-radius:18px;
@@ -88,7 +76,6 @@ html,body{margin:0;background:var(--bg)}
 .dev{background:#fef3c7;color:#92400e}
 
 @media(min-width: 900px){
-  .filters{grid-template-columns:1fr 1fr auto}
   .list{display:none}
   .table{display:block}
 }
@@ -111,6 +98,12 @@ th{background:#fafafa;position:sticky;top:0}
 
   <div class="card">
     <div class="filters">
+      <select id="empresaSelect">
+        <option value="VILLA GOURMET">Villa Gourmet</option>
+        <option value="CHURRASCADA">Churrascada</option>
+        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+      </select>
       <input type="date" id="dtInicio">
       <input type="date" id="dtFim">
       <button id="btnFiltrar">Atualizar</button>
@@ -118,14 +111,14 @@ th{background:#fafafa;position:sticky;top:0}
   </div>
 
   <div class="card">
-    <b>Total produzido por dia</b>
+    <b>Total produzido por dia (Montagem + Reposição)</b>
     <div class="chart-wrap">
       <canvas id="chart"></canvas>
     </div>
   </div>
 
   <div class="card">
-    <b>Resumo por prato</b>
+    <b>Resumo por prato (Empresa selecionada)</b>
 
     <!-- MOBILE -->
     <div class="list" id="list"></div>
@@ -156,6 +149,7 @@ const sb = window.supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
+const empresaSelect = document.getElementById("empresaSelect");
 const dtInicio = document.getElementById("dtInicio");
 const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
@@ -168,7 +162,12 @@ function formatBR(iso){
 }
 
 async function carregar(){
-  let q = sb.from("buffet_lancamentos").select("*");
+  const empresa = empresaSelect.value;
+
+  let q = sb.from("buffet_lancamentos")
+    .select("*")
+    .eq("empresa", empresa);
+
   if(dtInicio.value) q = q.gte("data", dtInicio.value);
   if(dtFim.value) q = q.lte("data", dtFim.value);
 
@@ -230,7 +229,9 @@ async function carregar(){
 const hoje = new Date();
 dtFim.value = hoje.toISOString().slice(0,10);
 dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
+
 btnFiltrar.onclick = carregar;
+empresaSelect.onchange = carregar;
 
 carregar();
 </script>
