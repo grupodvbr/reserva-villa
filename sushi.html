@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Controle de Buffet • Premium</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --radius:20px;
+  --shadow:0 20px 40px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);padding:22px}
+.app{max-width:1100px;margin:auto}
+.header{font-size:26px;font-weight:900;margin-bottom:18px}
+
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px}
+input,select,button{
+  padding:14px 16px;border-radius:14px;border:1px solid var(--border);
+  font-size:15px;outline:none
+}
+button{
+  background:var(--primary);color:#fff;border:none;font-weight:700;cursor:pointer
+}
+button:hover{opacity:.9}
+
+.lista{margin-top:12px}
+.item{display:grid;grid-template-columns:1fr 120px 100px 120px;gap:10px;padding:12px;border-bottom:1px solid var(--border)}
+.tag{padding:6px 10px;border-radius:10px;font-size:12px;font-weight:700;text-align:center}
+.MONTAGEM{background:#dcfce7;color:#166534}
+.REPOSICAO{background:#e0f2fe;color:#075985}
+.RETIRADA{background:#fee2e2;color:#991b1b}
+.DEVOLUCAO{background:#fef3c7;color:#92400e}
+
+small{color:var(--muted)}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">🍽️ Controle de Buffet</div>
+
+  <div class="card">
+    <div class="grid">
+      <input id="produto" placeholder="Digite o prato (busca + cadastra)" list="produtosList">
+      <input id="quantidade" type="number" step="0.001" placeholder="Qtd">
+      <select id="unidade">
+        <option value="KG">KG</option>
+        <option value="UN">UN</option>
+      </select>
+      <select id="tipo">
+        <option value="MONTAGEM">Montagem</option>
+        <option value="REPOSICAO">Reposição</option>
+        <option value="RETIRADA">Retirada</option>
+        <option value="DEVOLUCAO">Devolução</option>
+      </select>
+    </div>
+    <button style="margin-top:12px;width:100%" onclick="salvar()">Salvar lançamento</button>
+    <small>📅 Data salva automaticamente: <b id="dataHoje"></b></small>
+  </div>
+
+  <div class="card">
+    <b>📋 Lançamentos de Hoje</b>
+    <div class="lista" id="lista"></div>
+  </div>
+
+</div>
+
+<datalist id="produtosList"></datalist>
+
+<script>
+const supabase = supabase.createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+const hoje = new Date();
+const dataHoje = hoje.toISOString().slice(0,10);
+document.getElementById("dataHoje").innerText = dataHoje;
+
+async function carregarProdutos(){
+  const { data } = await supabase.from("buffet_produtos").select("nome");
+  const list = document.getElementById("produtosList");
+  list.innerHTML = "";
+  data?.forEach(p=>{
+    const o = document.createElement("option");
+    o.value = p.nome;
+    list.appendChild(o);
+  });
+}
+carregarProdutos();
+
+async function salvar(){
+  const produtoNome = produto.value.trim().toUpperCase();
+  const quantidade = parseFloat(document.getElementById("quantidade").value);
+  const unidade = unidadeSelect.value;
+  const tipo = tipoSelect.value;
+
+  if(!produtoNome || !quantidade) return alert("Preencha tudo");
+
+  let { data:prod } = await supabase
+    .from("buffet_produtos")
+    .select("*")
+    .eq("nome", produtoNome)
+    .maybeSingle();
+
+  if(!prod){
+    const { data:nova } = await supabase
+      .from("buffet_produtos")
+      .insert({ nome: produtoNome, unidade_padrao: unidade })
+      .select().single();
+    prod = nova;
+    carregarProdutos();
+  }
+
+  const agora = new Date();
+  const hora = agora.toTimeString().slice(0,8);
+
+  await supabase.from("buffet_lancamentos").insert({
+    produto_id: prod.id,
+    produto_nome: produtoNome,
+    tipo,
+    quantidade,
+    unidade,
+    data: dataHoje,
+    hora
+  });
+
+  produto.value = "";
+  quantidade.value = "";
+  carregarLancamentos();
+}
+
+async function carregarLancamentos(){
+  const { data } = await supabase
+    .from("buffet_lancamentos")
+    .select("*")
+    .eq("data", dataHoje)
+    .order("created_at", { ascending:false });
+
+  lista.innerHTML = "";
+  data?.forEach(l=>{
+    lista.innerHTML += `
+      <div class="item">
+        <b>${l.produto_nome}</b>
+        <div>${l.quantidade} ${l.unidade}</div>
+        <span class="tag ${l.tipo}">${l.tipo}</span>
+        <small>${l.hora}</small>
+      </div>
+    `;
+  });
+}
+carregarLancamentos();
+</script>
+
+</body>
+</html>
