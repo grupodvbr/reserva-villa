@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Buffet • Analítico por Empresa</title>
+<title>Buffet • Analítico por Item</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -22,22 +22,20 @@
 }
 *{box-sizing:border-box;font-family:Inter}
 html,body{margin:0;background:var(--bg)}
-.app{max-width:100%;margin:auto;padding:8px 8px 64px}
-
+.app{max-width:100%;margin:auto;padding:8px 8px 72px}
 .header{padding:8px 0 6px;margin-bottom:6px}
 .title{font-size:18px;font-weight:900}
 .sub{font-size:11px;color:var(--muted)}
 
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;margin-bottom:8px}
 
-/* FILTROS RESPONSIVOS */
+/* Filtros */
 .filters{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:6px;
 }
-.filters input,
-.filters button{
+.filters select,.filters input,.filters button{
   width:100%;
   padding:9px 10px;border-radius:10px;border:1px solid var(--border);font-size:13px
 }
@@ -45,18 +43,50 @@ html,body{margin:0;background:var(--bg)}
   grid-column:1/-1;
   background:var(--primary);color:#fff;border:none;font-weight:800
 }
-
-/* Desktop */
-@media(min-width: 900px){
+@media(min-width:900px){
   .app{max-width:1100px}
   .filters{grid-template-columns:1fr 1fr auto}
   .filters button{grid-column:auto}
 }
 
-.chart-wrap{height:140px}
-.kpis{display:grid;grid-template-columns:1fr;gap:6px}
-.kpi{border:1px solid var(--border);border-radius:12px;padding:8px;font-size:12px}
-.kpi b{font-size:14px}
+/* Lista */
+.list{display:grid;gap:6px}
+.item{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:8px;
+  display:grid;gap:6px;
+  cursor:pointer;
+}
+.item:hover{background:#fafafa}
+.item .name{font-weight:800;font-size:13px}
+.row{display:grid;grid-template-columns:1fr auto;gap:6px;font-size:12px}
+.badge{padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800}
+.mont{background:#dcfce7;color:#166534}
+.rep{background:#e0f2fe;color:#075985}
+.ret{background:#fee2e2;color:#991b1b}
+.dev{background:#fef3c7;color:#92400e}
+.tot{background:#f1f5f9;color:#0f172a}
+
+/* Modal */
+.backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:none;align-items:flex-end;justify-content:center;z-index:999;
+}
+.modal{
+  width:100%;max-width:520px;background:#fff;border-radius:16px 16px 0 0;
+  padding:12px;box-shadow:0 -16px 40px rgba(0,0,0,.25);
+}
+.modal h3{margin:4px 0 8px 0}
+.modal .log{display:grid;gap:6px;max-height:60vh;overflow:auto}
+.log-item{
+  border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px;
+  display:grid;grid-template-columns:1fr auto;gap:6px
+}
+@media(min-width:900px){
+  .backdrop{align-items:center}
+  .modal{border-radius:16px}
+}
 </style>
 </head>
 
@@ -64,37 +94,37 @@ html,body{margin:0;background:var(--bg)}
 <div class="app">
 
   <div class="header">
-    <div class="title">📊 Desempenho por Empresa</div>
-    <div class="sub">Produção vs Retiradas (por período)</div>
+    <div class="title">📊 Analítico por Item</div>
+    <div class="sub">Empresa • Período • Movimentações</div>
   </div>
 
   <div class="card">
     <div class="filters">
-      <input type="date" id="dtInicio">
-      <input type="date" id="dtFim">
+      <select id="empresaSelect">
+        <option value="VILLA GOURMET">Villa Gourmet</option>
+        <option value="CHURRASCADA">Churrascada</option>
+        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+      </select>
+      <!-- Período em um calendário (input range nativo funciona no mobile moderno) -->
+      <input type="text" id="periodo" placeholder="Ex: 01/02/2026 - 10/02/2026" readonly>
       <button id="btnFiltrar">Atualizar</button>
     </div>
   </div>
 
   <div class="card">
-    <b style="font-size:13px">Produção total (Montagem + Reposição)</b>
-    <div class="chart-wrap">
-      <canvas id="chartProducao"></canvas>
-    </div>
+    <b style="font-size:13px">Itens do período</b>
+    <div class="list" id="list"></div>
   </div>
 
-  <div class="card">
-    <b style="font-size:13px">Retiradas totais</b>
-    <div class="chart-wrap">
-      <canvas id="chartRetiradas"></canvas>
-    </div>
-  </div>
+</div>
 
-  <div class="card">
-    <b style="font-size:13px">🏆 Melhor desempenho no período</b>
-    <div id="melhor" class="kpis"></div>
+<!-- MODAL -->
+<div class="backdrop" id="backdrop" onclick="fecharModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="modalTitle">Movimentações</h3>
+    <div class="log" id="log"></div>
   </div>
-
 </div>
 
 <script>
@@ -103,69 +133,97 @@ const sb = window.supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-const dtInicio = document.getElementById("dtInicio");
-const dtFim = document.getElementById("dtFim");
+const empresaSelect = document.getElementById("empresaSelect");
+const periodoInput = document.getElementById("periodo");
 const btnFiltrar = document.getElementById("btnFiltrar");
+const list = document.getElementById("list");
+const backdrop = document.getElementById("backdrop");
+const logEl = document.getElementById("log");
+const modalTitle = document.getElementById("modalTitle");
 
-let chartProducao, chartRetiradas;
+// Range simples (7 dias por padrão)
+const hoje = new Date();
+const fimISO = hoje.toISOString().slice(0,10);
+const iniISO = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
+periodoInput.value = `${new Date(iniISO).toLocaleDateString("pt-BR")} - ${new Date(fimISO).toLocaleDateString("pt-BR")}`;
 
-async function carregar(){
-  let q = sb.from("buffet_lancamentos").select("*");
-  if(dtInicio.value) q = q.gte("data", dtInicio.value);
-  if(dtFim.value) q = q.lte("data", dtFim.value);
-
-  const { data } = await q;
-
-  const empresas = {};
-  data?.forEach(r=>{
-    empresas[r.empresa] ||= {prod:0, retir:0};
-    if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
-      empresas[r.empresa].prod += Number(r.quantidade||0);
-    }
-    if(r.tipo==='RETIRADA'){
-      empresas[r.empresa].retir += Number(r.quantidade||0);
-    }
-  });
-
-  const labels = Object.keys(empresas);
-  const prodVals = labels.map(e=>empresas[e].prod);
-  const retVals = labels.map(e=>empresas[e].retir);
-
-  if(chartProducao) chartProducao.destroy();
-  chartProducao = new Chart(document.getElementById("chartProducao"), {
-    type:'bar',
-    data:{ labels, datasets:[{ data:prodVals }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
-  });
-
-  if(chartRetiradas) chartRetiradas.destroy();
-  chartRetiradas = new Chart(document.getElementById("chartRetiradas"), {
-    type:'bar',
-    data:{ labels, datasets:[{ data:retVals }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
-  });
-
-  let melhorEmpresa = null, melhorScore = -Infinity;
-  Object.entries(empresas).forEach(([e,v])=>{
-    const score = v.prod - v.retir;
-    if(score > melhorScore){ melhorScore = score; melhorEmpresa = e; }
-  });
-
-  melhor.innerHTML = melhorEmpresa ? `
-    <div class="kpi">
-      <b>${melhorEmpresa}</b><br>
-      Produção: ${empresas[melhorEmpresa].prod.toFixed(2)}<br>
-      Retiradas: ${empresas[melhorEmpresa].retir.toFixed(2)}<br>
-      <small>Score: ${melhorScore.toFixed(2)}</small>
-    </div>
-  ` : '<small>Sem dados no período.</small>';
+function parsePeriodo(){
+  const [iniBR,fimBR] = periodoInput.value.split(" - ");
+  const [di,mi,yi] = iniBR.split("/"); 
+  const [df,mf,yf] = fimBR.split("/");
+  return {
+    ini: `${yi}-${mi}-${di}`,
+    fim: `${yf}-${mf}-${df}`
+  };
 }
 
-const hoje = new Date();
-dtFim.value = hoje.toISOString().slice(0,10);
-dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
+async function carregar(){
+  const empresa = empresaSelect.value;
+  const { ini, fim } = parsePeriodo();
 
+  let q = sb.from("buffet_lancamentos")
+    .select("*")
+    .eq("empresa", empresa)
+    .gte("data", ini)
+    .lte("data", fim);
+
+  const { data } = await q.order("data",{ascending:true});
+
+  const porItem = {};
+  data?.forEach(r=>{
+    porItem[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
+    porItem[r.produto_nome][r.tipo] += Number(r.quantidade||0);
+  });
+
+  list.innerHTML = Object.entries(porItem).map(([nome,v])=>{
+    const total = v.MONTAGEM + v.REPOSICAO;
+    return `
+      <div class="item" onclick="abrirModal('${nome.replace(/'/g,"\\'")}')">
+        <div class="name">${nome}</div>
+        <div class="row"><span class="badge mont">Mont</span><b>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge rep">Rep</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge ret">Ret</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge dev">Dev</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function abrirModal(produto){
+  const empresa = empresaSelect.value;
+  const { ini, fim } = parsePeriodo();
+
+  modalTitle.textContent = `Movimentações • ${produto}`;
+  backdrop.style.display = "flex";
+  logEl.innerHTML = "Carregando...";
+
+  const { data } = await sb.from("buffet_lancamentos")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("produto_nome", produto)
+    .gte("data", ini)
+    .lte("data", fim)
+    .order("created_at",{ascending:false});
+
+  logEl.innerHTML = data?.map(r=>`
+    <div class="log-item">
+      <div>
+        <b>${r.tipo}</b><br>
+        <small>${new Date(r.data).toLocaleDateString("pt-BR")} • ${r.hora}</small>
+      </div>
+      <b>${Number(r.quantidade).toFixed(2)} ${r.unidade}</b>
+    </div>
+  `).join("") || "<small>Sem movimentações.</small>";
+}
+
+function fecharModal(){ backdrop.style.display="none"; }
+
+// Atualizações
 btnFiltrar.onclick = carregar;
+empresaSelect.onchange = carregar;
+
+// Primeira carga
 carregar();
 </script>
 </body>
