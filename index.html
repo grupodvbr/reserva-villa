@@ -439,8 +439,13 @@
 const formatBRLInput = v => {
   const only = v.replace(/[^\d]/g, "");
   if (!only) return "";
+
   const n = Number(only) / 100;
-  return n.toFixed(2).replace(".", ",");
+
+  return n.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 };
 
 const parseBRL = v => {
