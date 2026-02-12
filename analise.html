@@ -17,63 +17,60 @@
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --success:#16a34a;
-  --danger:#dc2626;
-  --radius:22px;
-  --shadow:0 14px 40px rgba(0,0,0,.12);
+  --radius:18px;
+  --shadow:0 12px 34px rgba(0,0,0,.10);
 }
 *{box-sizing:border-box;font-family:Inter}
 html,body{margin:0;background:var(--bg)}
-.app{max-width:1200px;margin:auto;padding:12px 12px 96px}
+.app{max-width:1100px;margin:auto;padding:10px 10px 72px}
 
 .header{
   position:sticky;top:0;z-index:20;
   background:linear-gradient(180deg,#fff, #fff0);
   backdrop-filter: blur(6px);
-  padding:12px 0 10px;
+  padding:10px 0 8px;
   margin-bottom:8px;
 }
-.title{font-size:22px;font-weight:900}
+.title{font-size:20px;font-weight:900}
 .sub{font-size:12px;color:var(--muted)}
 
 .card{
   background:var(--card);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:14px;
-  margin-bottom:12px;
+  padding:12px;
+  margin-bottom:10px;
 }
 
 .filters{
   display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;
 }
-.filters input, .filters select, .filters button{
-  padding:12px 14px;border-radius:14px;border:1px solid var(--border);font-size:15px
+.filters input,.filters select,.filters button{
+  padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:14px
 }
-.filters button{
-  background:var(--primary);color:#fff;border:none;font-weight:900
-}
+.filters button{background:var(--primary);color:#fff;border:none;font-weight:800}
 
-.chart-wrap{height:220px}
+.chart-wrap{height:180px}
 
-.list{display:grid;gap:10px}
+.list{display:grid;gap:8px}
 .item{
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:12px;
-  display:grid;gap:8px
+  border-radius:14px;
+  padding:10px;
+  display:grid;gap:6px
 }
-.item .name{font-weight:900}
+.item .name{font-weight:800;font-size:14px}
 .row{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px
+  display:grid;grid-template-columns:1fr auto;gap:6px;font-size:13px
 }
 .badge{
-  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800
+  padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800
 }
 .mont{background:#dcfce7;color:#166534}
 .rep{background:#e0f2fe;color:#075985}
 .ret{background:#fee2e2;color:#991b1b}
 .dev{background:#fef3c7;color:#92400e}
+.tot{background:#f1f5f9;color:#0f172a}
 
 @media(min-width: 900px){
   .list{display:none}
@@ -177,7 +174,7 @@ async function carregar(){
   const porDia = {};
 
   data?.forEach(r=>{
-    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0};
+    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
     porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
 
     if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
@@ -191,11 +188,11 @@ async function carregar(){
     return `
       <div class="item">
         <div class="name">${nome}</div>
-        <div class="row"><span class="badge mont">Montado</span><b>${v.MONTAGEM.toFixed(2)}</b></div>
-        <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)}</b></div>
-        <div class="row"><span class="badge">Total</span><b>${total.toFixed(2)}</b></div>
-        <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)}</b></div>
-        <div class="row"><span class="badge dev">Devolvido</span><b>${v.DEVOLUCAO.toFixed(2)}</b></div>
+        <div class="row"><span class="badge mont">Montado</span><b>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge dev">Devolvido</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
       </div>
     `;
   }).join("");
@@ -206,11 +203,11 @@ async function carregar(){
     return `
       <tr>
         <td><b>${nome}</b></td>
-        <td>${v.MONTAGEM.toFixed(2)}</td>
-        <td>${v.REPOSICAO.toFixed(2)}</td>
-        <td><b>${total.toFixed(2)}</b></td>
-        <td>${v.RETIRADA.toFixed(2)}</td>
-        <td>${v.DEVOLUCAO.toFixed(2)}</td>
+        <td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
+        <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
+        <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
+        <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
+        <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
       </tr>
     `;
   }).join("");
