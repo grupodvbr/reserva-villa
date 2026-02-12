@@ -436,12 +436,10 @@
     const toast = (msg, ms=3500) => { const el = $("#toast"); el.textContent = msg; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"), ms); };
     const maskPhone = v => { const d = v.replace(/\D/g,'').slice(0,11); return d.length<=10? d.replace(/^(\d{2})(\d{4})(\d{0,4}).*/,"($1) $2-$3") : d.replace(/^(\d{2})(\d{5})(\d{0,4}).*/,"($1) $2-$3"); };
     const formatBRL = (num) => Number(num||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-    const formatBRLInput = v => {
+const formatBRLInput = v => {
   const only = v.replace(/[^\d]/g, "");
+  if (!only) return "";
   const n = Number(only) / 100;
-  if (isNaN(n)) return "";
-
-  // Mantém apenas vírgula decimal, sem ponto de milhar
   return n.toFixed(2).replace(".", ",");
 };
 
@@ -557,8 +555,11 @@
         cell.className = 'cal-day' + (inMonth? '':' out');
         cell.dataset.date = ymd(d);
 
-        const items = state.reservas.filter(r=> r.datahora && ymd(new Date(r.datahora))===ymd(d));
-
+const items = state.reservas.filter(r=>{
+  if(!r.datahora) return false;
+  const dt = new Date(r.datahora);
+  return !isNaN(dt) && ymd(dt) === ymd(d);
+});
         // Agrupar por setor e colorir VIP vs OUTROS
         const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
         const groups = new Map();
@@ -656,16 +657,18 @@
               : `<button class="btn btn-ghost btn-editar" data-id="${r.id}" style="width:auto">Editar</button>`
             }
             <button class="btn btn-danger btn-excluir" data-id="${r.id}" style="width:auto">Excluir</button>
-            <button class="btn btn-primary btn-concluir" data-id="${r.id}" style="width:auto">Concluir</button>
-          </div>
+${status === 'Concluída'
+  ? `<span class="chip">Concluída</span>`
+  : `<button class="btn btn-primary btn-concluir" data-id="${r.id}" style="width:auto">Concluir</button>`
+}          </div>
         </div>
         <div class="meta"><b>Email:</b> ${r.email||'—'} • <b>Tel:</b> ${r.telefone||'—'}</div>
         <div class="meta"><b>Cardápio:</b> ${r.cardapio||'—'} • <b>Banco:</b> ${r.banco||'—'}</div>
         <div class="meta"><b>Obs:</b> ${r.observacoes||'—'}</div>
         <div class="meta">
-  Estimado: R$ ${r.valorEstimado ?? ''} • 
-  Adiantamento: R$ ${r.pagamentoAntecipado ?? ''} • 
-  Final pago: R$ ${r.valorFinalPago ?? ''}
+Estimado: ${formatBRL(parseBRL(r.valorEstimado))} • 
+Adiantamento: ${formatBRL(parseBRL(r.pagamentoAntecipado))} • 
+Final pago: ${formatBRL(parseBRL(r.valorFinalPago))}
 </div>
 
         ${pagamentos? `<div class="meta">${pagamentos}</div>`:""}
@@ -695,8 +698,19 @@
 
     inputData.min = nowLocalMin();
     inputTelefone.addEventListener('input', e => e.target.value = maskPhone(e.target.value));
-    ;inputValor.addEventListener('input', e => e.target.value = formatBRLInput(e.target.value));
+const moneyInputs = [
+  $('#valorEstimado'),
+  $('#pagamentoAntecipado'),
+  $('#finalPagoInput'),
+  $('#e_valorEstimado'),
+  $('#e_pagamentoAntecipado')
+].filter(Boolean);
 
+moneyInputs.forEach(inp => {
+  inp.addEventListener('input', e => {
+    e.target.value = formatBRLInput(e.target.value);
+  });
+});
     const toggleBancoRequired = () => {
       const v = parseBRL(inputSinal.value);
       const has = v > 0; selectBanco.required = has; bancoReq.style.display = has? '' : 'none';
@@ -759,8 +773,11 @@
     function collectPayload(){
       const fd = new FormData(form);
       const obj = Object.fromEntries(fd.entries());
-      obj.valorEstimado = String(parseBRL(obj.valorEstimado||0));
-      obj.pagamentoAntecipado = String(parseBRL(obj.pagamentoAntecipado||0));
+const dtLocal = new Date(obj.datahora);
+dtLocal.setMinutes(dtLocal.getMinutes() - dtLocal.getTimezoneOffset());
+obj.datahora = dtLocal.toISOString().slice(0,19).replace('T',' ');
+obj.valorEstimado = String(parseBRL(obj.valorEstimado||0));
+obj.pagamentoAntecipado = String(parseBRL(obj.pagamentoAntecipado||0));
       return obj;
     }
 
@@ -801,9 +818,8 @@
         $('#datahora').value = '';
       }
 
-      // Valores R$
-      $('#valorEstimado').value = (Number(r.valorEstimado||0)).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
-$('#pagamentoAntecipado').value = r.pagamentoAntecipado ?? '';
+      $('#valorEstimado').value = formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100));
+$('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100));
       $('#banco').value = r.banco || '';
 
       // Status
@@ -842,7 +858,7 @@ $('#pagamentoAntecipado').value = r.pagamentoAntecipado ?? '';
 
     function onClickConcluir(e){
       finishId = e.currentTarget.dataset.id;
-      finalPagoInput.value = '';
+finalPagoInput.value = formatBRLInput('');
       finishModal.classList.add('show');
       finalPagoInput.focus();
     }
