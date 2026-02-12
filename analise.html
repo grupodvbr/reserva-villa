@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
 :root{
@@ -106,8 +105,7 @@ html,body{margin:0;background:var(--bg)}
         <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
         <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
       </select>
-      <!-- Período em um calendário (input range nativo funciona no mobile moderno) -->
-      <input type="text" id="periodo" placeholder="Ex: 01/02/2026 - 10/02/2026" readonly>
+      <input type="text" id="periodo" placeholder="DD/MM/AAAA - DD/MM/AAAA" />
       <button id="btnFiltrar">Atualizar</button>
     </div>
   </div>
@@ -141,7 +139,7 @@ const backdrop = document.getElementById("backdrop");
 const logEl = document.getElementById("log");
 const modalTitle = document.getElementById("modalTitle");
 
-// Range simples (7 dias por padrão)
+// Período padrão (últimos 7 dias)
 const hoje = new Date();
 const fimISO = hoje.toISOString().slice(0,10);
 const iniISO = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
@@ -149,25 +147,23 @@ periodoInput.value = `${new Date(iniISO).toLocaleDateString("pt-BR")} - ${new Da
 
 function parsePeriodo(){
   const [iniBR,fimBR] = periodoInput.value.split(" - ");
-  const [di,mi,yi] = iniBR.split("/"); 
+  if(!iniBR || !fimBR) return {};
+  const [di,mi,yi] = iniBR.split("/");
   const [df,mf,yf] = fimBR.split("/");
-  return {
-    ini: `${yi}-${mi}-${di}`,
-    fim: `${yf}-${mf}-${df}`
-  };
+  return { ini:`${yi}-${mi}-${di}`, fim:`${yf}-${mf}-${df}` };
 }
 
 async function carregar(){
   const empresa = empresaSelect.value;
   const { ini, fim } = parsePeriodo();
+  if(!ini || !fim){ alert("Informe o período no formato DD/MM/AAAA - DD/MM/AAAA"); return; }
 
-  let q = sb.from("buffet_lancamentos")
+  const { data } = await sb.from("buffet_lancamentos")
     .select("*")
     .eq("empresa", empresa)
     .gte("data", ini)
-    .lte("data", fim);
-
-  const { data } = await q.order("data",{ascending:true});
+    .lte("data", fim)
+    .order("created_at",{ascending:false});
 
   const porItem = {};
   data?.forEach(r=>{
@@ -187,7 +183,7 @@ async function carregar(){
         <div class="row"><span class="badge dev">Dev</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
       </div>
     `;
-  }).join("");
+  }).join("") || "<small>Sem dados no período.</small>";
 }
 
 async function abrirModal(produto){
@@ -219,7 +215,6 @@ async function abrirModal(produto){
 
 function fecharModal(){ backdrop.style.display="none"; }
 
-// Atualizações
 btnFiltrar.onclick = carregar;
 empresaSelect.onchange = carregar;
 
