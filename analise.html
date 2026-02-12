@@ -23,62 +23,26 @@
 *{box-sizing:border-box;font-family:Inter}
 html,body{margin:0;background:var(--bg)}
 .app{max-width:1100px;margin:auto;padding:10px 10px 72px}
-
-.header{
-  position:sticky;top:0;z-index:20;
-  background:linear-gradient(180deg,#fff, #fff0);
-  backdrop-filter: blur(6px);
-  padding:10px 0 8px;
-  margin-bottom:8px;
-}
+.header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#fff, #fff0);backdrop-filter: blur(6px);padding:10px 0 8px;margin-bottom:8px}
 .title{font-size:20px;font-weight:900}
 .sub{font-size:12px;color:var(--muted)}
-
-.card{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:12px;
-  margin-bottom:10px;
-}
-
-.filters{
-  display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;
-}
-.filters input,.filters select,.filters button{
-  padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:14px
-}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:10px}
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px}
+.filters input,.filters select,.filters button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:14px}
 .filters button{background:var(--primary);color:#fff;border:none;font-weight:800}
-
 .chart-wrap{height:180px}
-
 .list{display:grid;gap:8px}
-.item{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px;
-  display:grid;gap:6px
-}
+.item{border:1px solid var(--border);border-radius:14px;padding:10px;display:grid;gap:6px}
 .item .name{font-weight:800;font-size:14px}
-.row{
-  display:grid;grid-template-columns:1fr auto;gap:6px;font-size:13px
-}
-.badge{
-  padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800
-}
+.row{display:grid;grid-template-columns:1fr auto;gap:6px;font-size:13px}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}
 .mont{background:#dcfce7;color:#166534}
 .rep{background:#e0f2fe;color:#075985}
 .ret{background:#fee2e2;color:#991b1b}
-.dev{background:#fef3c7;color:#92400e}
+.des{background:#fef3c7;color:#92400e}
 .tot{background:#f1f5f9;color:#0f172a}
-
-@media(min-width: 900px){
-  .list{display:none}
-  .table{display:block}
-}
-@media(max-width: 899px){
-  .table{display:none}
-}
+@media(min-width:900px){.list{display:none}.table{display:block}}
+@media(max-width:899px){.table{display:none}}
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
 th{background:#fafafa;position:sticky;top:0}
@@ -109,18 +73,14 @@ th{background:#fafafa;position:sticky;top:0}
 
   <div class="card">
     <b>Total produzido por dia (Montagem + Reposição)</b>
-    <div class="chart-wrap">
-      <canvas id="chart"></canvas>
-    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
   </div>
 
   <div class="card">
-    <b>Resumo por prato (Empresa selecionada)</b>
+    <b>Resumo por prato</b>
 
-    <!-- MOBILE -->
     <div class="list" id="list"></div>
 
-    <!-- DESKTOP -->
     <div class="table">
       <table>
         <thead>
@@ -130,7 +90,7 @@ th{background:#fafafa;position:sticky;top:0}
             <th>Reposto</th>
             <th>Total</th>
             <th>Retirado</th>
-            <th>Desperdicado</th>
+            <th>Desperdício</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -141,50 +101,31 @@ th{background:#fafafa;position:sticky;top:0}
 </div>
 
 <script>
-const sb = window.supabase.createClient(
-  "https://dxkszikemntfusfyrzos.supabase.co",
-  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
-);
-
-const empresaSelect = document.getElementById("empresaSelect");
-const dtInicio = document.getElementById("dtInicio");
-const dtFim = document.getElementById("dtFim");
-const btnFiltrar = document.getElementById("btnFiltrar");
-
+const sb = supabase.createClient("https://dxkszikemntfusfyrzos.supabase.co","sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed");
 let chart;
 
-function formatBR(iso){
-  const [y,m,d]=iso.split("-");
-  return `${d}/${m}/${y}`;
-}
+function formatBR(iso){const [y,m,d]=iso.split("-");return `${d}/${m}/${y}`}
 
 async function carregar(){
   const empresa = empresaSelect.value;
-
-  let q = sb.from("buffet_lancamentos")
-    .select("*")
-    .eq("empresa", empresa);
-
+  let q = sb.from("buffet_lancamentos").select("*").eq("empresa", empresa);
   if(dtInicio.value) q = q.gte("data", dtInicio.value);
   if(dtFim.value) q = q.lte("data", dtFim.value);
 
   const { data } = await q.order("data",{ascending:true});
 
-  const porPrato = {};
-  const porDia = {};
+  const porPrato={}, porDia={};
 
   data?.forEach(r=>{
     porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DESPERDICIO:0, UNIDADE:r.unidade};
     porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
-
-    if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
-      porDia[r.data] = (porDia[r.data]||0) + Number(r.quantidade||0);
+    if(r.tipo==='MONTAGEM'||r.tipo==='REPOSICAO'){
+      porDia[r.data]=(porDia[r.data]||0)+Number(r.quantidade||0);
     }
   });
 
-  // Mobile cards
   list.innerHTML = Object.entries(porPrato).map(([nome,v])=>{
-    const total = v.MONTAGEM + v.REPOSICAO;
+    const total=v.MONTAGEM+v.REPOSICAO;
     return `
       <div class="item">
         <div class="name">${nome}</div>
@@ -192,14 +133,12 @@ async function carregar(){
         <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
         <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
         <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge dev">Desperdiçado</span><b>${v.DESPERDICADO.toFixed(2)} ${v.UNIDADE}</b></div>
-      </div>
-    `;
+        <div class="row"><span class="badge des">Desperdício</span><b>${v.DESPERDICIO.toFixed(2)} ${v.UNIDADE}</b></div>
+      </div>`;
   }).join("");
 
-  // Desktop table
   tbody.innerHTML = Object.entries(porPrato).map(([nome,v])=>{
-    const total = v.MONTAGEM + v.REPOSICAO;
+    const total=v.MONTAGEM+v.REPOSICAO;
     return `
       <tr>
         <td><b>${nome}</b></td>
@@ -207,29 +146,34 @@ async function carregar(){
         <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
         <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
         <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
-        <td>${v.DESPERDICADO.toFixed(2)} ${v.UNIDADE}</td>
-      </tr>
-    `;
+        <td>${v.DESPERDICIO.toFixed(2)} ${v.UNIDADE}</td>
+      </tr>`;
   }).join("");
 
-  const dias = Object.keys(porDia).sort();
-  const valores = dias.map(d=>porDia[d]);
+  const dias=Object.keys(porDia).sort();
+  const valores=dias.map(d=>porDia[d]);
 
   if(chart) chart.destroy();
-  chart = new Chart(document.getElementById("chart"), {
+  chart=new Chart(chartEl,{
     type:'line',
-    data:{ labels:dias.map(formatBR), datasets:[{ label:'Total produzido', data:valores, tension:.35 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
+    data:{labels:dias.map(formatBR),datasets:[{data:valores,tension:.35,label:'Produção'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}
   });
 }
 
-const hoje = new Date();
-dtFim.value = hoje.toISOString().slice(0,10);
-dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
+const empresaSelect=document.getElementById("empresaSelect");
+const dtInicio=document.getElementById("dtInicio");
+const dtFim=document.getElementById("dtFim");
+const chartEl=document.getElementById("chart");
+const list=document.getElementById("list");
+const tbody=document.getElementById("tbody");
 
-btnFiltrar.onclick = carregar;
-empresaSelect.onchange = carregar;
+const hoje=new Date();
+dtFim.value=hoje.toISOString().slice(0,10);
+dtInicio.value=new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
 
+btnFiltrar.onclick=carregar;
+empresaSelect.onchange=carregar;
 carregar();
 </script>
 </body>
