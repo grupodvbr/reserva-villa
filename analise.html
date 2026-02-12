@@ -12,75 +12,142 @@
 
 <style>
 :root{
-  --primary:#ff6a00; --bg:#f4f6fb; --card:#fff; --border:#e5e7eb;
-  --muted:#6b7280; --radius:18px; --shadow:0 14px 36px rgba(0,0,0,.12);
+  --primary:#ff6a00;
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --radius:22px;
+  --shadow:0 14px 40px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;font-family:Inter}
-html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff, var(--bg))}
-.app{max-width:1200px;margin:0 auto;padding:12px;min-height:100dvh;display:flex;flex-direction:column}
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.title{font-size:22px;font-weight:900}
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-bottom:10px}
-.filters{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
-input,select,button{padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:15px}
-button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
+html,body{margin:0;background:var(--bg)}
+.app{max-width:1200px;margin:auto;padding:12px 12px 96px}
 
-.chart-card{height:220px}
-.table{overflow:auto}
+.header{
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(180deg,#fff, #fff0);
+  backdrop-filter: blur(6px);
+  padding:12px 0 10px;
+  margin-bottom:8px;
+}
+.title{font-size:22px;font-weight:900}
+.sub{font-size:12px;color:var(--muted)}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px;
+  margin-bottom:12px;
+}
+
+.filters{
+  display:grid;grid-template-columns:1fr 1fr auto;gap:8px;
+}
+.filters input, .filters button{
+  padding:12px 14px;border-radius:14px;border:1px solid var(--border);font-size:15px
+}
+.filters button{
+  background:var(--primary);color:#fff;border:none;font-weight:900
+}
+
+.chart-wrap{
+  height:220px;
+}
+.kpis{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px
+}
+.kpi{
+  border:1px solid var(--border);border-radius:16px;padding:12px
+}
+.kpi b{font-size:18px}
+.kpi small{color:var(--muted)}
+
+.list{
+  display:grid;gap:10px
+}
+.item{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:12px;
+  display:grid;gap:8px
+}
+.item .name{font-weight:900}
+.row{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px
+}
+.badge{
+  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800
+}
+.mont{background:#dcfce7;color:#166534}
+.rep{background:#e0f2fe;color:#075985}
+.ret{background:#fee2e2;color:#991b1b}
+.dev{background:#fef3c7;color:#92400e}
+
+@media(min-width: 900px){
+  .filters{grid-template-columns:1fr 1fr auto}
+  .list{display:none}
+  .table{display:block}
+}
+@media(max-width: 899px){
+  .table{display:none}
+}
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
 th{background:#fafafa;position:sticky;top:0}
-
-.cards{display:none;gap:8px}
-.card-item{border:1px solid var(--border);border-radius:14px;padding:10px}
-
-@media (max-width: 900px){
-  .filters{grid-template-columns:1fr}
-  .chart-card{height:200px}
-  .table{display:none}
-  .cards{display:grid}
-}
 </style>
 </head>
 
 <body>
 <div class="app">
+
   <div class="header">
-    <div class="title">📊 Buffet • Analítico Operacional</div>
-    <a href="./index.html" style="text-decoration:none">⬅️ Voltar</a>
+    <div class="title">📊 Analítico do Buffet</div>
+    <div class="sub">Montagem • Reposição • Retirada • Devolução</div>
   </div>
 
   <div class="card">
     <div class="filters">
       <input type="date" id="dtInicio">
       <input type="date" id="dtFim">
-      <button class="primary" id="btnFiltrar"><i class="ri-filter-3-line"></i> Atualizar</button>
+      <button id="btnFiltrar">Atualizar</button>
     </div>
   </div>
 
-  <div class="card chart-card">
-    <b>Total produzido por dia (Montado + Reposto)</b>
-    <canvas id="chartTotal"></canvas>
+  <div class="card">
+    <b>Total produzido por dia</b>
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
   </div>
 
-  <div class="card table">
-    <b>Resumo por prato (período)</b>
-    <table>
-      <thead>
-        <tr>
-          <th>Prato</th>
-          <th>Montado</th>
-          <th>Reposto</th>
-          <th>Total Produzido</th>
-          <th>Retirado</th>
-          <th>Devolvido</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
+  <div class="card">
+    <b>Resumo por prato</b>
+
+    <!-- MOBILE -->
+    <div class="list" id="list"></div>
+
+    <!-- DESKTOP -->
+    <div class="table">
+      <table>
+        <thead>
+          <tr>
+            <th>Prato</th>
+            <th>Montado</th>
+            <th>Reposto</th>
+            <th>Total</th>
+            <th>Retirado</th>
+            <th>Devolvido</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="cards" id="cards"></div>
 </div>
 
 <script>
@@ -93,73 +160,69 @@ const dtInicio = document.getElementById("dtInicio");
 const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
 
-let chartTotal;
+let chart;
 
-function formatBR(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+function formatBR(iso){
+  const [y,m,d]=iso.split("-");
+  return `${d}/${m}/${y}`;
+}
 
 async function carregar(){
-  const ini = dtInicio.value;
-  const fim = dtFim.value;
-
   let q = sb.from("buffet_lancamentos").select("*");
-  if(ini) q = q.gte("data", ini);
-  if(fim) q = q.lte("data", fim);
+  if(dtInicio.value) q = q.gte("data", dtInicio.value);
+  if(dtFim.value) q = q.lte("data", dtFim.value);
 
-  const { data, error } = await q.order("data", { ascending:true });
-  if(error){ console.error(error); return; }
+  const { data } = await q.order("data",{ascending:true});
 
-  // Agregação por prato
   const porPrato = {};
   const porDia = {};
 
-  data.forEach(r=>{
-    porPrato[r.produto_nome] ||= {MONTAGEM:0, REPOSICAO:0, RETIRADA:0, DEVOLUCAO:0};
+  data?.forEach(r=>{
+    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0};
     porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
 
-    if(r.tipo === 'MONTAGEM' || r.tipo === 'REPOSICAO'){
+    if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
       porDia[r.data] = (porDia[r.data]||0) + Number(r.quantidade||0);
     }
   });
 
-  // Tabela / Cards
-  const linhas = Object.entries(porPrato).map(([nome, v])=>{
-    const totalProd = v.MONTAGEM + v.REPOSICAO;
+  // Mobile cards
+  list.innerHTML = Object.entries(porPrato).map(([nome,v])=>{
+    const total = v.MONTAGEM + v.REPOSICAO;
+    return `
+      <div class="item">
+        <div class="name">${nome}</div>
+        <div class="row"><span class="badge mont">Montado</span><b>${v.MONTAGEM.toFixed(2)}</b></div>
+        <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)}</b></div>
+        <div class="row"><span class="badge">Total</span><b>${total.toFixed(2)}</b></div>
+        <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)}</b></div>
+        <div class="row"><span class="badge dev">Devolvido</span><b>${v.DEVOLUCAO.toFixed(2)}</b></div>
+      </div>
+    `;
+  }).join("");
+
+  // Desktop table
+  tbody.innerHTML = Object.entries(porPrato).map(([nome,v])=>{
+    const total = v.MONTAGEM + v.REPOSICAO;
     return `
       <tr>
         <td><b>${nome}</b></td>
         <td>${v.MONTAGEM.toFixed(2)}</td>
         <td>${v.REPOSICAO.toFixed(2)}</td>
-        <td><b>${totalProd.toFixed(2)}</b></td>
+        <td><b>${total.toFixed(2)}</b></td>
         <td>${v.RETIRADA.toFixed(2)}</td>
         <td>${v.DEVOLUCAO.toFixed(2)}</td>
       </tr>
     `;
   }).join("");
 
-  tbody.innerHTML = linhas || `<tr><td colspan="6">Sem dados</td></tr>`;
-
-  cards.innerHTML = Object.entries(porPrato).map(([nome, v])=>{
-    const totalProd = v.MONTAGEM + v.REPOSICAO;
-    return `
-      <div class="card-item">
-        <b>${nome}</b><br>
-        Montado: ${v.MONTAGEM.toFixed(2)}<br>
-        Reposto: ${v.REPOSICAO.toFixed(2)}<br>
-        <b>Total: ${totalProd.toFixed(2)}</b><br>
-        Retirado: ${v.RETIRADA.toFixed(2)}<br>
-        Devolvido: ${v.DEVOLUCAO.toFixed(2)}
-      </div>
-    `;
-  }).join("");
-
-  // Gráfico (Total produzido por dia)
   const dias = Object.keys(porDia).sort();
   const valores = dias.map(d=>porDia[d]);
 
-  if(chartTotal) chartTotal.destroy();
-  chartTotal = new Chart(document.getElementById("chartTotal"), {
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
     type:'line',
-    data:{ labels:dias.map(formatBR), datasets:[{ label:'Total produzido', data: valores, tension:.35 }] },
+    data:{ labels:dias.map(formatBR), datasets:[{ label:'Total produzido', data:valores, tension:.35 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
   });
 }
