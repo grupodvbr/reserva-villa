@@ -150,9 +150,15 @@ small{color:var(--muted)}
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
 
-  const hoje = new Date();
-  const dataHoje = hoje.toISOString().slice(0,10);
-  document.getElementById("dataHoje").innerText = dataHoje;
+const hoje = new Date();
+
+// mantém o formato ISO para salvar no banco
+const dataISO = hoje.toISOString().slice(0,10);
+
+// formata para exibir no badge
+const dataBR = hoje.toLocaleDateString("pt-BR"); // DD/MM/AAAA
+
+document.getElementById("dataHoje").innerText = dataBR;
 
   let editId = null;
 
@@ -171,7 +177,7 @@ small{color:var(--muted)}
     const { data } = await sb
       .from("buffet_lancamentos")
       .select("*")
-      .eq("data", dataHoje)
+      .eq("data", dataISO)
       .order("created_at", { ascending:false });
 
     lista.innerHTML = "";
@@ -215,7 +221,7 @@ small{color:var(--muted)}
     await sb.from("buffet_lancamentos").insert({
       produto_id: prod.id,
       produto_nome: produtoNome,
-      tipo, quantidade, unidade, data: dataHoje, hora
+      tipo, quantidade, unidade, data: dataISO, hora
     });
 
     limpar(); carregarLancamentos();
