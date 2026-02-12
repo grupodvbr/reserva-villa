@@ -22,7 +22,6 @@
   --radius:18px;
   --shadow:0 16px 40px rgba(0,0,0,.12);
 }
-
 *{box-sizing:border-box;font-family:Inter}
 body{margin:0;background:linear-gradient(180deg,#fff, var(--bg));padding:14px}
 .app{max-width:1100px;margin:auto}
@@ -36,6 +35,9 @@ input,select,button{padding:12px 14px;border-radius:12px;border:1px solid var(--
 button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
 button.ghost{background:#fff;border:1px dashed var(--border)}
 small{color:var(--muted)}
+
+.company-row{display:flex;gap:10px;align-items:center}
+.company-row select{flex:1}
 
 .list{display:grid;gap:10px;margin-top:8px}
 .item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--border)}
@@ -79,6 +81,16 @@ small{color:var(--muted)}
   <div class="header">
     <div class="title">🍽️ Buffet • Controle Premium</div>
     <span class="badge">Hoje: <b id="dataHoje"></b></span>
+  </div>
+
+  <!-- Seleção de empresa -->
+  <div class="card company-row">
+    <b>Empresa:</b>
+    <select id="empresaSelect">
+      <option value="VILLA GOURMET">Villa Gourmet</option>
+      <option value="CHURRASCADA">Churrascada</option>
+      <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+    </select>
   </div>
 
   <div class="card">
@@ -149,21 +161,23 @@ small{color:var(--muted)}
   const lista = document.getElementById("lista");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
+  const empresaSelect = document.getElementById("empresaSelect");
 
-const hoje = new Date();
-
-// mantém o formato ISO para salvar no banco
-const dataISO = hoje.toISOString().slice(0,10);
-
-// formata para exibir no badge
-const dataBR = hoje.toLocaleDateString("pt-BR"); // DD/MM/AAAA
-
-document.getElementById("dataHoje").innerText = dataBR;
+  const hoje = new Date();
+  const dataISO = hoje.toISOString().slice(0,10);
+  const dataBR = hoje.toLocaleDateString("pt-BR");
+  document.getElementById("dataHoje").innerText = dataBR;
 
   let editId = null;
 
   async function carregarProdutos(){
-    const { data } = await sb.from("buffet_produtos").select("nome").order("nome");
+    const empresa = empresaSelect.value;
+    const { data } = await sb
+      .from("buffet_produtos")
+      .select("nome")
+      .eq("empresa", empresa)
+      .order("nome");
+
     const list = document.getElementById("produtosList");
     list.innerHTML = "";
     data?.forEach(p=>{
@@ -174,9 +188,11 @@ document.getElementById("dataHoje").innerText = dataBR;
   }
 
   async function carregarLancamentos(){
+    const empresa = empresaSelect.value;
     const { data } = await sb
       .from("buffet_lancamentos")
       .select("*")
+      .eq("empresa", empresa)
       .eq("data", dataISO)
       .order("created_at", { ascending:false });
 
@@ -203,6 +219,7 @@ document.getElementById("dataHoje").innerText = dataBR;
   }
 
   async function salvar(){
+    const empresa = empresaSelect.value;
     const produtoNome = produtoInput.value.trim().toUpperCase();
     const quantidade = parseFloat(quantidadeInput.value);
     const unidade = unidadeSelect.value;
@@ -210,18 +227,30 @@ document.getElementById("dataHoje").innerText = dataBR;
 
     if(!produtoNome || !quantidade){ alert("Preencha tudo"); return; }
 
-    let { data:prod } = await sb.from("buffet_produtos").select("*").eq("nome", produtoNome).maybeSingle();
+    let { data:prod } = await sb
+      .from("buffet_produtos")
+      .select("*")
+      .eq("empresa", empresa)
+      .eq("nome", produtoNome)
+      .maybeSingle();
+
     if(!prod){
-      const { data:nova } = await sb.from("buffet_produtos").insert({ nome: produtoNome, unidade_padrao: unidade }).select().single();
+      const { data:nova } = await sb
+        .from("buffet_produtos")
+        .insert({ empresa, nome: produtoNome, unidade_padrao: unidade })
+        .select().single();
       prod = nova; carregarProdutos();
     }
 
     const hora = new Date().toTimeString().slice(0,8);
 
     await sb.from("buffet_lancamentos").insert({
+      empresa,
       produto_id: prod.id,
       produto_nome: produtoNome,
-      tipo, quantidade, unidade, data: dataISO, hora
+      tipo, quantidade, unidade,
+      data: dataISO,
+      hora
     });
 
     limpar(); carregarLancamentos();
@@ -244,7 +273,10 @@ document.getElementById("dataHoje").innerText = dataBR;
     const tipo = document.getElementById("editTipo").value;
     if(!qtd){ alert("Quantidade inválida"); return; }
 
-    await sb.from("buffet_lancamentos").update({ quantidade:qtd, unidade:un, tipo }).eq("id", editId);
+    await sb.from("buffet_lancamentos")
+      .update({ quantidade:qtd, unidade:un, tipo })
+      .eq("id", editId);
+
     fecharModal(); carregarLancamentos();
   }
 
@@ -263,6 +295,7 @@ document.getElementById("dataHoje").innerText = dataBR;
 
   btnSalvar.onclick = salvar;
   btnLimpar.onclick = limpar;
+  empresaSelect.onchange = () => { carregarProdutos(); carregarLancamentos(); };
 
   carregarProdutos();
   carregarLancamentos();
