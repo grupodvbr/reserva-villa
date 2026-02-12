@@ -67,7 +67,7 @@ small{color:var(--muted)}
         <option value="DEVOLUCAO">Devolução</option>
       </select>
     </div>
-    <button style="margin-top:12px;width:100%" onclick="salvar()">Salvar lançamento</button>
+    <button style="margin-top:12px;width:100%" id="btnSalvar">Salvar lançamento</button>
     <small>📅 Data salva automaticamente: <b id="dataHoje"></b></small>
   </div>
 
@@ -81,88 +81,131 @@ small{color:var(--muted)}
 <datalist id="produtosList"></datalist>
 
 <script>
-const supabase = supabase.createClient(
-  "https://dxkszikemntfusfyrzos.supabase.co",
-  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
-);
+  // =========================
+  // SUPABASE (sem conflito)
+  // =========================
+  const sb = window.supabase.createClient(
+    "https://dxkszikemntfusfyrzos.supabase.co",
+    "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+  );
 
-const hoje = new Date();
-const dataHoje = hoje.toISOString().slice(0,10);
-document.getElementById("dataHoje").innerText = dataHoje;
+  // =========================
+  // VARIÁVEIS DE DOM
+  // =========================
+  const produtoInput = document.getElementById("produto");
+  const quantidadeInput = document.getElementById("quantidade");
+  const unidadeSelect = document.getElementById("unidade");
+  const tipoSelect = document.getElementById("tipo");
+  const lista = document.getElementById("lista");
+  const btnSalvar = document.getElementById("btnSalvar");
 
-async function carregarProdutos(){
-  const { data } = await supabase.from("buffet_produtos").select("nome");
-  const list = document.getElementById("produtosList");
-  list.innerHTML = "";
-  data?.forEach(p=>{
-    const o = document.createElement("option");
-    o.value = p.nome;
-    list.appendChild(o);
-  });
-}
-carregarProdutos();
+  // =========================
+  // DATA FIXA DO DIA
+  // =========================
+  const hoje = new Date();
+  const dataHoje = hoje.toISOString().slice(0,10);
+  document.getElementById("dataHoje").innerText = dataHoje;
 
-async function salvar(){
-  const produtoNome = produto.value.trim().toUpperCase();
-  const quantidade = parseFloat(document.getElementById("quantidade").value);
-  const unidade = unidadeSelect.value;
-  const tipo = tipoSelect.value;
+  // =========================
+  // CARREGAR PRODUTOS
+  // =========================
+  async function carregarProdutos(){
+    const { data, error } = await sb.from("buffet_produtos").select("nome");
+    if(error){ console.error(error); return; }
 
-  if(!produtoNome || !quantidade) return alert("Preencha tudo");
+    const list = document.getElementById("produtosList");
+    list.innerHTML = "";
+    data?.forEach(p=>{
+      const o = document.createElement("option");
+      o.value = p.nome;
+      list.appendChild(o);
+    });
+  }
+  carregarProdutos();
 
-  let { data:prod } = await supabase
-    .from("buffet_produtos")
-    .select("*")
-    .eq("nome", produtoNome)
-    .maybeSingle();
+  // =========================
+  // SALVAR LANÇAMENTO
+  // =========================
+  async function salvar(){
+    const produtoNome = produtoInput.value.trim().toUpperCase();
+    const quantidade = parseFloat(quantidadeInput.value);
+    const unidade = unidadeSelect.value;
+    const tipo = tipoSelect.value;
 
-  if(!prod){
-    const { data:nova } = await supabase
+    if(!produtoNome || !quantidade){
+      alert("Preencha o prato e a quantidade");
+      return;
+    }
+
+    // Busca produto
+    let { data:prod, error:errProd } = await sb
       .from("buffet_produtos")
-      .insert({ nome: produtoNome, unidade_padrao: unidade })
-      .select().single();
-    prod = nova;
-    carregarProdutos();
+      .select("*")
+      .eq("nome", produtoNome)
+      .maybeSingle();
+
+    if(errProd){ console.error(errProd); return; }
+
+    // Cria se não existir
+    if(!prod){
+      const { data:nova, error:errInsert } = await sb
+        .from("buffet_produtos")
+        .insert({ nome: produtoNome, unidade_padrao: unidade })
+        .select().single();
+
+      if(errInsert){ console.error(errInsert); return; }
+
+      prod = nova;
+      carregarProdutos();
+    }
+
+    const agora = new Date();
+    const hora = agora.toTimeString().slice(0,8);
+
+    const { error:errLanc } = await sb.from("buffet_lancamentos").insert({
+      produto_id: prod.id,
+      produto_nome: produtoNome,
+      tipo,
+      quantidade,
+      unidade,
+      data: dataHoje,
+      hora
+    });
+
+    if(errLanc){ console.error(errLanc); return; }
+
+    produtoInput.value = "";
+    quantidadeInput.value = "";
+    carregarLancamentos();
   }
 
-  const agora = new Date();
-  const hora = agora.toTimeString().slice(0,8);
+  btnSalvar.addEventListener("click", salvar);
 
-  await supabase.from("buffet_lancamentos").insert({
-    produto_id: prod.id,
-    produto_nome: produtoNome,
-    tipo,
-    quantidade,
-    unidade,
-    data: dataHoje,
-    hora
-  });
+  // =========================
+  // CARREGAR LANÇAMENTOS DO DIA
+  // =========================
+  async function carregarLancamentos(){
+    const { data, error } = await sb
+      .from("buffet_lancamentos")
+      .select("*")
+      .eq("data", dataHoje)
+      .order("created_at", { ascending:false });
 
-  produto.value = "";
-  quantidade.value = "";
+    if(error){ console.error(error); return; }
+
+    lista.innerHTML = "";
+    data?.forEach(l=>{
+      lista.innerHTML += `
+        <div class="item">
+          <b>${l.produto_nome}</b>
+          <div>${l.quantidade} ${l.unidade}</div>
+          <span class="tag ${l.tipo}">${l.tipo}</span>
+          <small>${l.hora}</small>
+        </div>
+      `;
+    });
+  }
   carregarLancamentos();
-}
-
-async function carregarLancamentos(){
-  const { data } = await supabase
-    .from("buffet_lancamentos")
-    .select("*")
-    .eq("data", dataHoje)
-    .order("created_at", { ascending:false });
-
-  lista.innerHTML = "";
-  data?.forEach(l=>{
-    lista.innerHTML += `
-      <div class="item">
-        <b>${l.produto_nome}</b>
-        <div>${l.quantidade} ${l.unidade}</div>
-        <span class="tag ${l.tipo}">${l.tipo}</span>
-        <small>${l.hora}</small>
-      </div>
-    `;
-  });
-}
-carregarLancamentos();
 </script>
 
 </body>
