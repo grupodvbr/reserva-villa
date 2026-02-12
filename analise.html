@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Buffet • Análises & Relatórios</title>
+<title>Buffet • Relatório Analítico Premium</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -12,22 +12,33 @@
 
 <style>
 :root{
-  --primary:#ff6a00; --bg:#f4f6fb; --card:#fff; --border:#e5e7eb;
-  --muted:#6b7280; --radius:18px; --shadow:0 16px 40px rgba(0,0,0,.12);
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --radius:20px;
+  --shadow:0 18px 48px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;font-family:Inter}
 html,body{height:100%;margin:0;background:linear-gradient(180deg,#fff, var(--bg))}
-.app{max-width:1400px;margin:0 auto;padding:14px;min-height:100dvh;display:flex;flex-direction:column}
+.app{max-width:1500px;margin:0 auto;padding:14px;min-height:100dvh;display:flex;flex-direction:column}
 .header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
-.title{font-size:22px;font-weight:900}
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
-.filters{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:10px}
-input,select,button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:16px}
+.title{font-size:24px;font-weight:900}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.filters{display:grid;grid-template-columns:1fr 1fr auto;gap:10px}
+input,button{padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:16px}
 button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.kpi{border:1px solid var(--border);border-radius:14px;padding:12px}
+.kpi{border:1px solid var(--border);border-radius:16px;padding:14px}
 .kpi b{font-size:18px}
+.kpi small{color:var(--muted)}
+.rank{display:grid;gap:8px}
+.rank-item{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:12px;padding:10px}
+.table{overflow:auto}
+.table table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
 @media (max-width: 900px){
   .filters{grid-template-columns:1fr}
   .grid{grid-template-columns:1fr}
@@ -39,44 +50,50 @@ button.primary{background:var(--primary);color:#fff;border:none;font-weight:800}
 <body>
 <div class="app">
   <div class="header">
-    <div class="title">📊 Buffet • Análises (Todos os Dias)</div>
+    <div class="title">📊 Buffet • Relatório Analítico Premium</div>
     <a href="./index.html" style="text-decoration:none">⬅️ Voltar ao Operacional</a>
   </div>
 
   <div class="card">
     <div class="filters">
-      <select id="empresaSelect">
-        <option value="VILLA GOURMET">Villa Gourmet</option>
-        <option value="CHURRASCADA">Churrascada</option>
-        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-      </select>
       <input type="date" id="dtInicio">
       <input type="date" id="dtFim">
-      <button class="primary" id="btnFiltrar"><i class="ri-filter-3-line"></i> Filtrar</button>
+      <button class="primary" id="btnFiltrar"><i class="ri-filter-3-line"></i> Atualizar</button>
     </div>
-  </div>
-
-  <div class="card kpis">
-    <div class="kpi"><small>Montagem (Total)</small><b id="kpiMontagem">0</b></div>
-    <div class="kpi"><small>Reposição (Total)</small><b id="kpiReposicao">0</b></div>
-    <div class="kpi"><small>Retirada (Total)</small><b id="kpiRetirada">0</b></div>
-    <div class="kpi"><small>Devolução (Total)</small><b id="kpiDevolucao">0</b></div>
   </div>
 
   <div class="grid">
     <div class="card">
-      <b>📈 Evolução por Dia (Total de Quantidade)</b>
-      <canvas id="chartLinha" height="120"></canvas>
+      <b>📈 Evolução diária por empresa</b>
+      <canvas id="chartLinhas" height="160"></canvas>
     </div>
     <div class="card">
-      <b>📊 Distribuição por Tipo (Período)</b>
-      <canvas id="chartBarras" height="120"></canvas>
+      <b>📊 Distribuição por tipo (empresas)</b>
+      <canvas id="chartTipos" height="160"></canvas>
     </div>
   </div>
 
   <div class="card">
-    <b>🧾 Registros do Período</b>
-    <div id="tabela"></div>
+    <b>📌 KPIs por empresa (período)</b>
+    <div id="kpisEmpresas" class="kpis"></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <b>🏆 Top pratos do período</b>
+      <div id="ranking" class="rank"></div>
+    </div>
+    <div class="card table">
+      <b>🧾 Registros do período</b>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th><th>Empresa</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Hora</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -86,103 +103,115 @@ const sb = window.supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-const empresaSelect = document.getElementById("empresaSelect");
 const dtInicio = document.getElementById("dtInicio");
 const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
+let chartLinhas, chartTipos;
 
-let chartLinha, chartBarras;
+function formatBR(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
 
-function formatBR(iso){
-  const [y,m,d] = iso.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-async function carregarAnalitico(){
-  const empresa = empresaSelect.value;
+async function carregar(){
   const ini = dtInicio.value;
   const fim = dtFim.value;
 
-  let query = sb.from("buffet_lancamentos").select("*").eq("empresa", empresa);
-  if(ini) query = query.gte("data", ini);
-  if(fim) query = query.lte("data", fim);
+  let q = sb.from("buffet_lancamentos").select("*");
+  if(ini) q = q.gte("data", ini);
+  if(fim) q = q.lte("data", fim);
 
-  const { data, error } = await query.order("data", { ascending:true });
+  const { data, error } = await q.order("data", { ascending:true });
   if(error){ console.error(error); return; }
 
-  // KPIs
-  let tot = { MONTAGEM:0, REPOSICAO:0, RETIRADA:0, DEVOLUCAO:0 };
-  const porDia = {};
+  // Agrupar por empresa e dia
+  const empresas = [...new Set(data.map(r=>r.empresa))];
+  const dias = [...new Set(data.map(r=>r.data))];
+
+  const porEmpresaDia = {};
+  empresas.forEach(e=>{
+    porEmpresaDia[e] = {};
+    dias.forEach(d=> porEmpresaDia[e][d] = 0);
+  });
+
+  const kpis = {};
+  const ranking = {};
 
   data.forEach(r=>{
-    tot[r.tipo] += Number(r.quantidade || 0);
-    porDia[r.data] = (porDia[r.data] || 0) + Number(r.quantidade || 0);
+    porEmpresaDia[r.empresa][r.data] += Number(r.quantidade||0);
+    kpis[r.empresa] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0};
+    kpis[r.empresa][r.tipo] += Number(r.quantidade||0);
+    ranking[r.produto_nome] = (ranking[r.produto_nome]||0) + Number(r.quantidade||0);
   });
 
-  kpiMontagem.textContent = tot.MONTAGEM.toFixed(2);
-  kpiReposicao.textContent = tot.REPOSICAO.toFixed(2);
-  kpiRetirada.textContent = tot.RETIRADA.toFixed(2);
-  kpiDevolucao.textContent = tot.DEVOLUCAO.toFixed(2);
+  // KPIs
+  kpisEmpresas.innerHTML = empresas.map(e=>`
+    <div class="kpi">
+      <b>${e}</b><br>
+      <small>Montagem: ${kpis[e]?.MONTAGEM?.toFixed(2)||0}</small><br>
+      <small>Reposição: ${kpis[e]?.REPOSICAO?.toFixed(2)||0}</small><br>
+      <small>Retirada: ${kpis[e]?.RETIRADA?.toFixed(2)||0}</small><br>
+      <small>Devolução: ${kpis[e]?.DEVOLUCAO?.toFixed(2)||0}</small>
+    </div>
+  `).join("");
 
-  // Gráfico Linha
-  const labels = Object.keys(porDia).map(formatBR);
-  const valores = Object.values(porDia);
-
-  if(chartLinha) chartLinha.destroy();
-  chartLinha = new Chart(document.getElementById("chartLinha"), {
-    type: 'line',
-    data: { labels, datasets: [{ label:'Total por dia', data: valores, tension:.35 }] },
-    options: { responsive:true, maintainAspectRatio:false }
-  });
-
-  // Gráfico Barras
-  if(chartBarras) chartBarras.destroy();
-  chartBarras = new Chart(document.getElementById("chartBarras"), {
-    type: 'bar',
-    data: {
-      labels: ['Montagem','Reposição','Retirada','Devolução'],
-      datasets: [{ label:'Total no período', data:[
-        tot.MONTAGEM, tot.REPOSICAO, tot.RETIRADA, tot.DEVOLUCAO
-      ]}]
+  // Chart Linhas
+  if(chartLinhas) chartLinhas.destroy();
+  chartLinhas = new Chart(chartLinhasEl, {
+    type:'line',
+    data:{
+      labels: dias.map(formatBR),
+      datasets: empresas.map((e,i)=>({
+        label:e,
+        data: dias.map(d=>porEmpresaDia[e][d]),
+        tension:.35
+      }))
     },
-    options: { responsive:true, maintainAspectRatio:false }
+    options:{responsive:true, maintainAspectRatio:false}
   });
 
-  // Tabela simples
-  const rows = data.map(r=>`
+  // Chart Tipos (barras empilhadas)
+  const tipos = ['MONTAGEM','REPOSICAO','RETIRADA','DEVOLUCAO'];
+  if(chartTipos) chartTipos.destroy();
+  chartTipos = new Chart(chartTiposEl, {
+    type:'bar',
+    data:{
+      labels: empresas,
+      datasets: tipos.map(t=>({
+        label:t,
+        data: empresas.map(e=>kpis[e]?.[t]||0)
+      }))
+    },
+    options:{responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{stacked:true}}}
+  });
+
+  // Ranking
+  rankingDiv.innerHTML = Object.entries(ranking)
+    .sort((a,b)=>b[1]-a[1]).slice(0,10)
+    .map(([nome,val])=>`<div class="rank-item"><span>${nome}</span><b>${val.toFixed(2)}</b></div>`).join("");
+
+  // Tabela
+  tbody.innerHTML = data.map(r=>`
     <tr>
       <td>${formatBR(r.data)}</td>
+      <td>${r.empresa}</td>
       <td>${r.produto_nome}</td>
       <td>${r.tipo}</td>
       <td>${r.quantidade} ${r.unidade}</td>
       <td>${r.hora}</td>
     </tr>
   `).join("");
-
-  tabela.innerHTML = `
-    <div style="overflow:auto">
-      <table style="width:100%;border-collapse:collapse">
-        <thead>
-          <tr>
-            <th>Data</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Hora</th>
-          </tr>
-        </thead>
-        <tbody>${rows || '<tr><td colspan="5">Sem dados</td></tr>'}</tbody>
-      </table>
-    </div>
-  `;
 }
 
-btnFiltrar.onclick = carregarAnalitico;
-
-// datas padrão (últimos 7 dias)
 const hoje = new Date();
-const fim = hoje.toISOString().slice(0,10);
-const ini = new Date(hoje.getTime() - 6*24*60*60*1000).toISOString().slice(0,10);
-dtInicio.value = ini;
-dtFim.value = fim;
+dtFim.value = hoje.toISOString().slice(0,10);
+dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
+btnFiltrar.onclick = carregar;
 
-carregarAnalitico();
+const chartLinhasEl = document.getElementById("chartLinhas");
+const chartTiposEl = document.getElementById("chartTipos");
+const rankingDiv = document.getElementById("ranking");
+const tbody = document.getElementById("tbody");
+const kpisEmpresas = document.getElementById("kpisEmpresas");
+
+carregar();
 </script>
 </body>
 </html>
