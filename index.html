@@ -443,20 +443,22 @@ const formatBRLInput = v => {
   return n.toFixed(2).replace(".", ",");
 };
 
-   const parseBRL = v => {
-  if (!v) return 0;
+const parseBRL = v => {
+  if (v === null || v === undefined || v === '') return 0;
 
-  // remove tudo menos dígitos e vírgula/ponto
-  let s = v.toString().replace(/[^\d,]/g, '');
+  // Se vier número, retorna direto
+  if (typeof v === 'number') return v;
 
-  // se NÃO tem vírgula → interpretar como CENTAVOS
-  if (!s.includes(',')) {
-    return Number(s) / 100;
+  const s = v.toString().trim();
+
+  // Se já é número puro (ex: "200" ou "200.5")
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    return Number(s);
   }
 
-  // se tem vírgula → formato BR
-  s = s.replace(/\./g, '').replace(',', '.');
-  return Number(s) || 0;
+  // Formato BR: "1.234,56"
+  const clean = s.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+  return Number(clean) || 0;
 };
 
     const nowLocalMin = ()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
@@ -818,8 +820,8 @@ obj.pagamentoAntecipado = String(parseBRL(obj.pagamentoAntecipado||0));
         $('#datahora').value = '';
       }
 
-      $('#valorEstimado').value = formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100));
-$('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100));
+$('#valorEstimado').value = formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100).replace(/\D/g,''));
+$('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100).replace(/\D/g,''));
       $('#banco').value = r.banco || '';
 
       // Status
