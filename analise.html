@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Buffet • Analítico por Empresa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Buffet • Analítico Operacional</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -17,46 +17,87 @@
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --radius:16px;
-  --shadow:0 10px 28px rgba(0,0,0,.10);
+  --success:#16a34a;
+  --danger:#dc2626;
+  --radius:22px;
+  --shadow:0 14px 40px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;font-family:Inter}
 html,body{margin:0;background:var(--bg)}
-.app{max-width:100%;margin:auto;padding:8px 8px 64px}
+.app{max-width:1200px;margin:auto;padding:12px 12px 96px}
 
-.header{padding:8px 0 6px;margin-bottom:6px}
-.title{font-size:18px;font-weight:900}
-.sub{font-size:11px;color:var(--muted)}
+.header{
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(180deg,#fff, #fff0);
+  backdrop-filter: blur(6px);
+  padding:12px 0 10px;
+  margin-bottom:8px;
+}
+.title{font-size:22px;font-weight:900}
+.sub{font-size:12px;color:var(--muted)}
 
-.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;margin-bottom:8px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px;
+  margin-bottom:12px;
+}
 
-/* FILTROS RESPONSIVOS */
 .filters{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
+  display:grid;grid-template-columns:1fr 1fr auto;gap:8px;
 }
-.filters input,
-.filters button{
-  width:100%;
-  padding:9px 10px;border-radius:10px;border:1px solid var(--border);font-size:13px
+.filters input, .filters button{
+  padding:12px 14px;border-radius:14px;border:1px solid var(--border);font-size:15px
 }
 .filters button{
-  grid-column:1/-1;
-  background:var(--primary);color:#fff;border:none;font-weight:800
+  background:var(--primary);color:#fff;border:none;font-weight:900
 }
 
-/* Desktop */
+.chart-wrap{
+  height:220px;
+}
+.kpis{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px
+}
+.kpi{
+  border:1px solid var(--border);border-radius:16px;padding:12px
+}
+.kpi b{font-size:18px}
+.kpi small{color:var(--muted)}
+
+.list{
+  display:grid;gap:10px
+}
+.item{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:12px;
+  display:grid;gap:8px
+}
+.item .name{font-weight:900}
+.row{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px
+}
+.badge{
+  padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800
+}
+.mont{background:#dcfce7;color:#166534}
+.rep{background:#e0f2fe;color:#075985}
+.ret{background:#fee2e2;color:#991b1b}
+.dev{background:#fef3c7;color:#92400e}
+
 @media(min-width: 900px){
-  .app{max-width:1100px}
   .filters{grid-template-columns:1fr 1fr auto}
-  .filters button{grid-column:auto}
+  .list{display:none}
+  .table{display:block}
 }
-
-.chart-wrap{height:140px}
-.kpis{display:grid;grid-template-columns:1fr;gap:6px}
-.kpi{border:1px solid var(--border);border-radius:12px;padding:8px;font-size:12px}
-.kpi b{font-size:14px}
+@media(max-width: 899px){
+  .table{display:none}
+}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+th{background:#fafafa;position:sticky;top:0}
 </style>
 </head>
 
@@ -64,8 +105,8 @@ html,body{margin:0;background:var(--bg)}
 <div class="app">
 
   <div class="header">
-    <div class="title">📊 Desempenho por Empresa</div>
-    <div class="sub">Produção vs Retiradas (por período)</div>
+    <div class="title">📊 Analítico do Buffet</div>
+    <div class="sub">Montagem • Reposição • Retirada • Devolução</div>
   </div>
 
   <div class="card">
@@ -77,22 +118,34 @@ html,body{margin:0;background:var(--bg)}
   </div>
 
   <div class="card">
-    <b style="font-size:13px">Produção total (Montagem + Reposição)</b>
+    <b>Total produzido por dia</b>
     <div class="chart-wrap">
-      <canvas id="chartProducao"></canvas>
+      <canvas id="chart"></canvas>
     </div>
   </div>
 
   <div class="card">
-    <b style="font-size:13px">Retiradas totais</b>
-    <div class="chart-wrap">
-      <canvas id="chartRetiradas"></canvas>
-    </div>
-  </div>
+    <b>Resumo por prato</b>
 
-  <div class="card">
-    <b style="font-size:13px">🏆 Melhor desempenho no período</b>
-    <div id="melhor" class="kpis"></div>
+    <!-- MOBILE -->
+    <div class="list" id="list"></div>
+
+    <!-- DESKTOP -->
+    <div class="table">
+      <table>
+        <thead>
+          <tr>
+            <th>Prato</th>
+            <th>Montado</th>
+            <th>Reposto</th>
+            <th>Total</th>
+            <th>Retirado</th>
+            <th>Devolvido</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
   </div>
 
 </div>
@@ -107,65 +160,78 @@ const dtInicio = document.getElementById("dtInicio");
 const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
 
-let chartProducao, chartRetiradas;
+let chart;
+
+function formatBR(iso){
+  const [y,m,d]=iso.split("-");
+  return `${d}/${m}/${y}`;
+}
 
 async function carregar(){
   let q = sb.from("buffet_lancamentos").select("*");
   if(dtInicio.value) q = q.gte("data", dtInicio.value);
   if(dtFim.value) q = q.lte("data", dtFim.value);
 
-  const { data } = await q;
+  const { data } = await q.order("data",{ascending:true});
 
-  const empresas = {};
+  const porPrato = {};
+  const porDia = {};
+
   data?.forEach(r=>{
-    empresas[r.empresa] ||= {prod:0, retir:0};
+    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0};
+    porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
+
     if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
-      empresas[r.empresa].prod += Number(r.quantidade||0);
-    }
-    if(r.tipo==='RETIRADA'){
-      empresas[r.empresa].retir += Number(r.quantidade||0);
+      porDia[r.data] = (porDia[r.data]||0) + Number(r.quantidade||0);
     }
   });
 
-  const labels = Object.keys(empresas);
-  const prodVals = labels.map(e=>empresas[e].prod);
-  const retVals = labels.map(e=>empresas[e].retir);
+  // Mobile cards
+  list.innerHTML = Object.entries(porPrato).map(([nome,v])=>{
+    const total = v.MONTAGEM + v.REPOSICAO;
+    return `
+      <div class="item">
+        <div class="name">${nome}</div>
+        <div class="row"><span class="badge mont">Montado</span><b>${v.MONTAGEM.toFixed(2)}</b></div>
+        <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)}</b></div>
+        <div class="row"><span class="badge">Total</span><b>${total.toFixed(2)}</b></div>
+        <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)}</b></div>
+        <div class="row"><span class="badge dev">Devolvido</span><b>${v.DEVOLUCAO.toFixed(2)}</b></div>
+      </div>
+    `;
+  }).join("");
 
-  if(chartProducao) chartProducao.destroy();
-  chartProducao = new Chart(document.getElementById("chartProducao"), {
-    type:'bar',
-    data:{ labels, datasets:[{ data:prodVals }] },
+  // Desktop table
+  tbody.innerHTML = Object.entries(porPrato).map(([nome,v])=>{
+    const total = v.MONTAGEM + v.REPOSICAO;
+    return `
+      <tr>
+        <td><b>${nome}</b></td>
+        <td>${v.MONTAGEM.toFixed(2)}</td>
+        <td>${v.REPOSICAO.toFixed(2)}</td>
+        <td><b>${total.toFixed(2)}</b></td>
+        <td>${v.RETIRADA.toFixed(2)}</td>
+        <td>${v.DEVOLUCAO.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const dias = Object.keys(porDia).sort();
+  const valores = dias.map(d=>porDia[d]);
+
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById("chart"), {
+    type:'line',
+    data:{ labels:dias.map(formatBR), datasets:[{ label:'Total produzido', data:valores, tension:.35 }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
   });
-
-  if(chartRetiradas) chartRetiradas.destroy();
-  chartRetiradas = new Chart(document.getElementById("chartRetiradas"), {
-    type:'bar',
-    data:{ labels, datasets:[{ data:retVals }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
-  });
-
-  let melhorEmpresa = null, melhorScore = -Infinity;
-  Object.entries(empresas).forEach(([e,v])=>{
-    const score = v.prod - v.retir;
-    if(score > melhorScore){ melhorScore = score; melhorEmpresa = e; }
-  });
-
-  melhor.innerHTML = melhorEmpresa ? `
-    <div class="kpi">
-      <b>${melhorEmpresa}</b><br>
-      Produção: ${empresas[melhorEmpresa].prod.toFixed(2)}<br>
-      Retiradas: ${empresas[melhorEmpresa].retir.toFixed(2)}<br>
-      <small>Score: ${melhorScore.toFixed(2)}</small>
-    </div>
-  ` : '<small>Sem dados no período.</small>';
 }
 
 const hoje = new Date();
 dtFim.value = hoje.toISOString().slice(0,10);
 dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
-
 btnFiltrar.onclick = carregar;
+
 carregar();
 </script>
 </body>
