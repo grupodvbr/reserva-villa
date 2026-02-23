@@ -58,27 +58,39 @@ html,body{margin:0;background:var(--bg)}
 /* Tabela sempre visível (desktop + mobile) */
 .table{display:block}
 
-/* Wrapper com rolagem horizontal suave no celular */
+/* Wrapper SEM rolagem lateral */
 .table-wrap{
   width:100%;
-  overflow-x:auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x:hidden;
   border-radius:12px;
 }
 
-/* Tabela com largura mínima pra não quebrar colunas */
+/* Tabela fluida, sem largura mínima */
 table{
   width:100%;
-  min-width:720px; /* garante colunas legíveis no celular */
+  min-width:0;            /* remove largura mínima */
+  table-layout:fixed;    /* força colunas a caberem */
   border-collapse:collapse;
 }
 
+/* Colunas compactadas */
 th,td{
-  padding:10px;
+  padding:6px 6px;       /* menos padding no mobile */
   border-bottom:1px solid var(--border);
   text-align:left;
-  font-size:14px;
-  white-space:nowrap; /* evita quebrar e estourar layout */
+  font-size:12px;       /* fonte menor no celular */
+  white-space:normal;  /* permite quebrar texto */
+  word-break:break-word;
+}
+
+/* Ajustes finos só no mobile */
+@media(max-width: 899px){
+  th:nth-child(1), td:nth-child(1){ width:34% } /* Prato */
+  th:nth-child(2), td:nth-child(2){ width:11% } /* Montado */
+  th:nth-child(3), td:nth-child(3){ width:11% } /* Reposto */
+  th:nth-child(4), td:nth-child(4){ width:12% } /* Total */
+  th:nth-child(5), td:nth-child(5){ width:11% } /* Retirado */
+  th:nth-child(6), td:nth-child(6){ width:11% } /* Desperdício */
 }
 
 th{
