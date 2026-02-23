@@ -541,8 +541,32 @@ const tara = parsePeso(taraInput.value);
     `Líquido: <b>${formatPeso(liquido)} kg</b>`;
 }
 
-quantidadeInput.addEventListener("input", atualizarLiquidoPreview);
-document.getElementById("tara").addEventListener("input", atualizarLiquidoPreview);
+function aplicarMascaraKg(input){
+  let v = input.value || "";
+
+  // mantém só números
+  v = v.replace(/\D/g, "");
+
+  // garante 3 casas decimais
+  if(v.length === 0) v = "000";
+  if(v.length === 1) v = "00" + v;
+  if(v.length === 2) v = "0" + v;
+
+  const inteiro = v.slice(0, -3);
+  const dec = v.slice(-3);
+
+  input.value = (Number(inteiro) || 0) + "," + dec;
+}
+
+quantidadeInput.addEventListener("input", () => {
+  aplicarMascaraKg(quantidadeInput);
+  atualizarLiquidoPreview();
+});
+
+taraInput.addEventListener("input", () => {
+  aplicarMascaraKg(taraInput);
+  atualizarLiquidoPreview();
+});
 </script>
 
 </body>
