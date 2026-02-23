@@ -462,7 +462,7 @@ if(!produtoNome || pesoBruto <= 0){ alert("Preencha tudo"); return; }
 
   limpar();
   carregarLancamentos();
-}produtoInput.addEventListener("change", async () => {
+produtoInput.addEventListener("change", async () => {
   const empresa = empresaSelect.value;
   const nome = produtoInput.value.trim().toUpperCase();
   if(!nome) return;
@@ -508,7 +508,7 @@ taraInput.value = data?.tara_padrao || "";});
 function limpar(){
   produtoInput.value = "";
   quantidadeInput.value = "";
-  document.getElementById("tara").value = "";
+taraInput.value = "";
   unidadeSelect.value = "KG";
   tipoSelect.value = "MONTAGEM";
 }
@@ -532,7 +532,7 @@ function formatPeso(v){
 
 function atualizarLiquidoPreview(){
   const bruto = parsePeso(quantidadeInput.value);
-  const tara = parsePeso(document.getElementById("tara").value);
+const tara = parsePeso(taraInput.value);
   const liquido = Math.max(0, bruto - tara);
   document.getElementById("pesoLiquidoPreview").innerHTML =
     `Líquido: <b>${formatPeso(liquido)} kg</b>`;
