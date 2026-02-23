@@ -191,7 +191,9 @@ let rangeSelecionado = [
 
 flatpickr("#rangeDatas", {
   mode: "range",
-  dateFormat: "Y-m-d",
+  dateFormat: "Y-m-d",     // formato interno (para o Supabase)
+  altInput: true,         // cria um input visual alternativo
+  altFormat: "d/m/Y",     // formato exibido (dia/mês/ano)
   locale: "pt",
   defaultDate: rangeSelecionado,
   onChange: (datas) => {
