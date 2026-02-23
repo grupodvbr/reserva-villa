@@ -130,7 +130,7 @@ th{background:#fafafa;position:sticky;top:0}
             <th>Reposto</th>
             <th>Total</th>
             <th>Retirado</th>
-            <th>Devolvido</th>
+            <th>Desperdício</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -193,7 +193,7 @@ list.innerHTML = Object.entries(porPrato)
         <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
         <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
         <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge dev">Devolvido</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
+        <div class="row"><span class="badge dev">desperdício</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
       </div>
     `;
   }).join("");
