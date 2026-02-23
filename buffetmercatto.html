@@ -227,6 +227,11 @@ small{color:var(--muted)}
 body, .app{
   overflow-x:hidden;
 }
+
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
 </style>
 </head>
 
@@ -394,90 +399,99 @@ body, .app{
   }
 
 async function salvar(){
-const empresa = empresaSelect.value;
-const produtoNome = produtoInput.value.trim().toUpperCase();
-const pesoBruto = parsePeso(quantidadeInput.value);
-const tara = parsePeso(taraInput.value || 0);
-const unidade = unidadeSelect.value;
-const tipo = tipoSelect.value;
+  try{
+    showSaving(); // 👈 abre overlay
 
-if(!produtoNome || pesoBruto <= 0){ alert("Preencha tudo"); return; }
-  if(tara > pesoBruto){ alert("Tara não pode ser maior que o peso bruto"); return; }
+    const empresa = empresaSelect.value;
+    const produtoNome = produtoInput.value.trim().toUpperCase();
+    const pesoBruto = parsePeso(quantidadeInput.value);
+    const tara = parsePeso(taraInput.value || 0);
+    const unidade = unidadeSelect.value;
+    const tipo = tipoSelect.value;
 
-  const quantidadeLiquida = Number((pesoBruto - tara).toFixed(3));
+    if(!produtoNome || pesoBruto <= 0){
+      alert("Preencha tudo");
+      hideSaving();
+      return;
+    }
+    if(tara > pesoBruto){
+      alert("Tara não pode ser maior que o peso bruto");
+      hideSaving();
+      return;
+    }
 
-  let { data:prod } = await sb
-    .from("buffet_produtos")
-    .select("*")
-    .eq("empresa", empresa)
-    .eq("nome", produtoNome)
-    .maybeSingle();
+    const quantidadeLiquida = Number((pesoBruto - tara).toFixed(3));
 
-  if(!prod){
-    const { data:nova } = await sb
+    let { data:prod } = await sb
       .from("buffet_produtos")
-      .insert({ empresa, nome: produtoNome, unidade_padrao: unidade, tara_padrao: tara })
-      .select().single();
-    prod = nova;
-    carregarProdutos();
+      .select("*")
+      .eq("empresa", empresa)
+      .eq("nome", produtoNome)
+      .maybeSingle();
+
+    if(!prod){
+      const { data:nova } = await sb
+        .from("buffet_produtos")
+        .insert({ empresa, nome: produtoNome, unidade_padrao: unidade, tara_padrao: tara })
+        .select().single();
+      prod = nova;
+      carregarProdutos();
+    }
+
+    const hora = new Date().toTimeString().slice(0,8);
+
+    await sb.from("buffet_lancamentos").insert({
+      empresa,
+      produto_id: prod.id,
+      produto_nome: produtoNome,
+      tipo,
+      quantidade: quantidadeLiquida,
+      tara,
+      unidade,
+      data: dataISO,
+      hora
+    });
+
+    const { data:ultimas } = await sb
+      .from("buffet_lancamentos")
+      .select("tara")
+      .eq("produto_id", prod.id)
+      .not("tara", "is", null)
+      .order("created_at", { ascending:false })
+      .limit(3);
+
+    if(ultimas?.length){
+      const maisUsada = ultimas
+        .map(x => Number(x.tara || 0))
+        .sort((a,b) =>
+          ultimas.filter(u=>u.tara===a).length -
+          ultimas.filter(u=>u.tara===b).length
+        )
+        .pop();
+
+      await sb.from("buffet_produtos")
+        .update({ tara_padrao: maisUsada })
+        .eq("id", prod.id);
+    }
+
+    limpar();
+    carregarLancamentos();
+
+  } catch(err){
+    console.error(err);
+    alert("Erro ao salvar. Verifique a internet.");
+  } finally {
+    hideSaving(); // 👈 fecha overlay sempre
   }
-
-  const hora = new Date().toTimeString().slice(0,8);
-
-  // 🔥 salva valor líquido + tara usada
-  await sb.from("buffet_lancamentos").insert({
-    empresa,
-    produto_id: prod.id,
-    produto_nome: produtoNome,
-    tipo,
-    quantidade: quantidadeLiquida,   // 👈 sem tara
-    tara,                              // 👈 tara salva
-    unidade,
-    data: dataISO,
-    hora
-  });
-
-  // 🔥 aprende tara com base nos últimos 3 lançamentos
-  const { data:ultimas } = await sb
-    .from("buffet_lancamentos")
-    .select("tara")
-    .eq("produto_id", prod.id)
-    .not("tara", "is", null)
-    .order("created_at", { ascending:false })
-    .limit(3);
-
-  if(ultimas?.length){
-    const maisUsada = ultimas
-      .map(x => Number(x.tara || 0))
-      .sort((a,b) =>
-        ultimas.filter(u=>u.tara===a).length -
-        ultimas.filter(u=>u.tara===b).length
-      )
-      .pop();
-
-    await sb.from("buffet_produtos")
-      .update({ tara_padrao: maisUsada })
-      .eq("id", prod.id);
-  }
-
-  limpar();
-  carregarLancamentos();
 }
 
-produtoInput.addEventListener("change", async () => {
-  const empresa = empresaSelect.value;
-  const nome = produtoInput.value.trim().toUpperCase();
-  if(!nome) return;
 
-  const { data } = await sb
-    .from("buffet_produtos")
-    .select("tara_padrao")
-    .eq("empresa", empresa)
-    .eq("nome", nome)
-    .maybeSingle();
-
-  taraInput.value = data?.tara_padrao || "";
-});
+function showSaving(){
+  document.getElementById("savingOverlay").style.display = "flex";
+}
+function hideSaving(){
+  document.getElementById("savingOverlay").style.display = "none";
+}
   function abrirModal(id, qtd, un, tipo){
     editId = id;
     document.getElementById("editQuantidade").value = qtd;
@@ -568,6 +582,23 @@ taraInput.addEventListener("input", () => {
   atualizarLiquidoPreview();
 });
 </script>
-
+<!-- OVERLAY DE SALVAMENTO -->
+<div id="savingOverlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(15,23,42,.55);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter: blur(2px);
+">
+  <div style="
+    background:#fff; padding:22px 26px; border-radius:16px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.25)
+  ">
+    <i class="ri-loader-4-line" style="
+      font-size:26px; color:#ff6a00; animation:spin 1s linear infinite
+    "></i>
+    <b>Salvando...</b>
+  </div>
+</div>
 </body>
 </html>
