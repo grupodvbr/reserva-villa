@@ -9,7 +9,9 @@
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 <style>
 :root{
   --primary:#ff6a00;
@@ -177,15 +179,21 @@ const sb = window.supabase.createClient(
 );
 
 const empresaSelect = document.getElementById("empresaSelect");
-const dtInicio = document.getElementById("dtInicio");
-const dtFim = document.getElementById("dtFim");
+
 const btnFiltrar = document.getElementById("btnFiltrar");
-let rangeSelecionado = [];
+const hoje = new Date();
+const seteDiasAtras = new Date(hoje.getTime() - 6*24*60*60*1000);
+
+let rangeSelecionado = [
+  seteDiasAtras.toISOString().slice(0,10),
+  hoje.toISOString().slice(0,10)
+];
 
 flatpickr("#rangeDatas", {
   mode: "range",
   dateFormat: "Y-m-d",
   locale: "pt",
+  defaultDate: rangeSelecionado,
   onChange: (datas) => {
     if (datas.length === 2) {
       rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
@@ -268,9 +276,7 @@ list.innerHTML = Object.entries(porPrato)
   });
 }
 
-const hoje = new Date();
-dtFim.value = hoje.toISOString().slice(0,10);
-dtInicio.value = new Date(hoje.getTime()-6*24*60*60*1000).toISOString().slice(0,10);
+
 
 btnFiltrar.onclick = carregar;
 empresaSelect.onchange = carregar;
