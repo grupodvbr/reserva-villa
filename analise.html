@@ -52,36 +52,54 @@ html,body{margin:0;background:var(--bg)}
 
 .chart-wrap{height:180px}
 
-.list{display:grid;gap:8px}
-.item{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px;
-  display:grid;gap:6px
-}
-.item .name{font-weight:800;font-size:14px}
-.row{
-  display:grid;grid-template-columns:1fr auto;gap:6px;font-size:13px
-}
-.badge{
-  padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800
-}
-.mont{background:#dcfce7;color:#166534}
-.rep{background:#e0f2fe;color:#075985}
-.ret{background:#fee2e2;color:#991b1b}
-.dev{background:#fef3c7;color:#92400e}
-.tot{background:#f1f5f9;color:#0f172a}
+/* Remover layout em cards (mobile) */
+.list{display:none}
 
-@media(min-width: 900px){
-  .list{display:none}
-  .table{display:block}
+/* Tabela sempre visível (desktop + mobile) */
+.table{display:block}
+
+/* Wrapper com rolagem horizontal suave no celular */
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius:12px;
 }
+
+/* Tabela com largura mínima pra não quebrar colunas */
+table{
+  width:100%;
+  min-width:720px; /* garante colunas legíveis no celular */
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:10px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  font-size:14px;
+  white-space:nowrap; /* evita quebrar e estourar layout */
+}
+
+th{
+  background:#fafafa;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+/* Ajustes finos no mobile */
 @media(max-width: 899px){
-  .table{display:none}
+  .filters{
+    grid-template-columns:1fr 1fr; /* 2 por linha no celular */
+  }
+  .filters button{
+    grid-column:1 / -1; /* botão ocupa a linha inteira */
+  }
+  .title{font-size:18px}
+  .sub{font-size:12px}
+  .chart-wrap{height:200px}
 }
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
-th{background:#fafafa;position:sticky;top:0}
 </style>
 </head>
 
@@ -120,23 +138,24 @@ th{background:#fafafa;position:sticky;top:0}
     <!-- MOBILE -->
     <div class="list" id="list"></div>
 
-    <!-- DESKTOP -->
-    <div class="table">
-      <table>
-        <thead>
-          <tr>
-            <th>Prato</th>
-            <th>Montado</th>
-            <th>Reposto</th>
-            <th>Total</th>
-            <th>Retirado</th>
-            <th>Desperdício</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
+<!-- TABELA (desktop + mobile) -->
+<div class="table">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Prato</th>
+          <th>Montado</th>
+          <th>Reposto</th>
+          <th>Total</th>
+          <th>Retirado</th>
+          <th>Desperdício</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
   </div>
+</div>
 
 </div>
 
