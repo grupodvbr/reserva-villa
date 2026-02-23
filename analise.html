@@ -131,8 +131,7 @@ th{
         <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
         <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
       </select>
-      <input type="date" id="dtInicio">
-      <input type="date" id="dtFim">
+<input type="text" id="rangeDatas" placeholder="Selecione o período">
       <button id="btnFiltrar">Atualizar</button>
     </div>
   </div>
@@ -181,7 +180,18 @@ const empresaSelect = document.getElementById("empresaSelect");
 const dtInicio = document.getElementById("dtInicio");
 const dtFim = document.getElementById("dtFim");
 const btnFiltrar = document.getElementById("btnFiltrar");
+let rangeSelecionado = [];
 
+flatpickr("#rangeDatas", {
+  mode: "range",
+  dateFormat: "Y-m-d",
+  locale: "pt",
+  onChange: (datas) => {
+    if (datas.length === 2) {
+      rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
+    }
+  }
+});
 let chart;
 
 function formatBR(iso){
@@ -196,8 +206,10 @@ async function carregar(){
     .select("*")
     .eq("empresa", empresa);
 
-  if(dtInicio.value) q = q.gte("data", dtInicio.value);
-  if(dtFim.value) q = q.lte("data", dtFim.value);
+if(rangeSelecionado.length === 2){
+  q = q.gte("data", rangeSelecionado[0]);
+  q = q.lte("data", rangeSelecionado[1]);
+}
 
   const { data } = await q.order("data",{ascending:true});
 
