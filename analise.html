@@ -271,11 +271,35 @@ list.innerHTML = Object.entries(porPrato)
   const valores = dias.map(d=>porDia[d]);
 
   if(chart) chart.destroy();
-  chart = new Chart(document.getElementById("chart"), {
-    type:'line',
-    data:{ labels:dias.map(formatBR), datasets:[{ label:'Total produzido', data:valores, tension:.35 }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
-  });
+chart = new Chart(document.getElementById("chart"), {
+  type: 'line',
+  data: {
+    labels: dias.map(formatBR),
+    datasets: [{
+      label: 'Total produzido',
+      data: valores,
+      tension: .35,
+
+      // 🔥 tamanho VISUAL da bolinha
+      pointRadius: 4,
+      pointHoverRadius: 6,
+
+      // 🔥 área de TOQUE (invisível) – isso que facilita clicar no celular
+      pointHitRadius: 20
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+
+    // melhora a detecção de toque no mobile
+    interaction: {
+      mode: 'nearest',
+      intersect: false
+    }
+  }
+});
 }
 
 
