@@ -462,6 +462,8 @@ if(!produtoNome || pesoBruto <= 0){ alert("Preencha tudo"); return; }
 
   limpar();
   carregarLancamentos();
+}
+
 produtoInput.addEventListener("change", async () => {
   const empresa = empresaSelect.value;
   const nome = produtoInput.value.trim().toUpperCase();
@@ -474,7 +476,8 @@ produtoInput.addEventListener("change", async () => {
     .eq("nome", nome)
     .maybeSingle();
 
-taraInput.value = data?.tara_padrao || "";});
+  taraInput.value = data?.tara_padrao || "";
+});
   function abrirModal(id, qtd, un, tipo){
     editId = id;
     document.getElementById("editQuantidade").value = qtd;
