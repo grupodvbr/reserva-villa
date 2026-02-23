@@ -215,20 +215,21 @@ body, .app{
   </div>
 
   <div class="card">
-    <div class="form-grid">
-      <input id="produto" placeholder="Digite o prato (busca + cadastra)" list="produtosList">
-      <input id="quantidade" type="number" step="0.001" placeholder="Qtd">
-      <select id="unidade">
-        <option value="KG">KG</option>
-        <option value="UN">UN</option>
-      </select>
-      <select id="tipo">
-        <option value="MONTAGEM">Montagem</option>
-        <option value="REPOSICAO">Reposição</option>
-        <option value="RETIRADA">Retirada</option>
-        <option value="DEVOLUCAO">Devolução</option>
-      </select>
-    </div>
+<div class="form-grid">
+  <input id="produto" placeholder="Digite o prato (busca + cadastra)" list="produtosList">
+  <input id="quantidade" type="number" step="0.001" placeholder="Peso bruto">
+  <input id="tara" type="number" step="0.001" placeholder="Tara (ex: peso do recipiente)">
+  <select id="unidade">
+    <option value="KG">KG</option>
+    <option value="UN">UN</option>
+  </select>
+  <select id="tipo">
+    <option value="MONTAGEM">Montagem</option>
+    <option value="REPOSICAO">Reposição</option>
+    <option value="RETIRADA">Retirada</option>
+    <option value="DEVOLUCAO">Devolução</option>
+  </select>
+</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
       <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
       <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
@@ -339,44 +340,89 @@ body, .app{
     });
   }
 
-  async function salvar(){
-    const empresa = empresaSelect.value;
-    const produtoNome = produtoInput.value.trim().toUpperCase();
-    const quantidade = parseFloat(quantidadeInput.value);
-    const unidade = unidadeSelect.value;
-    const tipo = tipoSelect.value;
+async function salvar(){
+  const empresa = empresaSelect.value;
+  const produtoNome = produtoInput.value.trim().toUpperCase();
+  const pesoBruto = parseFloat(quantidadeInput.value);
+  const tara = parseFloat(document.getElementById("tara").value || 0);
+  const unidade = unidadeSelect.value;
+  const tipo = tipoSelect.value;
 
-    if(!produtoNome || !quantidade){ alert("Preencha tudo"); return; }
+  if(!produtoNome || !pesoBruto){ alert("Preencha tudo"); return; }
+  if(tara > pesoBruto){ alert("Tara não pode ser maior que o peso bruto"); return; }
 
-    let { data:prod } = await sb
+  const quantidadeLiquida = Number((pesoBruto - tara).toFixed(3));
+
+  let { data:prod } = await sb
+    .from("buffet_produtos")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("nome", produtoNome)
+    .maybeSingle();
+
+  if(!prod){
+    const { data:nova } = await sb
       .from("buffet_produtos")
-      .select("*")
-      .eq("empresa", empresa)
-      .eq("nome", produtoNome)
-      .maybeSingle();
-
-    if(!prod){
-      const { data:nova } = await sb
-        .from("buffet_produtos")
-        .insert({ empresa, nome: produtoNome, unidade_padrao: unidade })
-        .select().single();
-      prod = nova; carregarProdutos();
-    }
-
-    const hora = new Date().toTimeString().slice(0,8);
-
-    await sb.from("buffet_lancamentos").insert({
-      empresa,
-      produto_id: prod.id,
-      produto_nome: produtoNome,
-      tipo, quantidade, unidade,
-      data: dataISO,
-      hora
-    });
-
-    limpar(); carregarLancamentos();
+      .insert({ empresa, nome: produtoNome, unidade_padrao: unidade, tara_padrao: tara })
+      .select().single();
+    prod = nova;
+    carregarProdutos();
   }
 
+  const hora = new Date().toTimeString().slice(0,8);
+
+  // 🔥 salva valor líquido + tara usada
+  await sb.from("buffet_lancamentos").insert({
+    empresa,
+    produto_id: prod.id,
+    produto_nome: produtoNome,
+    tipo,
+    quantidade: quantidadeLiquida,   // 👈 sem tara
+    tara,                              // 👈 tara salva
+    unidade,
+    data: dataISO,
+    hora
+  });
+
+  // 🔥 aprende tara com base nos últimos 3 lançamentos
+  const { data:ultimas } = await sb
+    .from("buffet_lancamentos")
+    .select("tara")
+    .eq("produto_id", prod.id)
+    .not("tara", "is", null)
+    .order("created_at", { ascending:false })
+    .limit(3);
+
+  if(ultimas?.length){
+    const maisUsada = ultimas
+      .map(x => Number(x.tara || 0))
+      .sort((a,b) =>
+        ultimas.filter(u=>u.tara===a).length -
+        ultimas.filter(u=>u.tara===b).length
+      )
+      .pop();
+
+    await sb.from("buffet_produtos")
+      .update({ tara_padrao: maisUsada })
+      .eq("id", prod.id);
+  }
+
+  limpar();
+  carregarLancamentos();
+}produtoInput.addEventListener("change", async () => {
+  const empresa = empresaSelect.value;
+  const nome = produtoInput.value.trim().toUpperCase();
+  if(!nome) return;
+
+  const { data } = await sb
+    .from("buffet_produtos")
+    .select("tara_padrao")
+    .eq("empresa", empresa)
+    .eq("nome", nome)
+    .maybeSingle();
+
+  document.getElementById("tara").value = data?.tara_padrao || "";
+});
   function abrirModal(id, qtd, un, tipo){
     editId = id;
     document.getElementById("editQuantidade").value = qtd;
@@ -407,12 +453,13 @@ body, .app{
     carregarLancamentos();
   }
 
-  function limpar(){
-    produtoInput.value = "";
-    quantidadeInput.value = "";
-    unidadeSelect.value = "KG";
-    tipoSelect.value = "MONTAGEM";
-  }
+function limpar(){
+  produtoInput.value = "";
+  quantidadeInput.value = "";
+  document.getElementById("tara").value = "";
+  unidadeSelect.value = "KG";
+  tipoSelect.value = "MONTAGEM";
+}
 
   btnSalvar.onclick = salvar;
   btnLimpar.onclick = limpar;
