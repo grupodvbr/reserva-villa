@@ -395,6 +395,24 @@ async function aplicarTaraPadraoPorProduto(){
     return;
   }
 
+  // 1️⃣ tenta buscar a ÚLTIMA tara usada nos lançamentos
+  const { data:ultimoLanc } = await sb
+    .from("buffet_lancamentos")
+    .select("tara")
+    .eq("empresa", empresa)
+    .eq("produto_nome", nome)
+    .not("tara", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (ultimoLanc?.tara != null && Number(ultimoLanc.tara) > 0) {
+    taraInput.value = formatPeso(ultimoLanc.tara);
+    atualizarLiquidoPreview();
+    return;
+  }
+
+  // 2️⃣ fallback: busca tara padrão do produto
   const { data:prod } = await sb
     .from("buffet_produtos")
     .select("tara_padrao")
@@ -402,7 +420,7 @@ async function aplicarTaraPadraoPorProduto(){
     .eq("nome", nome)
     .maybeSingle();
 
-  if(prod?.tara_padrao != null){
+  if(prod?.tara_padrao != null && Number(prod.tara_padrao) > 0){
     taraInput.value = formatPeso(prod.tara_padrao);
     atualizarLiquidoPreview();
   }
