@@ -13,49 +13,78 @@
 :root{
   --primary:#ff6a00;
   --primary-dark:#ea580c;
-  --bg:#f6f7fb;
+  --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
   --success:#16a34a;
   --danger:#dc2626;
   --radius:18px;
-  --shadow:0 12px 34px rgba(0,0,0,.10);
+  --shadow:0 16px 40px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;font-family:Inter}
-html,body{margin:0;background:var(--bg)}
-.app{max-width:1100px;margin:auto;padding:10px 10px 72px}
-
-.header{
-  position:sticky;top:0;z-index:20;
-  background:linear-gradient(180deg,#fff, #fff0);
-  backdrop-filter: blur(6px);
-  padding:10px 0 8px;
-  margin-bottom:8px;
+html, body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:linear-gradient(180deg,#fff, var(--bg));
+  overflow:hidden;
 }
-.title{font-size:20px;font-weight:900}
-.sub{font-size:12px;color:var(--muted)}
-
+.app{
+  max-width:1400px;
+  margin:0 auto;
+  padding:14px 14px 22px;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.title{font-size:22px;font-weight:900}
+.badge{
+  background:#111827;color:#fff;
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;white-space:nowrap
+}
 .card{
   background:var(--card);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:12px;
-  margin-bottom:10px;
+  padding:14px;
+  margin-bottom:12px;
 }
-
-.filters{
+.form-grid{
   display:grid;
-  grid-template-columns:1fr 1fr 1fr auto;
-  gap:8px;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap:12px;
+  align-items:end;
 }
-.filters input,.filters select,.filters button{
-  padding:10px 12px;
-  border-radius:12px;
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:700;color:#374151}
+input, select, button{
+  padding:14px 14px;
+  border-radius:14px;
   border:1px solid var(--border);
-  font-size:14px
+  font-size:16px;
+  outline:none;
+  height:48px;
 }
-.filters button{background:var(--primary);color:#fff;border:none;font-weight:800}
+input:focus, select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.15);
+}
+button.primary{
+  background:var(--primary);
+  color:#fff;border:none;font-weight:800;
+}
+button.primary:active{transform:scale(.98)}
+small{color:var(--muted)}
 
 .grupo h3{font-size:12px;color:var(--muted);margin:10px 0 6px}
 .bloco{
@@ -67,11 +96,11 @@ html,body{margin:0;background:var(--bg)}
 .top{
   display:flex;justify-content:space-between;align-items:center;font-weight:900
 }
-.badge{
+.badge2{
   padding:4px 10px;border-radius:999px;font-size:12px;font-weight:900
 }
-.badge.up{background:#dcfce7;color:#166534}
-.badge.down{background:#fee2e2;color:#991b1b}
+.badge2.up{background:#dcfce7;color:#166534}
+.badge2.down{background:#fee2e2;color:#991b1b}
 .item{
   display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)
 }
@@ -87,6 +116,30 @@ html,body{margin:0;background:var(--bg)}
 }
 .box b{display:block;font-size:14px}
 .muted{color:var(--muted)}
+
+.list-wrap{
+  overflow:auto;
+  padding-right:4px;
+  max-height:calc(100dvh - 320px);
+}
+
+@media (max-width: 720px){
+  .form-grid{grid-template-columns:1fr}
+  .title{font-size:20px}
+  .list-wrap{max-height:calc(100dvh - 380px)}
+}
+
+/* Overlay */
+#loadingOverlay{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(15,23,42,.55);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter: blur(2px);
+}
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
 </style>
 </head>
 
@@ -95,53 +148,69 @@ html,body{margin:0;background:var(--bg)}
 
   <div class="header">
     <div class="title">Resumo de Vendas</div>
-    <div class="sub" id="subtitulo">Comparativo com o mesmo mês do ano anterior</div>
+    <span class="badge">Filtro operacional</span>
   </div>
 
+  <!-- FILTRO IGUAL AO DO BUFFET -->
   <div class="card">
-    <div class="filters">
-      <select id="filtroEmpresa">
-        <option value="todas">Todas empresas</option>
-        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-        <option value="VILLA GOURMET">Villa Gourmet</option>
-        <option value="M.KIDS">M.Kids</option>
-      </select>
-      <input type="date" id="filtroDia">
-      <input type="month" id="filtroMes">
-      <button id="btnFiltrar"><i class="ri-filter-3-line"></i> Atualizar</button>
+    <div class="form-grid">
+      <div class="field">
+        <label>Empresa</label>
+        <select id="filtroEmpresa">
+          <option value="todas">Todas empresas</option>
+          <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+          <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+          <option value="VILLA GOURMET">Villa Gourmet</option>
+          <option value="M.KIDS">M.Kids</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Dia</label>
+        <input type="date" id="filtroDia">
+      </div>
+
+      <div class="field">
+        <label>Mês (comparativo)</label>
+        <input type="month" id="filtroMes">
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="primary" id="btnFiltrar">
+          <i class="ri-filter-3-line"></i> Atualizar
+        </button>
+      </div>
     </div>
+    <small>Dia padrão = ontem • Mês = mesmo mês para comparação anual</small>
   </div>
 
-  <div class="card grupo">
-    <h3>EMPÓRIO</h3>
-    <div id="emporio"></div>
-  </div>
+  <div class="list-wrap">
+    <div class="card grupo">
+      <h3>EMPÓRIO</h3>
+      <div id="emporio"></div>
+    </div>
 
-  <div class="card grupo">
-    <h3>RESTAURANTE</h3>
-    <div id="restaurante"></div>
-  </div>
+    <div class="card grupo">
+      <h3>RESTAURANTE</h3>
+      <div id="restaurante"></div>
+    </div>
 
-  <div class="card grupo" id="grupo-outros" style="display:none">
-    <h3>OUTRAS EMPRESAS</h3>
-    <div id="outros"></div>
-  </div>
+    <div class="card grupo" id="grupo-outros" style="display:none">
+      <h3>OUTRAS EMPRESAS</h3>
+      <div id="outros"></div>
+    </div>
 
-  <div class="card grupo">
-    <h3>COMPARATIVO MENSAL (MESMO MÊS DO ANO ANTERIOR)</h3>
-    <div id="comparativo"></div>
+    <div class="card grupo">
+      <h3>COMPARATIVO MENSAL (MESMO MÊS DO ANO ANTERIOR)</h3>
+      <div id="comparativo"></div>
+    </div>
   </div>
 
 </div>
 
 <!-- OVERLAY LOADING -->
-<div id="savingOverlay" style="
-  position:fixed; inset:0; z-index:9999;
-  background:rgba(15,23,42,.45);
-  display:none; align-items:center; justify-content:center;
-  backdrop-filter: blur(2px);
-">
+<div id="loadingOverlay">
   <div style="
     background:#fff; padding:22px 26px; border-radius:16px;
     display:flex; align-items:center; gap:12px;
@@ -180,7 +249,6 @@ const categoriasAgrupadas = {
 };
 
 const BRL = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
-const fmtBR = d => d ? d.split("-").reverse().join("/") : "—";
 
 function normalizarCategoria(mod){
   if(!mod || typeof mod !== "string") return "outros";
@@ -197,22 +265,15 @@ function classificarEmpresa(nome){
   return "outros";
 }
 
-let EMPRESA = "todas";
-let DIA = "";
-let MES = "";
+function showLoading(){ document.getElementById("loadingOverlay").style.display = "flex"; }
+function hideLoading(){ document.getElementById("loadingOverlay").style.display = "none"; }
 
-(function setarOntem(){
+(function setDefaults(){
   const d = new Date();
   d.setDate(d.getDate()-1);
-  const iso = d.toISOString().slice(0,10);
-  document.getElementById("filtroDia").value = iso;
-  DIA = iso;
-  MES = iso.slice(0,7);
-  document.getElementById("filtroMes").value = MES;
+  filtroDia.value = d.toISOString().slice(0,10);
+  filtroMes.value = d.toISOString().slice(0,7);
 })();
-
-function showLoading(){ document.getElementById("savingOverlay").style.display = "flex"; }
-function hideLoading(){ document.getElementById("savingOverlay").style.display = "none"; }
 
 async function buscarTodos(){
   let todos=[], from=0, step=1000;
@@ -221,8 +282,9 @@ async function buscarTodos(){
       .select("data_lancamento, modalidade, valor, empresa")
       .order("data_lancamento",{ascending:true})
       .range(from, from+step-1);
-    if(EMPRESA!=="todas") q=q.eq("empresa", EMPRESA);
-    if(DIA) q=q.eq("data_lancamento", DIA);
+
+    if(filtroEmpresa.value!=="todas") q=q.eq("empresa", filtroEmpresa.value);
+    if(filtroDia.value) q=q.eq("data_lancamento", filtroDia.value);
 
     const { data, error } = await q;
     if(error || !data.length) break;
@@ -250,10 +312,6 @@ async function buscarMes(empresa, inicio, fim){
 
 async function atualizar(){
   showLoading();
-
-  EMPRESA = filtroEmpresa.value;
-  DIA = filtroDia.value;
-  MES = filtroMes.value;
 
   const lista = await buscarTodos();
   montarResumo(lista);
@@ -294,21 +352,21 @@ function montarResumo(lista){
 
   if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
   if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
-
-  subtitulo.innerText = `${EMPRESA==="todas"?"Todas empresas":EMPRESA} • ${fmtBR(DIA)}`;
 }
 
 async function montarComparativo(){
-  const [ano,mes]=MES.split("-");
-  const iniAtual=`${ano}-${mes}-01`;
-  const fimAtual=new Date(ano,Number(mes),0).toISOString().slice(0,10);
-  const anoAnt=Number(ano)-1;
-  const iniAnt=`${anoAnt}-${mes}-01`;
-  const fimAnt=new Date(anoAnt,Number(mes),0).toISOString().slice(0,10);
+  const mes = filtroMes.value; // YYYY-MM
+  const [ano,mesNum]=mes.split("-");
+  const iniAtual=`${ano}-${mesNum}-01`;
+  const fimAtual=new Date(ano,Number(mesNum),0).toISOString().slice(0,10);
 
-  const empresas = EMPRESA==="todas"
+  const anoAnt=Number(ano)-1;
+  const iniAnt=`${anoAnt}-${mesNum}-01`;
+  const fimAnt=new Date(anoAnt,Number(mesNum),0).toISOString().slice(0,10);
+
+  const empresas = filtroEmpresa.value==="todas"
     ? ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"]
-    : [EMPRESA];
+    : [filtroEmpresa.value];
 
   comparativo.innerHTML="";
 
@@ -322,7 +380,7 @@ async function montarComparativo(){
       <div class="bloco">
         <div class="top">
           <span>${emp}</span>
-          <span class="badge ${diff>=0?'up':'down'}">
+          <span class="badge2 ${diff>=0?'up':'down'}">
             ${diff>=0?'+':''}${perc.toFixed(1)}%
           </span>
         </div>
