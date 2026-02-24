@@ -7,6 +7,11 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -81,6 +86,14 @@ html,body{margin:0;background:var(--bg)}
 }
 .box b{display:block;font-size:14px}
 .muted{color:var(--muted)}
+
+#loadingOverlay{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(15,23,42,.55);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter: blur(2px);
+}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 </head>
 
@@ -101,8 +114,11 @@ html,body{margin:0;background:var(--bg)}
         <option value="VILLA GOURMET">Villa Gourmet</option>
         <option value="M.KIDS">M.Kids</option>
       </select>
-      <input type="date" id="filtroDia">
+
+      <input type="text" id="rangeDatas" placeholder="Selecione o período">
+
       <input type="month" id="filtroMes">
+
       <button id="btnFiltrar">Atualizar</button>
     </div>
   </div>
@@ -129,14 +145,20 @@ html,body{margin:0;background:var(--bg)}
 
 </div>
 
+<div id="loadingOverlay">
+  <div style="background:#fff;padding:22px 26px;border-radius:16px;display:flex;gap:12px">
+    <i class="ri-loader-4-line" style="font-size:26px;color:#ff6a00;animation:spin 1s linear infinite"></i>
+    <b>Carregando...</b>
+  </div>
+</div>
+
 <script>
-const { createClient } = supabase;
-const sb = createClient(
+const sb = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-/* ===== AGRUPAMENTO DE CATEGORIAS (MANTIDO) ===== */
+/* AGRUPAMENTOS */
 const categoriasAgrupadas = {
   "crédito": ["credito","cartao credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
   "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
@@ -158,7 +180,6 @@ const categoriasAgrupadas = {
 };
 
 const BRL = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
-const fmtBR = d => d ? d.split("-").reverse().join("/") : "—";
 
 function normalizarCategoria(mod){
   if(!mod || typeof mod !== "string") return "outros";
@@ -175,95 +196,91 @@ function classificarEmpresa(nome){
   return "outros";
 }
 
-/* ===== FILTROS ===== */
-let EMPRESA = "todas";
-let DIA = "";
-let MES = "";
+function showLoading(){ loadingOverlay.style.display = "flex"; }
+function hideLoading(){ loadingOverlay.style.display = "none"; }
 
-/* ontem como padrão */
-(function setarOntem(){
+/* RANGE */
+let rangeSelecionado = [];
+flatpickr("#rangeDatas", {
+  mode: "range",
+  dateFormat: "Y-m-d",
+  altInput: true,
+  altFormat: "d/m/Y",
+  locale: "pt",
+  defaultDate: [new Date(Date.now()-86400000), new Date(Date.now()-86400000)],
+  onChange: (datas)=>{
+    if(datas.length===2){
+      rangeSelecionado = datas.map(d=>d.toISOString().slice(0,10));
+    }
+  }
+});
+
+/* MÊS PADRÃO */
+(function(){
   const d = new Date();
-  d.setDate(d.getDate()-1);
-  const iso = d.toISOString().slice(0,10);
-  document.getElementById("filtroDia").value = iso;
-  DIA = iso;
-  MES = iso.slice(0,7);
-  document.getElementById("filtroMes").value = MES;
+  const mes = d.toISOString().slice(0,7);
+  filtroMes.value = mes;
 })();
 
-/* ===== BUSCA DIÁRIA (MANTIDA) ===== */
 async function carregarDados(){
-  let todos = [];
-  let from = 0;
-  const step = 1000;
-
+  let todos=[], from=0, step=1000;
   while(true){
     let q = sb.from("resumo_entradas")
       .select("data_lancamento, modalidade, valor, empresa")
-      .order("data_lancamento",{ascending:true})
-      .range(from, from + step - 1);
+      .gte("data_lancamento", rangeSelecionado[0])
+      .lte("data_lancamento", rangeSelecionado[1])
+      .order("data_lancamento",{ascending:true});
 
-    if(EMPRESA !== "todas") q = q.eq("empresa", EMPRESA);
-    if(DIA) q = q.eq("data_lancamento", DIA);
-
-    const { data, error } = await q;
-    if(error || !data.length) break;
-
-    todos.push(...data);
-    from += step;
-  }
-
-  montarResumo(todos);
-}
-
-/* ===== BUSCA MENSAL COMPARATIVO ===== */
-async function buscarMes(empresa, inicio, fim){
-  let total = 0, from = 0, step = 1000;
-  while(true){
-    let q = sb.from("resumo_entradas")
-      .select("valor, empresa, data_lancamento")
-      .gte("data_lancamento", inicio)
-      .lte("data_lancamento", fim);
-    if(empresa !== "todas") q = q.eq("empresa", empresa);
+    if(filtroEmpresa.value!=="todas") q=q.eq("empresa", filtroEmpresa.value);
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
-    data.forEach(r=> total += Number(r.valor||0));
-    from += step;
+    todos.push(...data); from+=step;
+  }
+  montarResumo(todos);
+}
+
+async function buscarMes(empresa, inicio, fim){
+  let total=0, from=0, step=1000;
+  while(true){
+    let q = sb.from("resumo_entradas")
+      .select("valor")
+      .gte("data_lancamento", inicio)
+      .lte("data_lancamento", fim);
+    if(empresa!=="todas") q=q.eq("empresa", empresa);
+    const { data } = await q.range(from, from+step-1);
+    if(!data || !data.length) break;
+    data.forEach(r=> total+=Number(r.valor||0));
+    from+=step;
   }
   return total;
 }
 
-/* ===== MONTAGEM DO RESUMO DIÁRIO ===== */
 function montarResumo(lista){
-  const porEmpresa = {};
+  const porEmpresa={};
   lista.forEach(l=>{
-    const v = Number(l.valor)||0;
-    porEmpresa[l.empresa] ||= { total:0, cats:{} };
-    porEmpresa[l.empresa].total += v;
-    const cat = normalizarCategoria(l.modalidade);
-    porEmpresa[l.empresa].cats[cat] = (porEmpresa[l.empresa].cats[cat]||0) + v;
+    const v=Number(l.valor)||0;
+    porEmpresa[l.empresa] ||= {total:0,cats:{}};
+    porEmpresa[l.empresa].total+=v;
+    const cat=normalizarCategoria(l.modalidade);
+    porEmpresa[l.empresa].cats[cat]=(porEmpresa[l.empresa].cats[cat]||0)+v;
   });
 
   emporio.innerHTML=""; restaurante.innerHTML=""; outros.innerHTML="";
   document.getElementById("grupo-outros").style.display="none";
 
   Object.entries(porEmpresa).forEach(([empresa,info])=>{
-    const bloco = `
+    const bloco=`
       <div class="bloco">
         <div class="top">
           <span>${empresa}</span>
           <span>R$ ${BRL(info.total)}</span>
         </div>
         ${Object.entries(info.cats).map(([c,v])=>`
-          <div class="item">
-            <span>• ${c}</span>
-            <span>R$ ${BRL(v)}</span>
-          </div>
+          <div class="item"><span>• ${c}</span><span>R$ ${BRL(v)}</span></div>
         `).join("")}
-      </div>
-    `;
-    const grupo = classificarEmpresa(empresa);
+      </div>`;
+    const grupo=classificarEmpresa(empresa);
     if(grupo==="emporio") emporio.innerHTML+=bloco;
     else if(grupo==="restaurante") restaurante.innerHTML+=bloco;
     else{
@@ -274,34 +291,30 @@ function montarResumo(lista){
 
   if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
   if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
-
-  document.getElementById("subtitulo").innerText =
-    `${EMPRESA==="todas"?"Todas empresas":EMPRESA} • ${fmtBR(DIA)}`;
 }
 
-/* ===== COMPARATIVO MENSAL ===== */
 async function montarComparativo(){
-  const [ano, mes] = MES.split("-");
-  const inicioAtual = `${ano}-${mes}-01`;
-  const fimAtual = new Date(ano, Number(mes), 0).toISOString().slice(0,10);
+  const [ano,mes]=filtroMes.value.split("-");
+  const iniAtual=`${ano}-${mes}-01`;
+  const fimAtual=new Date(ano,Number(mes),0).toISOString().slice(0,10);
 
-  const anoAnt = Number(ano)-1;
-  const inicioAnt = `${anoAnt}-${mes}-01`;
-  const fimAnt = new Date(anoAnt, Number(mes), 0).toISOString().slice(0,10);
+  const anoAnt=Number(ano)-1;
+  const iniAnt=`${anoAnt}-${mes}-01`;
+  const fimAnt=new Date(anoAnt,Number(mes),0).toISOString().slice(0,10);
 
-  const empresas = EMPRESA==="todas"
+  const empresas=filtroEmpresa.value==="todas"
     ? ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"]
-    : [EMPRESA];
+    : [filtroEmpresa.value];
 
-  comparativo.innerHTML = "";
+  comparativo.innerHTML="";
 
   for(const emp of empresas){
-    const atual = await buscarMes(emp, inicioAtual, fimAtual);
-    const anterior = await buscarMes(emp, inicioAnt, fimAnt);
-    const perc = anterior>0 ? (atual/anterior)*100 : 0;
-    const diff = atual - anterior;
+    const atual=await buscarMes(emp, iniAtual, fimAtual);
+    const anterior=await buscarMes(emp, iniAnt, fimAnt);
+    const perc=anterior>0?(atual/anterior)*100:0;
+    const diff=atual-anterior;
 
-    comparativo.innerHTML += `
+    comparativo.innerHTML+=`
       <div class="bloco">
         <div class="top">
           <span>${emp}</span>
@@ -314,24 +327,28 @@ async function montarComparativo(){
           <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atual)}</b></div>
           <div class="box"><span class="muted">Atingido</span><b>${perc.toFixed(1)}%</b></div>
         </div>
-      </div>
-    `;
+      </div>`;
   }
 }
 
-/* ===== AÇÕES ===== */
-btnFiltrar.onclick = async () => {
-  EMPRESA = filtroEmpresa.value;
-  DIA = filtroDia.value;
-  MES = filtroMes.value;
+btnFiltrar.onclick = async ()=>{
+  if(rangeSelecionado.length!==2){
+    alert("Selecione o período");
+    return;
+  }
+  showLoading();
   await carregarDados();
   await montarComparativo();
+  hideLoading();
 };
 
-/* INIT */
-(async ()=>{
+(async()=>{
+  showLoading();
+  const ontem=new Date(Date.now()-86400000);
+  rangeSelecionado=[ontem.toISOString().slice(0,10), ontem.toISOString().slice(0,10)];
   await carregarDados();
   await montarComparativo();
+  hideLoading();
 })();
 </script>
 </body>
