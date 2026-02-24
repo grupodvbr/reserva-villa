@@ -135,7 +135,23 @@ const sb = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
+const EMPRESA_ALIAS = {
+  "EMPORIO_MERCATTO": ["mercatto", "empor"],
+  "RESTAURANTE_MERCATTO": ["mercatto", "rest"],
+  "DELÍCIA GOURMET": ["panificadora", "delicia"],
+  "VILLA GOURMET": ["meos", "gourmet"],
+  "M.KIDS": ["kids", "mkids", "m.kids"]
+};
 
+function aplicarFiltroEmpresa(q, empresaKey){
+  const termos = EMPRESA_ALIAS[empresaKey];
+  if(!termos) return q.ilike("empresa", `%${empresaKey}%`);
+  // exige que todos os termos existam no nome da empresa
+  termos.forEach(t => {
+    q = q.ilike("empresa", `%${t}%`);
+  });
+  return q;
+}
 const categoriasAgrupadas = {
   "crédito": ["credito","cartao credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
   "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
@@ -226,26 +242,9 @@ async function carregarDados(){
       .lte("data_lancamento", rangeSelecionado[1])
       .order("data_lancamento",{ascending:true});
 
-    if(filtroEmpresa.value !== "todas"){
-if(filtroEmpresa.value === "EMPORIO_MERCATTO"){
-  q = q.ilike("empresa", "%empor%mercat%"); 
-} 
-else if(filtroEmpresa.value === "RESTAURANTE_MERCATTO"){
-  q = q.ilike("empresa", "%rest%mercat%");
-} 
-else if(filtroEmpresa.value === "DELÍCIA GOURMET"){
-  q = q.ilike("empresa", "%delicia%gourmet%");
+if(filtroEmpresa.value !== "todas"){
+  q = aplicarFiltroEmpresa(q, filtroEmpresa.value);
 }
-else if(filtroEmpresa.value === "VILLA GOURMET"){
-  q = q.ilike("empresa", "%meos%gourmet%");
-}
-else if(filtroEmpresa.value === "M.KIDS"){
-  q = q.ilike("empresa", "%kids%");
-}
-else {
-  q = q.ilike("empresa", `%${filtroEmpresa.value}%`);
-}
-    }
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
@@ -266,24 +265,7 @@ async function buscarMesPorEmpresa(empresa, inicio, fim){
 .gte("data_lancamento", inicio + "T00:00:00")
 .lte("data_lancamento", fim + "T23:59:59");
 
-if(empresa === "EMPORIO_MERCATTO"){
-  q = q.ilike("empresa", "%empor%mercat%");
-} 
-else if(empresa === "RESTAURANTE_MERCATTO"){
-  q = q.ilike("empresa", "%rest%mercat%");
-} 
-else if(empresa === "DELÍCIA GOURMET"){
-  q = q.ilike("empresa", "%delicia%gourmet%");
-}
-else if(empresa === "VILLA GOURMET"){
-  q = q.ilike("empresa", "%meos%gourmet%");
-}
-else if(empresa === "M.KIDS"){
-  q = q.ilike("empresa", "%kids%");
-}
-else {
-  q = q.ilike("empresa", `%${empresa}%`);
-}
+q = aplicarFiltroEmpresa(q, empresa);
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
