@@ -299,8 +299,8 @@ function montarResumo(lista){
     const bloco = `
       <div class="bloco">
         <div class="top">
-          <span>${empresa}</span>
-          <span>R$ ${BRL(info.total)}</span>
+  <span>${(empresa || "").toUpperCase()}</span>
+  <span>R$ ${BRL(info.total)}</span>
         </div>
         ${Object.entries(info.cats).map(([c,v])=>`
           <div class="item"><span>• ${c}</span><span>R$ ${BRL(v)}</span></div>
