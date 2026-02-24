@@ -246,9 +246,9 @@ body, .app{
   <!-- Seleção de empresa -->
   <div class="card company-row">
     <b>Empresa:</b>
-<select id="empresaSelect">
-  <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-</select>
+    <select id="empresaSelect">
+      <option value="DELICIA GOURMET">Delícia Gourmet</option>
+    </select>
   </div>
 
   <div class="card">
@@ -343,7 +343,7 @@ body, .app{
   const btnLimpar = document.getElementById("btnLimpar");
   const empresaSelect = document.getElementById("empresaSelect");
 // ================== TARA PADRÃO POR PRODUTO ==================
-produtoInput.addEventListener("input", aplicarTaraPadraoPorProduto);
+produtoInput.addEventListener("change", aplicarTaraPadraoPorProduto);
 produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
 
 async function aplicarTaraPadraoPorProduto(){
