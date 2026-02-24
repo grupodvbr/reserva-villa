@@ -343,7 +343,7 @@ body, .app{
   const btnLimpar = document.getElementById("btnLimpar");
   const empresaSelect = document.getElementById("empresaSelect");
 // ================== TARA PADRÃO POR PRODUTO ==================
-produtoInput.addEventListener("change", aplicarTaraPadraoPorProduto);
+produtoInput.addEventListener("input", aplicarTaraPadraoPorProduto);
 produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
 
 async function aplicarTaraPadraoPorProduto(){
