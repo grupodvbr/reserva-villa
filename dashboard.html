@@ -2,12 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Console • PWA</title>
+<title>Console • Restaurante</title>
 
 <link rel="manifest" href="/manifest.json">
 
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="Console">
+<meta name="application-name" content="Console Restaurante">
 <meta name="viewport"
   content="width=device-width,
   initial-scale=1,
@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#ff6a00">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Console">
+<meta name="apple-mobile-web-app-title" content="Console Restaurante">
 
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
@@ -63,102 +63,43 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
 .content iframe{width:100%;height:100%;border:none;display:none}
 .content iframe.active{display:block}
 
-/* ===== NAVBAR (IDÊNTICA AO ORIGINAL) ===== */
+/* NAVBAR */
 .navbar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-
+  position:fixed;bottom:0;left:0;right:0;
   height:var(--navbar-h);
   padding-bottom:var(--safe-bottom);
-
-  background:#fff;
-  border-top:1px solid var(--border);
-
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-
-  z-index:10;
+  background:#fff;border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;align-items:center;z-index:10;
 }
-
 .nav-item{
-  font-size:11px;
-  color:var(--muted);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  cursor:pointer;
+  font-size:11px;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;cursor:pointer;
 }
-
-.nav-item i{
-  font-size:22px;
-}
-
+.nav-item i{font-size:22px}
 .nav-item.active,
-.nav-config.active .config-btn{
-  color:var(--primary);
-}
+.nav-config.active .config-btn{color:var(--primary)}
 
-/* ===== CONFIG MENU ===== */
-.nav-config{
-  position:relative;
-}
-
-.config-btn{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2px;
-}
-
-.config-btn .gear{
-  transition:transform .35s ease;
-}
-
-.nav-config.open .gear{
-  transform:rotate(180deg);
-}
-
-/* SUBMENU */
+/* CONFIG MENU */
+.nav-config{position:relative}
+.config-btn{display:flex;flex-direction:column;align-items:center;gap:2px}
+.config-btn .gear{transition:transform .35s ease}
+.nav-config.open .gear{transform:rotate(180deg)}
 .config-menu{
-  position:absolute;
-  bottom:calc(100% + 10px);
-  left:50%;
+  position:absolute;bottom:calc(100% + 10px);left:50%;
   transform:translateX(-50%) translateY(10px);
-  background:#fff;
-  border-radius:16px;
+  background:#fff;border-radius:16px;
   box-shadow:0 14px 40px rgba(0,0,0,.18);
-  padding:8px;
-  min-width:170px;
-  display:none;
-  opacity:0;
-  pointer-events:none;
-  transition:.25s ease;
-  border:1px solid var(--border);
-  z-index:999;
+  padding:8px;min-width:170px;display:none;opacity:0;pointer-events:none;
+  transition:.25s ease;border:1px solid var(--border);z-index:999;
 }
-
 .nav-config.open .config-menu{
-  display:block;
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-  pointer-events:auto;
+  display:block;opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;
 }
-
 .config-item{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:10px 12px;
-  border-radius:10px;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  color:#111827;
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;
+  cursor:pointer;color:#111827;
 }
-
 .config-item i{font-size:16px}
 .config-item:hover{background:#f3f4f6}
 </style>
@@ -168,15 +109,13 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <h1>CONSOLE</h1>
-  <button onclick="refreshIframes()" style="
-    border:none;background:#f3f4f6;width:38px;height:38px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;cursor:pointer">
+  <h1>CONSOLE • RESTAURANTE</h1>
+  <button onclick="refreshIframes()" style="border:none;background:#f3f4f6;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer">
     <i class="ri-refresh-line"></i>
   </button>
 </div>
 
-<!-- CONTEÚDO -->
+<!-- CONTEÚDO (IFRAMES MANTIDOS) -->
 <div class="content">
   <iframe id="frame-home" src="analise.html" class="active"></iframe>
   <iframe id="frame-produtos" src="vendas.html"></iframe>
@@ -193,43 +132,43 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
 <nav class="navbar">
 
   <div class="nav-item active" onclick="go(this,'home')">
-    <i class="ri-home-5-line"></i>
-    Home
+    <i class="ri-dashboard-2-line"></i>
+    Dashboard
   </div>
 
   <div class="nav-item" onclick="go(this,'produtos')">
-    <i class="ri-store-2-line"></i>
-    Loja
+    <i class="ri-line-chart-line"></i>
+    Faturamento
   </div>
 
   <div class="nav-item" onclick="go(this,'agenda')">
-    <i class="ri-calendar-line"></i>
-    Agenda
+    <i class="ri-scales-3-line"></i>
+    CMV
   </div>
 
   <div class="nav-item" onclick="go(this,'pedidos')">
-    <i class="ri-shopping-bag-3-line"></i>
+    <i class="ri-restaurant-2-line"></i>
     Pedidos
   </div>
 
   <div class="nav-item nav-config" id="navConfig">
     <div class="config-btn" onclick="toggleConfigMenu(event)">
       <i class="ri-settings-3-line gear"></i>
-      Ajustes
+      Financeiro
     </div>
 
     <div class="config-menu" id="configMenu">
       <div class="config-item" onclick="goFromMenu(this,'pagar')">
-        <i class="ri-wallet-3-line"></i> A pagar
+        <i class="ri-bill-line"></i> Contas a pagar
       </div>
       <div class="config-item" onclick="goFromMenu(this,'receber')">
-        <i class="ri-hand-coin-line"></i> A receber
+        <i class="ri-hand-coin-line"></i> Contas a receber
       </div>
       <div class="config-item" onclick="goFromMenu(this,'publicidade')">
-        <i class="ri-megaphone-line"></i> Publicidade
+        <i class="ri-megaphone-line"></i> Marketing
       </div>
       <div class="config-item" onclick="goFromMenu(this,'config')">
-        <i class="ri-archive-drawer-line"></i> Ajustes
+        <i class="ri-settings-3-line"></i> Configurações
       </div>
     </div>
   </div>
@@ -251,39 +190,30 @@ const frames = {
 function go(el, key){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   el.classList.add("active");
-
   Object.values(frames).forEach(f=>f.classList.remove("active"));
   frames[key]?.classList.add("active");
 }
-
 function toggleConfigMenu(e){
   e.stopPropagation();
   document.getElementById("navConfig").classList.toggle("open");
 }
-
 document.addEventListener("click", (e) => {
   const nav = document.getElementById("navConfig");
   if (!nav.contains(e.target)) nav.classList.remove("open");
 });
-
 function goFromMenu(el, key){
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
   document.getElementById("navConfig").classList.add("active");
-
   Object.values(frames).forEach(f=>f.classList.remove("active"));
   frames[key]?.classList.add("active");
-
   document.getElementById("navConfig").classList.remove("open");
 }
-
 function refreshIframes(){
   Object.values(frames).forEach(f=>{
     if(!f) return;
     f.src = f.src.split("?")[0] + "?v=" + Date.now();
   });
 }
-
-/* PWA */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js");
 }
