@@ -81,26 +81,26 @@ html,body{margin:0;background:var(--bg);overflow-x:hidden}
     <div class="sub" id="subtitulo">—</div>
   </div>
 
-  <!-- FILTROS -->
   <div class="card">
     <div class="filters">
       <select id="filtroEmpresa">
         <option value="todas">Todas empresas</option>
-        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+        <option value="EMPORIO_MERCATTO">Empório Mercatto</option>
+        <option value="RESTAURANTE_MERCATTO">Restaurante Mercatto</option>
         <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
         <option value="VILLA GOURMET">Villa Gourmet</option>
         <option value="M.KIDS">M.Kids</option>
       </select>
 
       <input type="text" id="rangeDatas" placeholder="Selecione o período">
-
       <input type="month" id="filtroMes">
 
-      <button id="btnFiltrar"><i class="ri-filter-3-line"></i> Atualizar</button>
+      <button id="btnFiltrar">
+        <i class="ri-filter-3-line"></i> Atualizar
+      </button>
     </div>
   </div>
 
-  <!-- RESUMOS -->
   <div class="card grupo">
     <h3>EMPÓRIO</h3>
     <div id="emporio"></div>
@@ -116,15 +116,13 @@ html,body{margin:0;background:var(--bg);overflow-x:hidden}
     <div id="outros"></div>
   </div>
 
-  <!-- COMPARATIVO POR EMPRESA -->
   <div class="card grupo">
-    <h3>COMPARATIVO MENSAL POR EMPRESA (MESMO MÊS DO ANO ANTERIOR)</h3>
+    <h3>COMPARATIVO MENSAL POR EMPRESA</h3>
     <div id="comparativoEmpresas"></div>
   </div>
 
 </div>
 
-<!-- OVERLAY -->
 <div id="loadingOverlay">
   <div style="background:#fff;padding:22px 26px;border-radius:16px;display:flex;gap:12px">
     <i class="ri-loader-4-line" style="font-size:26px;color:#ff6a00;animation:spin 1s linear infinite"></i>
@@ -169,10 +167,16 @@ function normalizarCategoria(mod){
   return "outros";
 }
 
+/* 🔥 Classificação correta do Mercatto */
 function classificarEmpresa(nome){
   const n = (nome||"").toLowerCase();
-  if(n.includes("mercatto") || n.includes("delícia")) return "emporio";
-  if(n.includes("villa") || n.includes("rest")) return "restaurante";
+
+  if(n.includes("mercatto") && n.includes("emporio")) return "emporio";
+  if(n.includes("mercatto") && n.includes("rest")) return "restaurante";
+
+  if(n.includes("emporio")) return "emporio";
+  if(n.includes("rest")) return "restaurante";
+
   return "outros";
 }
 
@@ -214,7 +218,15 @@ async function carregarDados(){
       .lte("data_lancamento", rangeSelecionado[1])
       .order("data_lancamento",{ascending:true});
 
-    if(filtroEmpresa.value !== "todas") q = q.eq("empresa", filtroEmpresa.value);
+    if(filtroEmpresa.value !== "todas"){
+      if(filtroEmpresa.value === "EMPORIO_MERCATTO"){
+        q = q.ilike("empresa", "%Mercatto%Emp%"); 
+      } else if(filtroEmpresa.value === "RESTAURANTE_MERCATTO"){
+        q = q.ilike("empresa", "%Mercatto%Rest%");
+      } else {
+        q = q.eq("empresa", filtroEmpresa.value);
+      }
+    }
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
@@ -231,10 +243,17 @@ async function buscarMesPorEmpresa(empresa, inicio, fim){
 
   while(true){
     let q = sb.from("resumo_entradas")
-      .select("valor, data_lancamento")
+      .select("valor, empresa, data_lancamento")
       .gte("data_lancamento", inicio)
-      .lte("data_lancamento", fim)
-      .eq("empresa", empresa);
+      .lte("data_lancamento", fim);
+
+    if(empresa === "EMPORIO_MERCATTO"){
+      q = q.ilike("empresa", "%Mercatto%Emp%");
+    } else if(empresa === "RESTAURANTE_MERCATTO"){
+      q = q.ilike("empresa", "%Mercatto%Rest%");
+    } else {
+      q = q.eq("empresa", empresa);
+    }
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
@@ -294,7 +313,7 @@ async function montarComparativoEmpresas(){
   const iniAnt = `${anoAnt}-${mes}-01`;
   const fimAnt = new Date(anoAnt, Number(mes), 0).toISOString().slice(0,10);
 
-  const empresas = ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"];
+  const empresas = ["EMPORIO_MERCATTO","RESTAURANTE_MERCATTO","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"];
 
   comparativoEmpresas.innerHTML = "";
 
@@ -305,10 +324,13 @@ async function montarComparativoEmpresas(){
     const perc = anterior > 0 ? (atual / anterior) * 100 : 0;
     const diff = atual - anterior;
 
+    const nomeExibicao = emp === "EMPORIO_MERCATTO" ? "Empório Mercatto" :
+                         emp === "RESTAURANTE_MERCATTO" ? "Restaurante Mercatto" : emp;
+
     comparativoEmpresas.innerHTML += `
       <div class="bloco">
         <div class="top">
-          <span>${emp}</span>
+          <span>${nomeExibicao}</span>
           <span class="badge ${diff >= 0 ? 'up' : 'down'}">
             ${diff >= 0 ? '+' : ''}${perc.toFixed(1)}%
           </span>
