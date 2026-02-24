@@ -380,8 +380,9 @@ tipoSelect.addEventListener("change", () => {
 
   
 // ================== TARA PADRÃO POR PRODUTO ==================
-produtoInput.addEventListener("change", aplicarTaraPadraoPorProduto);
-produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
+produtoInput.addEventListener("input", onProdutoInput);
+produtoInput.addEventListener("change", onProdutoChange);
+produtoInput.addEventListener("blur", onProdutoChange);
 
 async function aplicarTaraPadraoPorProduto(){
   const empresa = empresaSelect.value;
@@ -432,6 +433,35 @@ async function aplicarTaraPadraoPorProduto(){
 
   let editId = null;
 
+
+function onProdutoInput(){
+  const nome = produtoInput.value.trim();
+
+  // se apagar o nome do prato, limpa tara
+  if(!nome){
+    taraInput.value = "";
+    atualizarLiquidoPreview();
+    return;
+  }
+}
+
+function onProdutoChange(){
+  const nome = produtoInput.value.trim();
+
+  if(!nome){
+    taraInput.value = "";
+    atualizarLiquidoPreview();
+    return;
+  }
+
+  aplicarTaraPadraoPorProduto();
+}
+
+
+
+
+
+  
   async function carregarProdutos(){
     const empresa = empresaSelect.value;
     const { data } = await sb
