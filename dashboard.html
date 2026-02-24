@@ -219,11 +219,26 @@ document.addEventListener("click", (e) => {
   if (!nav.contains(e.target)) nav.classList.remove("open");
 });
 function goFromMenu(el, key){
+  // remove active dos botões
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
-  document.getElementById("navConfig").classList.add("active");
-  Object.values(frames).forEach(f=>f.classList.remove("active"));
-  frames[key]?.classList.add("active");
-  document.getElementById("navConfig").classList.remove("open");
+
+  const nav = document.getElementById("navConfig");
+  nav.classList.add("active");
+
+  // esconde todos os iframes
+  Object.values(frames).forEach(f=>{
+    if(!f) return;
+    f.classList.remove("active");
+    f.style.display = "none";
+  });
+
+  // mostra o iframe correto
+  if(frames[key]){
+    frames[key].style.display = "block";
+    frames[key].classList.add("active");
+  }
+
+  nav.classList.remove("open");
 }
 function refreshIframes(){
   Object.values(frames).forEach(f=>{
