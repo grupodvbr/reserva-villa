@@ -77,7 +77,8 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
 }
 .nav-item i{font-size:22px}
 .nav-item.active,
-.nav-config.active .config-btn{color:var(--primary)}
+.nav-config.active .config-btn,
+.nav-config.open .config-btn{color:var(--primary)}
 
 /* CONFIG MENU */
 .nav-config{position:relative}
@@ -115,9 +116,9 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
   </button>
 </div>
 
-<!-- CONTEÚDO (IFRAMES MANTIDOS) -->
+<!-- CONTEÚDO (IFRAMES) -->
 <div class="content">
-  <iframe id="frame-home" src="analise.html" class="active"></iframe>
+  <iframe id="frame-home" src="analise.html"></iframe>
   <iframe id="frame-produtos" src="vendas.html"></iframe>
   <iframe id="frame-agenda" src="cmv.html"></iframe>
   <iframe id="frame-pedidos" src="pedidos.html"></iframe>
@@ -131,43 +132,43 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
 <!-- NAVBAR -->
 <nav class="navbar">
 
-  <div class="nav-item active" onclick="go(this,'home')">
+  <div class="nav-item" data-key="home">
     <i class="ri-dashboard-2-line"></i>
     Dashboard
   </div>
 
-  <div class="nav-item" onclick="go(this,'produtos')">
+  <div class="nav-item" data-key="produtos">
     <i class="ri-line-chart-line"></i>
     Faturamento
   </div>
 
-  <div class="nav-item" onclick="go(this,'agenda')">
+  <div class="nav-item" data-key="agenda">
     <i class="ri-scales-3-line"></i>
     CMV
   </div>
 
-  <div class="nav-item" onclick="go(this,'pedidos')">
+  <div class="nav-item" data-key="pedidos">
     <i class="ri-restaurant-2-line"></i>
     Pedidos
   </div>
 
   <div class="nav-item nav-config" id="navConfig">
-    <div class="config-btn" onclick="toggleConfigMenu(event)">
+    <div class="config-btn">
       <i class="ri-settings-3-line gear"></i>
       Financeiro
     </div>
 
     <div class="config-menu" id="configMenu">
-      <div class="config-item" onclick="goFromMenu(this,'pagar')">
+      <div class="config-item" data-key="pagar">
         <i class="ri-bill-line"></i> Contas a pagar
       </div>
-      <div class="config-item" onclick="goFromMenu(this,'receber')">
+      <div class="config-item" data-key="receber">
         <i class="ri-hand-coin-line"></i> Contas a receber
       </div>
-      <div class="config-item" onclick="goFromMenu(this,'publicidade')">
+      <div class="config-item" data-key="publicidade">
         <i class="ri-megaphone-line"></i> Marketing
       </div>
-      <div class="config-item" onclick="goFromMenu(this,'config')">
+      <div class="config-item" data-key="config">
         <i class="ri-settings-3-line"></i> Configurações
       </div>
     </div>
@@ -187,78 +188,75 @@ const frames = {
   config: document.getElementById("frame-config")
 };
 
-function go(el, key){
-  // remove active de todos os botões
-  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+const navItems = document.querySelectorAll(".nav-item[data-key]");
+const configBtn = document.querySelector("#navConfig .config-btn");
+const configMenu = document.getElementById("configMenu");
+const configItems = document.querySelectorAll(".config-item[data-key]");
 
-  // ativa o botão clicado
-  el.classList.add("active");
-
-  // esconde todos os iframes
+function showFrame(key){
   Object.values(frames).forEach(f=>{
     if(!f) return;
-    f.classList.remove("active");
     f.style.display = "none";
+    f.classList.remove("active");
   });
-
-  // mostra o iframe correto (CMV incluso)
   if(frames[key]){
     frames[key].style.display = "block";
     frames[key].classList.add("active");
+    localStorage.setItem("last_tab", key);
   }
-
-  // fecha menu financeiro se estiver aberto
-  document.getElementById("navConfig").classList.remove("open");
 }
-function toggleConfigMenu(e){
+
+function setActiveNav(el){
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+}
+
+navItems.forEach(item=>{
+  item.addEventListener("click", ()=>{
+    setActiveNav(item);
+    showFrame(item.dataset.key);
+    document.getElementById("navConfig").classList.remove("open");
+  });
+});
+
+configBtn.addEventListener("click", (e)=>{
   e.stopPropagation();
   document.getElementById("navConfig").classList.toggle("open");
-}
+});
+
+configItems.forEach(item=>{
+  item.addEventListener("click", ()=>{
+    const nav = document.getElementById("navConfig");
+    document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+    nav.classList.add("active");
+    showFrame(item.dataset.key);
+    nav.classList.remove("open");
+  });
+});
+
 document.addEventListener("click", (e) => {
   const nav = document.getElementById("navConfig");
   if (!nav.contains(e.target)) nav.classList.remove("open");
 });
-function goFromMenu(el, key){
-  // remove active dos botões
-  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
 
-  const nav = document.getElementById("navConfig");
-  nav.classList.add("active");
-
-  // esconde todos os iframes
-  Object.values(frames).forEach(f=>{
-    if(!f) return;
-    f.classList.remove("active");
-    f.style.display = "none";
-  });
-
-  // mostra o iframe correto
-  if(frames[key]){
-    frames[key].style.display = "block";
-    frames[key].classList.add("active");
-  }
-
-  nav.classList.remove("open");
-}
 function refreshIframes(){
   Object.values(frames).forEach(f=>{
     if(!f) return;
-    f.src = f.src.split("?")[0] + "?v=" + Date.now();
+    const base = f.src.split("?")[0];
+    f.src = base + "?v=" + Date.now();
   });
 }
+
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js");
+  navigator.serviceWorker.register("/sw.js").catch(()=>{});
 }
 
-
+// estado inicial
 window.addEventListener("load", () => {
-  Object.values(frames).forEach(f=>{
-    if(!f) return;
-    f.style.display = "none";
-    f.classList.remove("active");
-  });
-  frames.home.style.display = "block";
-  frames.home.classList.add("active");
+  const last = localStorage.getItem("last_tab") || "home";
+  const firstNav = document.querySelector(`.nav-item[data-key="${last}"]`) || document.querySelector('.nav-item[data-key="home"]');
+  setActiveNav(firstNav);
+  showFrame(last);
 });
 </script>
 
