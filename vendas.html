@@ -1,151 +1,145 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Resumo de Vendas • WhatsApp</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Resumo de Vendas • Analítico</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --bg:#0b0b0b;
-  --card:#151515;
-  --border:#242424;
-  --gold:#d4af37;
-  --text:#f5f5f5;
-  --muted:#9ca3af;
   --primary:#ff6a00;
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --radius:18px;
+  --shadow:0 12px 34px rgba(0,0,0,.10);
+  --gold:#d4af37;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{width:100%;height:100%;background:var(--bg);color:var(--text);overflow:auto}
-.header{padding:16px}
-.header h2{font-size:18px;font-weight:800}
-.header span{font-size:12px;color:var(--muted)}
-.filters{
-  padding:0 16px 10px;
-  display:grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap:8px;
+*{box-sizing:border-box;font-family:Inter}
+html,body{margin:0;background:var(--bg)}
+.app{max-width:1100px;margin:auto;padding:10px 10px 72px}
+
+.header{
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(180deg,#fff, #fff0);
+  backdrop-filter: blur(6px);
+  padding:10px 0 8px;
+  margin-bottom:8px;
 }
-.filters select,
-.filters input,
-.filters button{
-  background:#111;
-  color:#fff;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px;
-  font-size:13px;
-}
-.filters button{
-  background:linear-gradient(180deg,#ff6a00,#ea580c);
-  border:none;
-  font-weight:800;
-}
-.grupo{padding:0 16px 16px}
-.grupo h3{font-size:12px;color:var(--muted);margin:10px 0 6px}
+.title{font-size:20px;font-weight:900}
+.sub{font-size:12px;color:var(--muted)}
+
 .card{
   background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:12px;
+  margin-bottom:10px;
+}
+
+.filters{
+  display:grid;grid-template-columns:1fr 1fr auto;gap:8px;
+}
+.filters input,.filters select,.filters button{
+  padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:14px
+}
+.filters button{background:var(--primary);color:#fff;border:none;font-weight:800}
+
+.grupo h3{
+  font-size:12px;color:var(--muted);margin:10px 0 6px;
+}
+.card-bloco{
   border:1px solid var(--border);
   border-radius:14px;
   padding:12px;
   margin-bottom:10px;
 }
-.top{display:flex;justify-content:space-between;font-weight:800;color:var(--gold);margin-bottom:6px}
-.item{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)}
+.top{
+  display:flex;justify-content:space-between;font-weight:900;color:var(--primary);margin-bottom:6px
+}
+.item{
+  display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)
+}
 .item:last-child{border-bottom:none}
-.muted{color:var(--muted);font-size:13px;padding:10px;border:1px dashed var(--border);border-radius:12px}
+.muted{
+  color:var(--muted);font-size:13px;padding:10px;border:1px dashed var(--border);border-radius:12px
+}
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<div class="header">
-  <h2>Resumo de Vendas</h2>
-  <span id="subtitulo">—</span>
-</div>
+  <div class="header">
+    <div class="title">Resumo de Vendas</div>
+    <div class="sub" id="subtitulo">—</div>
+  </div>
 
-<!-- FILTROS -->
-<div class="filters">
-  <select id="filtroEmpresa">
-    <option value="todas">Todas empresas</option>
-    <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-    <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-    <option value="VILLA GOURMET">Villa Gourmet</option>
-    <option value="M.KIDS">M.Kids</option>
-  </select>
+  <div class="card">
+    <div class="filters">
+      <select id="filtroEmpresa">
+        <option value="todas">Todas empresas</option>
+        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+        <option value="VILLA GOURMET">Villa Gourmet</option>
+        <option value="M.KIDS">M.Kids</option>
+      </select>
+      <input type="date" id="filtroDia">
+      <button id="btnFiltrar">Atualizar</button>
+    </div>
+  </div>
 
-  <input type="date" id="filtroDia">
+  <div class="card grupo">
+    <h3>EMPÓRIO</h3>
+    <div id="emporio"></div>
+  </div>
 
-  <button onclick="aplicarFiltros()">Aplicar</button>
-</div>
+  <div class="card grupo">
+    <h3>RESTAURANTE</h3>
+    <div id="restaurante"></div>
+  </div>
 
-<div class="grupo">
-  <h3>EMPÓRIO</h3>
-  <div id="emporio"></div>
-</div>
+  <div class="card grupo" id="grupo-outros" style="display:none">
+    <h3>OUTRAS EMPRESAS</h3>
+    <div id="outros"></div>
+  </div>
 
-<div class="grupo">
-  <h3>RESTAURANTE</h3>
-  <div id="restaurante"></div>
-</div>
-
-<div class="grupo" id="grupo-outros" style="display:none">
-  <h3>OUTRAS EMPRESAS</h3>
-  <div id="outros"></div>
 </div>
 
 <script>
-/* ================= SUPABASE ================= */
 const { createClient } = supabase;
 const sb = createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-/* ================= AGRUPAMENTO ================= */
 const categoriasAgrupadas = {
-  "crédito": ["credito","cartao credito","totem credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
-  "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
-  "pix": ["pix","pgto online pix","qrcode","pix tef","pix cnpj","pix offline","pix itau","pix pos"],
-  "online": ["pagamento online","pagamentos online","refeicao","cart alimentacao"],
-  "consumo interno": ["funcionario","convenio empresa","consumo funcionarios","consumo musicos"],
-  "boleto": ["boleto"],
-  "crediário": ["crediario","crediario clientes"],
-  "voucher": ["voucher","cartao voucher","voucher pos","voucher delicia","voucher villa"],
-  "dinheiro": ["dinheiro","pgto online dinheiro"],
-  "bonificação": ["bonificacao"],
-  "catálogo delivery": ["catalogo delivery","catálogo delivery"],
-  "consumo sócio": ["socio","consumo sócio","consumo socio"],
-  "marketing": ["marketing"],
-  "transferência bancária": ["transferencia bancar","transferencia bancaria"],
-  "erros garçom": ["erros garcons"],
-  "sem faturamento": ["sem faturamento"],
+  "crédito": ["credito","cartao credito","credito pos","credito delivery","crédito à vista"],
+  "débito": ["debito","cartao debito","debito pos","debito delivery"],
+  "pix": ["pix","qrcode","pix tef","pix pos"],
+  "online": ["pagamento online","pagamentos online"],
+  "dinheiro": ["dinheiro"],
+  "voucher": ["voucher"],
+  "consumo interno": ["funcionario","consumo funcionarios"],
   "outros": []
 };
 
-/* ================= UTIL ================= */
-const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+const BRL = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
 const fmtBR = d => d ? d.split("-").reverse().join("/") : "—";
 
-/* ================= FILTROS ================= */
-let EMPRESA = "todas";
-let DIA = "";
-
-/* ================= NORMALIZAÇÃO ================= */
 function normalizarCategoria(mod){
-  if(!mod || typeof mod !== "string") return "outros";
-  const m = mod.toLowerCase().trim();
+  if(!mod) return "outros";
+  const m = mod.toLowerCase();
   for(const [cat,keys] of Object.entries(categoriasAgrupadas)){
     if(keys.some(k => m.includes(k))) return cat;
   }
   return "outros";
 }
-
-/* ================= CLASSIFICAR EMPRESA ================= */
 function classificarEmpresa(nome){
   const n = (nome||"").toLowerCase();
   if(n.includes("emp")) return "emporio";
@@ -153,7 +147,18 @@ function classificarEmpresa(nome){
   return "outros";
 }
 
-/* ================= BUSCAR ================= */
+let EMPRESA = "todas";
+let DIA = "";
+
+/* ontem como padrão */
+(function setarOntem(){
+  const d = new Date();
+  d.setDate(d.getDate()-1);
+  const iso = d.toISOString().slice(0,10);
+  document.getElementById("filtroDia").value = iso;
+  DIA = iso;
+})();
+
 async function carregarDados(){
   let todos = [];
   let from = 0;
@@ -178,28 +183,22 @@ async function carregarDados(){
   montarResumo(todos);
 }
 
-/* ================= MONTAR ================= */
 function montarResumo(lista){
   const porEmpresa = {};
-
   lista.forEach(l=>{
-    const v = Number(l.valor) || 0;
-    if(!porEmpresa[l.empresa]) porEmpresa[l.empresa] = { total:0, cats:{} };
+    const v = Number(l.valor)||0;
+    porEmpresa[l.empresa] ||= {total:0,cats:{}};
     porEmpresa[l.empresa].total += v;
-
     const cat = normalizarCategoria(l.modalidade);
-    porEmpresa[l.empresa].cats[cat] =
-      (porEmpresa[l.empresa].cats[cat] || 0) + v;
+    porEmpresa[l.empresa].cats[cat] = (porEmpresa[l.empresa].cats[cat]||0)+v;
   });
 
-  emporio.innerHTML = "";
-  restaurante.innerHTML = "";
-  outros.innerHTML = "";
-  document.getElementById("grupo-outros").style.display = "none";
+  emporio.innerHTML=""; restaurante.innerHTML=""; outros.innerHTML="";
+  document.getElementById("grupo-outros").style.display="none";
 
   Object.entries(porEmpresa).forEach(([empresa,info])=>{
     const bloco = `
-      <div class="card">
+      <div class="card-bloco">
         <div class="top">
           <span>${empresa}</span>
           <span>R$ ${BRL(info.total)}</span>
@@ -212,42 +211,26 @@ function montarResumo(lista){
         `).join("")}
       </div>
     `;
-
-    const grupo = classificarEmpresa(empresa);
-    if(grupo === "emporio") emporio.innerHTML += bloco;
-    else if(grupo === "restaurante") restaurante.innerHTML += bloco;
-    else{
-      document.getElementById("grupo-outros").style.display = "block";
-      outros.innerHTML += bloco;
-    }
+    const g = classificarEmpresa(empresa);
+    if(g==="emporio") emporio.innerHTML+=bloco;
+    else if(g==="restaurante") restaurante.innerHTML+=bloco;
+    else{document.getElementById("grupo-outros").style.display="block"; outros.innerHTML+=bloco;}
   });
 
-  if(!emporio.innerHTML) emporio.innerHTML = '<div class="muted">Sem vendas</div>';
-  if(!restaurante.innerHTML) restaurante.innerHTML = '<div class="muted">Sem vendas</div>';
+  if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
+  if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
 
   document.getElementById("subtitulo").innerText =
-    `${EMPRESA === "todas" ? "Todas as empresas" : EMPRESA} • ${fmtBR(DIA)}`;
+    `${EMPRESA==="todas"?"Todas empresas":EMPRESA} • ${fmtBR(DIA)}`;
 }
 
-/* ================= APLICAR FILTRO ================= */
-function aplicarFiltros(){
+document.getElementById("btnFiltrar").onclick = () => {
   EMPRESA = document.getElementById("filtroEmpresa").value;
   DIA = document.getElementById("filtroDia").value;
   carregarDados();
-}
+};
 
-/* ================= SETA ONTEM COMO PADRÃO ================= */
-(function setarOntemComoPadrao(){
-  const hoje = new Date();
-  hoje.setDate(hoje.getDate() - 1);
-  const ontemISO = hoje.toISOString().slice(0,10);
-  document.getElementById("filtroDia").value = ontemISO;
-  DIA = ontemISO;
-})();
-
-/* INIT */
 carregarDados();
 </script>
-
 </body>
 </html>
