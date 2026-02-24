@@ -83,14 +83,15 @@ html,body{margin:0;background:var(--bg);overflow-x:hidden}
 
   <div class="card">
     <div class="filters">
-      <select id="filtroEmpresa">
-        <option value="todas">Todas empresas</option>
-        <option value="EMPORIO_MERCATTO">Empório Mercatto</option>
-        <option value="RESTAURANTE_MERCATTO">Restaurante Mercatto</option>
-        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-        <option value="VILLA GOURMET">Villa Gourmet</option>
-        <option value="M.KIDS">M.Kids</option>
-      </select>
+<select id="filtroEmpresa">
+  <option value="todas">Todas empresas</option>
+  <option value="EMPORIO_MERCATTO">Empório Mercatto</option>
+  <option value="RESTAURANTE_MERCATTO">Restaurante Mercatto</option>
+  <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+  <option value="PANIFICADORA_DELÍCIA">Panificadora Delícia</option>
+  <option value="VILLA GOURMET">Villa Gourmet</option>
+  <option value="M.KIDS">M.Kids</option>
+</select>
 
       <input type="text" id="rangeDatas" placeholder="Selecione o período">
       <input type="month" id="filtroMes">
@@ -138,15 +139,15 @@ const sb = supabase.createClient(
 const EMPRESA_ALIAS = {
   "EMPORIO_MERCATTO": ["mercatto", "empor"],
   "RESTAURANTE_MERCATTO": ["mercatto", "rest"],
-  "DELÍCIA GOURMET": ["panificadora", "delicia"],
-  "VILLA GOURMET": ["meos", "gourmet"],
+  "DELÍCIA GOURMET": ["delicia", "gourmet"],       // se existir esse nome no banco
+  "PANIFICADORA_DELÍCIA": ["panificadora", "delicia"], // EMPRESA PRÓPRIA
+  "VILLA GOURMET": ["meos", "gourmet"],            // nome jurídico da Villa
   "M.KIDS": ["kids", "mkids", "m.kids"]
 };
 
 function aplicarFiltroEmpresa(q, empresaKey){
   const termos = EMPRESA_ALIAS[empresaKey];
   if(!termos) return q.ilike("empresa", `%${empresaKey}%`);
-  // exige que todos os termos existam no nome da empresa
   termos.forEach(t => {
     q = q.ilike("empresa", `%${t}%`);
   });
