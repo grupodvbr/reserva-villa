@@ -12,313 +12,232 @@
 <style>
 :root{
   --primary:#ff6a00;
-  --primary-600:#f97316;
-  --primary-700:#ea580c;
-  --bg:#f5f7fb;
+  --primary-dark:#ea580c;
+  --bg:#f4f6fb;
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --text:#0f172a;
   --success:#16a34a;
   --danger:#dc2626;
-  --warning:#f59e0b;
   --radius:18px;
-  --radius-sm:12px;
-  --shadow-sm:0 6px 18px rgba(0,0,0,.06);
-  --shadow-md:0 12px 30px rgba(0,0,0,.10);
-  --shadow-lg:0 24px 60px rgba(0,0,0,.18);
+  --shadow:0 16px 40px rgba(0,0,0,.12);
 }
 
-/* =========================
-   RESET & BASE
-========================= */
-*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+/* Reset e base */
+*{
+  box-sizing:border-box;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
 html, body{
   width:100%;
   height:100%;
   margin:0;
-  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(1200px 400px at 10% -10%, rgba(255,106,0,.08), transparent 40%),
-    linear-gradient(180deg,#fff,var(--bg));
+  padding:0;
+  background:linear-gradient(180deg,#fff, var(--bg));
+  overscroll-behavior: none;
 }
-body{ overflow:hidden; }
+body{
+  overflow:hidden;              /* tela cheia sem scroll da página */
+}
 
-/* =========================
-   APP LAYOUT
-========================= */
+/* Container principal ocupa a tela */
 .app{
-  max-width:1440px;
-  height:100dvh;
+  max-width:1400px;             /* usa melhor telas grandes */
   margin:0 auto;
-  padding:16px 16px 18px;
+  padding:14px 14px 22px;
+  min-height:100dvh;            /* altura real da viewport (mobile safe) */
   display:flex;
   flex-direction:column;
-  gap:14px;
-  overflow:hidden;
 }
 
-/* =========================
-   HEADER
-========================= */
+/* Header fixo no topo */
 .header{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
+  margin-bottom:12px;
 }
-.title{
-  font-size:22px;
-  font-weight:900;
-  letter-spacing:.2px;
-}
+.title{font-size:22px;font-weight:900}
 .badge{
-  background:linear-gradient(180deg,#0f172a,#020617);
-  color:#fff;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:12px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+  background:#111827;color:#fff;
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;white-space:nowrap
 }
 
-/* =========================
-   CARDS
-========================= */
+/* Cards */
 .card{
   background:var(--card);
   border-radius:var(--radius);
-  box-shadow:var(--shadow-md);
-  padding:14px 14px 16px;
-  border:1px solid #eef2f7;
-  min-height:0;
-}
-.card b{
-  font-weight:900;
-  letter-spacing:.2px;
+  box-shadow:var(--shadow);
+  padding:14px;
+  margin-bottom:12px;
 }
 
-/* =========================
-   COMPANY ROW
-========================= */
+/* Linha empresa */
 .company-row{
   display:flex;
-  align-items:center;
   gap:10px;
+  align-items:center;
 }
-.company-row b{ white-space:nowrap; }
-.company-row select{ flex:1; }
+.company-row select{flex:1}
 
-/* =========================
-   FORM
-========================= */
 .form-grid{
   display:grid;
-  grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   gap:12px;
   align-items:end;
 }
+
 .field{
   display:flex;
   flex-direction:column;
   gap:6px;
 }
+
 .field label{
-  font-size:11px;
-  font-weight:800;
+  font-size:12px;
+  font-weight:700;
   color:#374151;
-  text-transform:uppercase;
-  letter-spacing:.4px;
 }
+
 input, select, button{
-  height:48px;
-  padding:12px 14px;
+  padding:14px 14px;
   border-radius:14px;
   border:1px solid var(--border);
-  background:#fff;
-  font-size:15px;
-  color:var(--text);
+  font-size:16px;
   outline:none;
-  transition:border .15s, box-shadow .15s, transform .05s;
+  height:48px;
 }
-input::placeholder{ color:#9ca3af; }
-input:focus, select:focus{
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(255,106,0,.18);
-}
+
 .input-weight{
   font-weight:900;
   letter-spacing:.02em;
 }
+
 .input-tara{
   background:#fff7ed;
   border-color:#fed7aa;
 }
+
 .net-preview{
   font-size:12px;
-  color:#475569;
+  color:#374151;
+  margin-top:4px;
 }
-.net-preview b{ color:var(--success); }
+
+.net-preview b{
+  color:#16a34a;
+}
+input:focus, select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.15);
+}
 
 button.primary{
-  background:linear-gradient(180deg,var(--primary),var(--primary-700));
-  color:#fff;
-  border:none;
-  font-weight:900;
-  letter-spacing:.3px;
-  box-shadow:0 10px 20px rgba(255,106,0,.25), inset 0 1px 0 rgba(255,255,255,.25);
+  background:var(--primary);
+  color:#fff;border:none;
+  font-weight:800;
 }
-button.primary:hover{ filter:brightness(1.04); }
-button.primary:active{ transform:translateY(1px) scale(.99); }
-
+button.primary:active{transform:scale(.98)}
 button.ghost{
-  background:#fff;
-  border:1px dashed var(--border);
-  color:#0f172a;
+  background:#fff;border:1px dashed var(--border)
 }
-button.ghost:hover{ background:#f8fafc; }
+small{color:var(--muted)}
 
-small{ color:var(--muted); }
-
-/* =========================
-   LIST / ITEMS
-========================= */
-.card.lancamentos,
-.card:last-of-type{
-  display:flex;
-  flex-direction:column;
-  flex:1;
-  min-height:0;
-}
-
+/* Lista com scroll interno (tela cheia) */
 .list{
-  flex:1;
-  overflow:auto;
   display:grid;
   gap:10px;
-  padding-right:6px;
-}
-.list::-webkit-scrollbar{ width:8px; }
-.list::-webkit-scrollbar-thumb{
-  background:#cbd5e1;
-  border-radius:999px;
+  margin-top:8px;
+  overflow:auto;
+  max-height:calc(100dvh - 360px); /* ajusta conforme header + cards */
+  padding-right:4px;
 }
 .item{
   display:grid;
   grid-template-columns:1fr auto;
-  gap:12px;
-  padding:12px 12px 12px 14px;
+  gap:10px;
+  padding:12px;
   border-radius:14px;
   border:1px solid var(--border);
-  background:
-    linear-gradient(180deg,#fff,#fbfdff);
-  transition:.15s ease;
+  background:#fff;
 }
-.item:hover{
-  transform:translateY(-1px);
-  box-shadow:0 10px 22px rgba(0,0,0,.10);
-}
-.item .name{
-  font-weight:900;
-  letter-spacing:.2px;
-}
-.meta{
-  font-size:13px;
-  color:#64748b;
-}
-.meta b{
-  color:#0f172a;
-  font-weight:900;
-}
+.item .name{font-weight:800}
+.meta{font-size:13px;color:var(--muted)}
 .tag{
-  display:inline-block;
-  margin-top:6px;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:900;
-  letter-spacing:.3px;
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;font-weight:800
 }
-.MONTAGEM{ background:#dcfce7; color:#166534; }
-.REPOSICAO{ background:#e0f2fe; color:#075985; }
-.RETIRADA{ background:#fee2e2; color:#991b1b; }
-.DEVOLUCAO{ background:#fef3c7; color:#92400e; }
-
+.MONTAGEM{background:#dcfce7;color:#166534}
+.REPOSICAO{background:#e0f2fe;color:#075985}
+.RETIRADA{background:#fee2e2;color:#991b1b}
+.DEVOLUCAO{background:#fef3c7;color:#92400e}
 .icon-btn{
   border:1px solid var(--border);
-  background:#fff;
-  border-radius:12px;
-  padding:8px;
-  cursor:pointer;
-  transition:background .12s, transform .05s, box-shadow .12s;
+  background:#fff;border-radius:10px;padding:8px
 }
-.icon-btn:hover{
-  background:#f8fafc;
-  box-shadow:0 6px 14px rgba(0,0,0,.08);
-}
-.icon-btn:active{ transform:scale(.96); }
-.icon-btn.danger{
-  border-color:#fecaca;
-  color:#b91c1c;
-}
+.icon-btn.danger{border-color:#fecaca;color:#b91c1c}
 
-/* =========================
-   MODAL
-========================= */
+/* Modal fullscreen no mobile */
 .modal-backdrop{
   position:fixed;
   inset:0;
-  background:rgba(15,23,42,.6);
+  background:rgba(0,0,0,.45);
   display:none;
-  align-items:center;
+  align-items:flex-end;
   justify-content:center;
   z-index:999;
-  backdrop-filter: blur(2px);
 }
 .modal{
   width:100%;
   max-width:560px;
   background:#fff;
-  border-radius:22px;
-  padding:18px;
-  box-shadow:var(--shadow-lg);
-  animation:pop .15s ease-out;
+  border-radius:22px 22px 0 0;
+  padding:16px;
+  box-shadow:0 -20px 40px rgba(0,0,0,.25);
+  animation:slideUp .18s ease-out;
 }
-@keyframes pop{
-  from{ transform:scale(.96); opacity:.6; }
-  to{ transform:none; opacity:1; }
+@keyframes slideUp{
+  from{transform:translateY(24px);opacity:.6}
+  to{transform:none;opacity:1}
 }
-.modal h3{ margin:0 0 8px 0; }
-.modal .grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.modal .actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:12px;
+.modal h3{margin:0 0 8px 0}
+.modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+
+/* Desktop: modal centralizado */
+@media (min-width: 900px){
+  .modal-backdrop{align-items:center}
+  .modal{border-radius:22px}
 }
 
-/* =========================
-   RESPONSIVO
-========================= */
-@media (max-width: 1100px){
-  .form-grid{ grid-template-columns:1fr 1fr; }
-}
+/* Mobile: tudo em coluna, sem zoom */
 @media (max-width: 720px){
-  .app{ padding:10px; }
-  .title{ font-size:20px; }
-  .form-grid{ grid-template-columns:1fr; }
+  .form-grid{grid-template-columns:1fr}
+  .title{font-size:20px}
+  .badge{font-size:11px}
+  .list{
+    max-height:calc(100dvh - 400px); /* mais espaço pro teclado */
+  }
 }
 
-/* =========================
-   SPINNER
-========================= */
+/* Evita rolagem lateral */
+body, .app{
+  overflow-x:hidden;
+}
+
 @keyframes spin{
-  from{ transform:rotate(0deg); }
-  to{ transform:rotate(360deg); }
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+
+
+/* cole no <style> */
+.meta b{
+  color:#0f172a;
+  font-weight:800;
 }
 </style>
 </head>
@@ -382,45 +301,11 @@ small{ color:var(--muted); }
     <small>Data é travada no dia atual e hora é automática.</small>
   </div>
 
-<div class="card" style="display:flex; flex-direction:column; min-height:0;">
-  <b>📋 Lançamentos de Hoje</b>
-  <div class="list" id="lista"></div>
-</div>
-<!-- 🔢 RESUMO DE VENDAS DO DIA -->
-<div class="card" id="resumoVendasCard">
-  <b>📊 Resumo de Vendas do Dia</b>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
-    <div class="field">
-      <label>Total de Vendas (R$)</label>
-      <input id="totalVendasDia" class="input-weight" readonly value="0,00">
-    </div>
-    <div class="field">
-      <label>Quantidade de Vendas</label>
-      <input id="qtdVendasDia" class="input-weight" readonly value="0">
-    </div>
+  <div class="card">
+    <b>📋 Lançamentos de Hoje</b>
+    <div class="list" id="lista"></div>
   </div>
-</div>
 
-<!-- 🧾 REGISTRAR VENDAS DO DIA -->
-<div class="card" id="registrarVendasCard">
-  <b>🧾 Registrar Vendas do Dia</b>
-  <div class="form-grid" style="margin-top:10px">
-    <div class="field">
-      <label>Total vendido hoje (R$)</label>
-      <input id="inputTotalVendasDia" inputmode="decimal" placeholder="0,00">
-    </div>
-    <div class="field">
-      <label>Quantidade de vendas</label>
-      <input id="inputQtdVendasDia" inputmode="numeric" placeholder="0">
-    </div>
-    <div class="field">
-      <button class="primary" id="btnSalvarVendasDia">
-        <i class="ri-save-3-line"></i> Salvar vendas do dia
-      </button>
-    </div>
-  </div>
-  <small>Esse valor fica salvo como o último registro do dia.</small>
-</div>
 </div>
 
 <datalist id="produtosList"></datalist>
@@ -630,42 +515,6 @@ function onProdutoChange(){
     });
   }
 
-
-
-
-
-
-
-
-
-
-
-
-  async function carregarResumoVendasDia(){
-  const empresa = empresaSelect.value;
-
-  // último registro do dia com vendas
-  const { data } = await sb
-    .from("buffet_lancamentos")
-    .select("vendas")
-    .eq("empresa", empresa)
-    .eq("data", dataISO)
-    .not("vendas", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  document.getElementById("totalVendasDia").value =
-    data?.length ? Number(data[0].vendas || 0).toFixed(2).replace(".", ",") : "0,00";
-
-  // quantidade de vendas do dia (total de registros)
-  const { count } = await sb
-    .from("buffet_lancamentos")
-    .select("*", { count: "exact", head: true })
-    .eq("empresa", empresa)
-    .eq("data", dataISO);
-
-  document.getElementById("qtdVendasDia").value = count || 0;
-}
 async function salvar(){
   try{
     showSaving(); // 👈 abre overlay
@@ -808,9 +657,8 @@ function limpar(){
 
   atualizarLiquidoPreview();
 }
-carregarProdutos();
-carregarLancamentos();
-carregarResumoVendasDia();
+  carregarProdutos();
+  carregarLancamentos();
 
 
 function parsePeso(v){
@@ -856,40 +704,6 @@ taraInput.addEventListener("input", () => {
   aplicarMascaraKg(taraInput);
   atualizarLiquidoPreview();
 });
-
-  document.getElementById("btnSalvarVendasDia").onclick = async () => {
-  const empresa = empresaSelect.value;
-  const total = Number(
-    String(document.getElementById("inputTotalVendasDia").value)
-      .replace(",", ".")
-      .replace(/[^\d.]/g, "")
-  );
-  const qtd = Number(
-    String(document.getElementById("inputQtdVendasDia").value)
-      .replace(/[^\d]/g, "")
-  );
-
-  if(!total || total <= 0){
-    alert("Informe o total de vendas do dia.");
-    return;
-  }
-
-  await sb.from("buffet_lancamentos").insert({
-    empresa,
-    data: dataISO,
-    vendas: total,
-    quantidade: qtd || 0,
-    tipo: "VENDAS_DIA",
-    produto_nome: "TOTAL DO DIA",
-    hora: new Date().toTimeString().slice(0,8)
-  });
-
-  document.getElementById("inputTotalVendasDia").value = "";
-  document.getElementById("inputQtdVendasDia").value = "";
-
-  carregarResumoVendasDia();
-  alert("Vendas do dia registradas!");
-};
 </script>
 <!-- OVERLAY DE SALVAMENTO -->
 <div id="savingOverlay" style="
