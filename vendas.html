@@ -334,8 +334,7 @@ const anoAnt = Number(ano) - 1;
 const iniAnt = new Date(anoAnt, mesNum, 1).toISOString().slice(0,10);
 const fimAnt = new Date(anoAnt, mesNum + 1, 0).toISOString().slice(0,10);
 
-  const empresas = ["EMPORIO_MERCATTO","RESTAURANTE_MERCATTO","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"];
-
+const empresas = ["EMPORIO_MERCATTO","RESTAURANTE_MERCATTO","DELÍCIA GOURMET","PANIFICADORA_DELÍCIA","VILLA GOURMET","M.KIDS"];
   comparativoEmpresas.innerHTML = "";
 
   for(const emp of empresas){
