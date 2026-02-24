@@ -20,7 +20,7 @@
   --success:#16a34a;
   --danger:#dc2626;
   --radius:18px;
-  --shadow:0 16px 40px rgba(0,0,0,.12);
+  --shadow:0 10px 24px rgba(0,0,0,.10);
 }
 
 /* Reset e base */
@@ -38,16 +38,16 @@ html, body{
   overscroll-behavior: none;
 }
 body{
-  overflow:hidden;              /* trava scroll do body */
+  overflow:hidden;
 }
 
-/* Container principal ocupa a tela */
+/* App container */
 .app{
   width:100%;
-  max-width:1400px;
+  max-width:1200px;
   margin:0 auto;
-  padding:14px 14px 22px;
-  min-height:100dvh;
+  padding:14px 16px 22px;
+  min-height:100svh;
   display:flex;
   flex-direction:column;
   overflow-x:hidden;
@@ -87,7 +87,7 @@ body{
 }
 .company-row select{flex:1}
 
-/* Form */
+/* Form grid */
 .form-grid{
   display:grid;
   grid-template-columns: 2fr 1fr 1fr;
@@ -159,7 +159,7 @@ small{color:var(--muted)}
   margin-top:8px;
   overflow-y:auto;
   overflow-x:hidden;
-  max-height:calc(100svh - 360px);
+  max-height:calc(100svh - 380px);
 }
 
 /* Item */
@@ -233,7 +233,7 @@ small{color:var(--muted)}
   .form-grid{grid-template-columns:1fr}
   .title{font-size:20px}
   .badge{font-size:11px}
-  .list{ max-height:calc(100svh - 400px); }
+  .list{ max-height:calc(100svh - 420px); }
 }
 
 /* Evita qualquer rolagem lateral */
