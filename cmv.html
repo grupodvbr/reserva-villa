@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Resumo de Vendas • Analítico Operacional</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --primary-dark:#ea580c;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --radius:18px;
+  --shadow:0 16px 40px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;font-family:Inter}
+html, body{
+  width:100%;
+  height:100%;
+  margin:0;
+  background:linear-gradient(180deg,#fff, var(--bg));
+  overflow:hidden;
+}
+.app{
+  max-width:1400px;
+  margin:0 auto;
+  padding:14px 14px 22px;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.title{font-size:22px;font-weight:900}
+.badge{
+  background:#111827;color:#fff;
+  padding:6px 10px;border-radius:999px;
+  font-size:12px;white-space:nowrap
+}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px;
+  margin-bottom:12px;
+}
+.form-grid{
+  display:grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap:12px;
+  align-items:end;
+}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;font-weight:700;color:#374151}
+input, select, button{
+  padding:14px 14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:16px;
+  outline:none;
+  height:48px;
+}
+input:focus, select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.15);
+}
+button.primary{
+  background:var(--primary);
+  color:#fff;border:none;font-weight:800;
+}
+button.primary:active{transform:scale(.98)}
+small{color:var(--muted)}
+
+.grupo h3{font-size:12px;color:var(--muted);margin:10px 0 6px}
+.bloco{
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:10px;
+}
+.top{
+  display:flex;justify-content:space-between;align-items:center;font-weight:900
+}
+.badge2{
+  padding:4px 10px;border-radius:999px;font-size:12px;font-weight:900
+}
+.badge2.up{background:#dcfce7;color:#166534}
+.badge2.down{background:#fee2e2;color:#991b1b}
+.item{
+  display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)
+}
+.item:last-child{border-bottom:none}
+.valores{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px
+}
+.box{
+  border:1px dashed var(--border);
+  border-radius:12px;
+  padding:8px;
+  font-size:12px;
+}
+.box b{display:block;font-size:14px}
+.muted{color:var(--muted)}
+
+.list-wrap{
+  overflow:auto;
+  padding-right:4px;
+  max-height:calc(100dvh - 320px);
+}
+
+@media (max-width: 720px){
+  .form-grid{grid-template-columns:1fr}
+  .title{font-size:20px}
+  .list-wrap{max-height:calc(100dvh - 380px)}
+}
+
+/* Overlay */
+#loadingOverlay{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(15,23,42,.55);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter: blur(2px);
+}
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="title">Resumo de Vendas</div>
+    <span class="badge">Filtro operacional</span>
+  </div>
+
+  <!-- FILTRO IGUAL AO DO BUFFET -->
+  <div class="card">
+    <div class="form-grid">
+      <div class="field">
+        <label>Empresa</label>
+        <select id="filtroEmpresa">
+          <option value="todas">Todas empresas</option>
+          <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+          <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+          <option value="VILLA GOURMET">Villa Gourmet</option>
+          <option value="M.KIDS">M.Kids</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Dia</label>
+        <input type="date" id="filtroDia">
+      </div>
+
+      <div class="field">
+        <label>Mês (comparativo)</label>
+        <input type="month" id="filtroMes">
+      </div>
+
+      <div class="field">
+        <label>&nbsp;</label>
+        <button class="primary" id="btnFiltrar">
+          <i class="ri-filter-3-line"></i> Atualizar
+        </button>
+      </div>
+    </div>
+    <small>Dia padrão = ontem • Mês = mesmo mês para comparação anual</small>
+  </div>
+
+  <div class="list-wrap">
+    <div class="card grupo">
+      <h3>EMPÓRIO</h3>
+      <div id="emporio"></div>
+    </div>
+
+    <div class="card grupo">
+      <h3>RESTAURANTE</h3>
+      <div id="restaurante"></div>
+    </div>
+
+    <div class="card grupo" id="grupo-outros" style="display:none">
+      <h3>OUTRAS EMPRESAS</h3>
+      <div id="outros"></div>
+    </div>
+
+    <div class="card grupo">
+      <h3>COMPARATIVO MENSAL (MESMO MÊS DO ANO ANTERIOR)</h3>
+      <div id="comparativo"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- OVERLAY LOADING -->
+<div id="loadingOverlay">
+  <div style="
+    background:#fff; padding:22px 26px; border-radius:16px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.25)
+  ">
+    <i class="ri-loader-4-line" style="font-size:26px; color:#ff6a00; animation:spin 1s linear infinite"></i>
+    <b>Carregando...</b>
+  </div>
+</div>
+
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  "https://dxkszikemntfusfyrzos.supabase.co",
+  "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+);
+
+const categoriasAgrupadas = {
+  "crédito": ["credito","cartao credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
+  "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
+  "pix": ["pix","pgto online pix","qrcode","pix tef","pix cnpj","pix offline","pix itau","pix pos"],
+  "online": ["pagamento online","pagamentos online","refeicao","cart alimentacao"],
+  "consumo interno": ["funcionario","convenio empresa","consumo funcionarios","consumo musicos"],
+  "boleto": ["boleto"],
+  "crediário": ["crediario","crediario clientes"],
+  "voucher": ["voucher","cartao voucher","voucher pos","voucher delicia","voucher villa"],
+  "dinheiro": ["dinheiro","pgto online dinheiro"],
+  "bonificação": ["bonificacao"],
+  "catálogo delivery": ["catalogo delivery","catálogo delivery"],
+  "consumo sócio": ["socio","consumo sócio","consumo socio"],
+  "marketing": ["marketing"],
+  "transferência bancária": ["transferencia bancar","transferencia bancaria"],
+  "erros garçom": ["erros garcons"],
+  "sem faturamento": ["sem faturamento"],
+  "outros": []
+};
+
+const BRL = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+
+function normalizarCategoria(mod){
+  if(!mod || typeof mod !== "string") return "outros";
+  const m = mod.toLowerCase().trim();
+  for(const [cat,keys] of Object.entries(categoriasAgrupadas)){
+    if(keys.some(k => m.includes(k))) return cat;
+  }
+  return "outros";
+}
+function classificarEmpresa(nome){
+  const n = (nome||"").toLowerCase();
+  if(n.includes("emp")) return "emporio";
+  if(n.includes("rest")) return "restaurante";
+  return "outros";
+}
+
+function showLoading(){ document.getElementById("loadingOverlay").style.display = "flex"; }
+function hideLoading(){ document.getElementById("loadingOverlay").style.display = "none"; }
+
+(function setDefaults(){
+  const d = new Date();
+  d.setDate(d.getDate()-1);
+  filtroDia.value = d.toISOString().slice(0,10);
+  filtroMes.value = d.toISOString().slice(0,7);
+})();
+
+async function buscarTodos(){
+  let todos=[], from=0, step=1000;
+  while(true){
+    let q = sb.from("resumo_entradas")
+      .select("data_lancamento, modalidade, valor, empresa")
+      .order("data_lancamento",{ascending:true})
+      .range(from, from+step-1);
+
+    if(filtroEmpresa.value!=="todas") q=q.eq("empresa", filtroEmpresa.value);
+    if(filtroDia.value) q=q.eq("data_lancamento", filtroDia.value);
+
+    const { data, error } = await q;
+    if(error || !data.length) break;
+    todos.push(...data); from+=step;
+  }
+  return todos;
+}
+
+async function buscarMes(empresa, inicio, fim){
+  let total=0, from=0, step=1000;
+  while(true){
+    let q = sb.from("resumo_entradas")
+      .select("valor, empresa, data_lancamento")
+      .gte("data_lancamento", inicio)
+      .lte("data_lancamento", fim);
+    if(empresa!=="todas") q=q.eq("empresa", empresa);
+
+    const { data } = await q.range(from, from+step-1);
+    if(!data || !data.length) break;
+    data.forEach(r=> total+=Number(r.valor||0));
+    from+=step;
+  }
+  return total;
+}
+
+async function atualizar(){
+  showLoading();
+
+  const lista = await buscarTodos();
+  montarResumo(lista);
+  await montarComparativo();
+
+  hideLoading();
+}
+
+function montarResumo(lista){
+  const porEmpresa={};
+  lista.forEach(l=>{
+    const v=Number(l.valor)||0;
+    porEmpresa[l.empresa] ||= {total:0,cats:{}};
+    porEmpresa[l.empresa].total+=v;
+    const cat=normalizarCategoria(l.modalidade);
+    porEmpresa[l.empresa].cats[cat]=(porEmpresa[l.empresa].cats[cat]||0)+v;
+  });
+
+  emporio.innerHTML=""; restaurante.innerHTML=""; outros.innerHTML="";
+  document.getElementById("grupo-outros").style.display="none";
+
+  Object.entries(porEmpresa).forEach(([empresa,info])=>{
+    const bloco=`
+      <div class="bloco">
+        <div class="top">
+          <span>${empresa}</span>
+          <span>R$ ${BRL(info.total)}</span>
+        </div>
+        ${Object.entries(info.cats).map(([c,v])=>`
+          <div class="item"><span>• ${c}</span><span>R$ ${BRL(v)}</span></div>
+        `).join("")}
+      </div>`;
+    const grupo=classificarEmpresa(empresa);
+    if(grupo==="emporio") emporio.innerHTML+=bloco;
+    else if(grupo==="restaurante") restaurante.innerHTML+=bloco;
+    else{ document.getElementById("grupo-outros").style.display="block"; outros.innerHTML+=bloco; }
+  });
+
+  if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
+  if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
+}
+
+async function montarComparativo(){
+  const mes = filtroMes.value; // YYYY-MM
+  const [ano,mesNum]=mes.split("-");
+  const iniAtual=`${ano}-${mesNum}-01`;
+  const fimAtual=new Date(ano,Number(mesNum),0).toISOString().slice(0,10);
+
+  const anoAnt=Number(ano)-1;
+  const iniAnt=`${anoAnt}-${mesNum}-01`;
+  const fimAnt=new Date(anoAnt,Number(mesNum),0).toISOString().slice(0,10);
+
+  const empresas = filtroEmpresa.value==="todas"
+    ? ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"]
+    : [filtroEmpresa.value];
+
+  comparativo.innerHTML="";
+
+  for(const emp of empresas){
+    const atual = await buscarMes(emp, iniAtual, fimAtual);
+    const anterior = await buscarMes(emp, iniAnt, fimAnt);
+    const perc = anterior>0 ? (atual/anterior)*100 : 0;
+    const diff = atual-anterior;
+
+    comparativo.innerHTML += `
+      <div class="bloco">
+        <div class="top">
+          <span>${emp}</span>
+          <span class="badge2 ${diff>=0?'up':'down'}">
+            ${diff>=0?'+':''}${perc.toFixed(1)}%
+          </span>
+        </div>
+        <div class="valores">
+          <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(anterior)}</b></div>
+          <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atual)}</b></div>
+          <div class="box"><span class="muted">Atingido</span><b>${perc.toFixed(1)}%</b></div>
+        </div>
+      </div>`;
+  }
+}
+
+btnFiltrar.onclick = atualizar;
+filtroEmpresa.onchange = atualizar;
+filtroDia.onchange = atualizar;
+filtroMes.onchange = atualizar;
+
+atualizar();
+</script>
+</body>
+</html>
