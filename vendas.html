@@ -17,25 +17,36 @@
   --gold:#d4af37;
   --text:#f5f5f5;
   --muted:#9ca3af;
+  --primary:#ff6a00;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{
-  width:100%;
-  height:100%;
-  background:var(--bg);
-  color:var(--text);
-  overflow:auto;
-}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);overflow:auto}
 .header{padding:16px}
 .header h2{font-size:18px;font-weight:800}
 .header span{font-size:12px;color:var(--muted)}
-
-.grupo{padding:0 16px 16px}
-.grupo h3{
-  font-size:12px;
-  color:var(--muted);
-  margin:10px 0 6px;
+.filters{
+  padding:0 16px 10px;
+  display:grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap:8px;
 }
+.filters select,
+.filters input,
+.filters button{
+  background:#111;
+  color:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+}
+.filters button{
+  background:linear-gradient(180deg,#ff6a00,#ea580c);
+  border:none;
+  font-weight:800;
+}
+.grupo{padding:0 16px 16px}
+.grupo h3{font-size:12px;color:var(--muted);margin:10px 0 6px}
 .card{
   background:var(--card);
   border:1px solid var(--border);
@@ -43,28 +54,10 @@ html,body{
   padding:12px;
   margin-bottom:10px;
 }
-.top{
-  display:flex;
-  justify-content:space-between;
-  font-weight:800;
-  color:var(--gold);
-  margin-bottom:6px;
-}
-.item{
-  display:flex;
-  justify-content:space-between;
-  padding:6px 0;
-  font-size:13px;
-  border-bottom:1px dashed var(--border);
-}
+.top{display:flex;justify-content:space-between;font-weight:800;color:var(--gold);margin-bottom:6px}
+.item{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)}
 .item:last-child{border-bottom:none}
-.muted{
-  color:var(--muted);
-  font-size:13px;
-  padding:10px;
-  border:1px dashed var(--border);
-  border-radius:12px;
-}
+.muted{color:var(--muted);font-size:13px;padding:10px;border:1px dashed var(--border);border-radius:12px}
 </style>
 </head>
 
@@ -73,6 +66,21 @@ html,body{
 <div class="header">
   <h2>Resumo de Vendas</h2>
   <span id="subtitulo">—</span>
+</div>
+
+<!-- FILTROS -->
+<div class="filters">
+  <select id="filtroEmpresa">
+    <option value="todas">Todas empresas</option>
+    <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+    <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+    <option value="VILLA GOURMET">Villa Gourmet</option>
+    <option value="M.KIDS">M.Kids</option>
+  </select>
+
+  <input type="date" id="filtroDia">
+
+  <button onclick="aplicarFiltros()">Aplicar</button>
 </div>
 
 <div class="grupo">
@@ -119,19 +127,15 @@ const categoriasAgrupadas = {
   "outros": []
 };
 
-/* ================= FILTROS (IGUAL AO SEU) ================= */
-const EMPRESA = localStorage.getItem("EMPRESA_ATIVA") || "todas";
-const DATA_INICIO = localStorage.getItem("DATA_INICIO");
-const DATA_FIM = localStorage.getItem("DATA_FIM");
-
 /* ================= UTIL ================= */
 const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
-const fmtBR = d => d.split("-").reverse().join("/");
+const fmtBR = d => d ? d.split("-").reverse().join("/") : "—";
 
-document.getElementById("subtitulo").innerText =
-  `${EMPRESA} • ${DATA_INICIO ? fmtBR(DATA_INICIO) : "—"} até ${DATA_FIM ? fmtBR(DATA_FIM) : "—"}`;
+/* ================= FILTROS ================= */
+let EMPRESA = "todas";
+let DIA = "";
 
-/* ================= NORMALIZAÇÃO SEGURA ================= */
+/* ================= NORMALIZAÇÃO ================= */
 function normalizarCategoria(mod){
   if(!mod || typeof mod !== "string") return "outros";
   const m = mod.toLowerCase().trim();
@@ -149,7 +153,7 @@ function classificarEmpresa(nome){
   return "outros";
 }
 
-/* ================= BUSCAR TODOS OS REGISTROS (IGUAL AO SEU) ================= */
+/* ================= BUSCAR ================= */
 async function carregarDados(){
   let todos = [];
   let from = 0;
@@ -162,8 +166,7 @@ async function carregarDados(){
       .range(from, from + step - 1);
 
     if(EMPRESA !== "todas") q = q.eq("empresa", EMPRESA);
-    if(DATA_INICIO) q = q.gte("data_lancamento", DATA_INICIO);
-    if(DATA_FIM) q = q.lte("data_lancamento", DATA_FIM);
+    if(DIA) q = q.eq("data_lancamento", DIA);
 
     const { data, error } = await q;
     if(error || !data.length) break;
@@ -175,7 +178,7 @@ async function carregarDados(){
   montarResumo(todos);
 }
 
-/* ================= MONTAR RESUMO ================= */
+/* ================= MONTAR ================= */
 function montarResumo(lista){
   const porEmpresa = {};
 
@@ -221,9 +224,28 @@ function montarResumo(lista){
 
   if(!emporio.innerHTML) emporio.innerHTML = '<div class="muted">Sem vendas</div>';
   if(!restaurante.innerHTML) restaurante.innerHTML = '<div class="muted">Sem vendas</div>';
+
+  document.getElementById("subtitulo").innerText =
+    `${EMPRESA === "todas" ? "Todas as empresas" : EMPRESA} • ${fmtBR(DIA)}`;
 }
 
-/* INIT (IGUAL AO SEU) */
+/* ================= APLICAR FILTRO ================= */
+function aplicarFiltros(){
+  EMPRESA = document.getElementById("filtroEmpresa").value;
+  DIA = document.getElementById("filtroDia").value;
+  carregarDados();
+}
+
+/* ================= SETA ONTEM COMO PADRÃO ================= */
+(function setarOntemComoPadrao(){
+  const hoje = new Date();
+  hoje.setDate(hoje.getDate() - 1);
+  const ontemISO = hoje.toISOString().slice(0,10);
+  document.getElementById("filtroDia").value = ontemISO;
+  DIA = ontemISO;
+})();
+
+/* INIT */
 carregarDados();
 </script>
 
