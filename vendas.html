@@ -343,9 +343,15 @@ const empresas = ["EMPORIO_MERCATTO","RESTAURANTE_MERCATTO","DELÍCIA GOURMET","
 
     const perc = anterior > 0 ? (atual / anterior) * 100 : 0;
     const diff = atual - anterior;
-
-    const nomeExibicao = emp === "EMPORIO_MERCATTO" ? "Empório Mercatto" :
-                         emp === "RESTAURANTE_MERCATTO" ? "Restaurante Mercatto" : emp;
+const nomeExibicao = (
+  emp === "EMPORIO_MERCATTO" ? "EMPÓRIO MERCATTO" :
+  emp === "RESTAURANTE_MERCATTO" ? "RESTAURANTE MERCATTO" :
+  emp === "DELÍCIA GOURMET" ? "DELÍCIA GOURMET" :
+  emp === "PANIFICADORA_DELÍCIA" ? "PANIFICADORA DELÍCIA" :
+  emp === "VILLA GOURMET" ? "VILLA GOURMET" :
+  emp === "M.KIDS" ? "M.KIDS" :
+  emp
+);
 
     comparativoEmpresas.innerHTML += `
       <div class="bloco">
