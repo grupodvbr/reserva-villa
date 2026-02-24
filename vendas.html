@@ -116,10 +116,10 @@ html,body{margin:0;background:var(--bg);overflow-x:hidden}
     <div id="outros"></div>
   </div>
 
-  <!-- COMPARATIVO TOTAL -->
+  <!-- COMPARATIVO POR EMPRESA -->
   <div class="card grupo">
-    <h3>COMPARATIVO MENSAL (TOTAL DE TODAS AS EMPRESAS)</h3>
-    <div id="comparativoTotal"></div>
+    <h3>COMPARATIVO MENSAL POR EMPRESA (MESMO MÊS DO ANO ANTERIOR)</h3>
+    <div id="comparativoEmpresas"></div>
   </div>
 
 </div>
@@ -226,14 +226,15 @@ async function carregarDados(){
   montarResumo(todos);
 }
 
-async function buscarMesTotal(inicio, fim){
+async function buscarMesPorEmpresa(empresa, inicio, fim){
   let total=0, from=0, step=1000;
 
   while(true){
     let q = sb.from("resumo_entradas")
       .select("valor, data_lancamento")
       .gte("data_lancamento", inicio)
-      .lte("data_lancamento", fim);
+      .lte("data_lancamento", fim)
+      .eq("empresa", empresa);
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
@@ -284,7 +285,7 @@ function montarResumo(lista){
     `${filtroEmpresa.value === "todas" ? "Todas empresas" : filtroEmpresa.value} • ${rangeSelecionado[0]} até ${rangeSelecionado[1]}`;
 }
 
-async function montarComparativoTotal(){
+async function montarComparativoEmpresas(){
   const [ano, mes] = filtroMes.value.split("-");
   const iniAtual = `${ano}-${mes}-01`;
   const fimAtual = new Date(ano, Number(mes), 0).toISOString().slice(0,10);
@@ -293,26 +294,32 @@ async function montarComparativoTotal(){
   const iniAnt = `${anoAnt}-${mes}-01`;
   const fimAnt = new Date(anoAnt, Number(mes), 0).toISOString().slice(0,10);
 
-  const atual = await buscarMesTotal(iniAtual, fimAtual);
-  const anterior = await buscarMesTotal(iniAnt, fimAnt);
+  const empresas = ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"];
 
-  const perc = anterior > 0 ? (atual / anterior) * 100 : 0;
-  const diff = atual - anterior;
+  comparativoEmpresas.innerHTML = "";
 
-  comparativoTotal.innerHTML = `
-    <div class="bloco">
-      <div class="top">
-        <span>TODAS AS EMPRESAS</span>
-        <span class="badge ${diff >= 0 ? 'up' : 'down'}">
-          ${diff >= 0 ? '+' : ''}${perc.toFixed(1)}%
-        </span>
-      </div>
-      <div class="valores">
-        <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(anterior)}</b></div>
-        <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atual)}</b></div>
-        <div class="box"><span class="muted">Atingido</span><b>${perc.toFixed(1)}%</b></div>
-      </div>
-    </div>`;
+  for(const emp of empresas){
+    const atual = await buscarMesPorEmpresa(emp, iniAtual, fimAtual);
+    const anterior = await buscarMesPorEmpresa(emp, iniAnt, fimAnt);
+
+    const perc = anterior > 0 ? (atual / anterior) * 100 : 0;
+    const diff = atual - anterior;
+
+    comparativoEmpresas.innerHTML += `
+      <div class="bloco">
+        <div class="top">
+          <span>${emp}</span>
+          <span class="badge ${diff >= 0 ? 'up' : 'down'}">
+            ${diff >= 0 ? '+' : ''}${perc.toFixed(1)}%
+          </span>
+        </div>
+        <div class="valores">
+          <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(anterior)}</b></div>
+          <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atual)}</b></div>
+          <div class="box"><span class="muted">Atingido</span><b>${perc.toFixed(1)}%</b></div>
+        </div>
+      </div>`;
+  }
 }
 
 btnFiltrar.onclick = async ()=>{
@@ -322,14 +329,14 @@ btnFiltrar.onclick = async ()=>{
   }
   showLoading();
   await carregarDados();
-  await montarComparativoTotal();
+  await montarComparativoEmpresas();
   hideLoading();
 };
 
 (async ()=>{
   showLoading();
   await carregarDados();
-  await montarComparativoTotal();
+  await montarComparativoEmpresas();
   hideLoading();
 })();
 </script>
