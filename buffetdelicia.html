@@ -38,7 +38,7 @@ html, body{
   overscroll-behavior: none;
 }
 body{
-  overflow:hidden;
+  overflow:hidden; /* trava scroll da página */
 }
 
 /* App container */
@@ -77,6 +77,8 @@ body{
   margin-bottom:12px;
   max-width:100%;
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
 }
 
 /* Linha empresa */
@@ -152,14 +154,17 @@ button.ghost{
 }
 small{color:var(--muted)}
 
-/* Lista */
+/* Lista DELIMITADA */
 .list{
   display:grid;
   gap:10px;
   margin-top:8px;
   overflow-y:auto;
   overflow-x:hidden;
-  max-height:calc(100svh - 380px);
+  height:260px;          /* ALTURA FIXA */
+  max-height:260px;
+  border-top:1px solid var(--border);
+  padding-top:8px;
 }
 
 /* Item */
@@ -233,7 +238,7 @@ small{color:var(--muted)}
   .form-grid{grid-template-columns:1fr}
   .title{font-size:20px}
   .badge{font-size:11px}
-  .list{ max-height:calc(100svh - 420px); }
+  .list{ height:220px; max-height:220px; }
 }
 
 /* Evita qualquer rolagem lateral */
