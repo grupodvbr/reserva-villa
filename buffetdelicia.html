@@ -232,6 +232,13 @@ body, .app{
   from{transform:rotate(0deg)}
   to{transform:rotate(360deg)}
 }
+
+
+/* cole no <style> */
+.meta b{
+  color:#0f172a;
+  font-weight:800;
+}
 </style>
 </head>
 
@@ -439,8 +446,12 @@ async function aplicarTaraPadraoPorProduto(){
         <div class="item">
           <div>
             <div class="name">${l.produto_nome}</div>
-            <div class="meta">${l.quantidade} ${l.unidade} • ${l.hora}</div>
-            <span class="tag ${l.tipo}">${l.tipo}</span>
+<div class="meta">
+  Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
+  • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
+  • Líquido: <b>${formatPeso(l.quantidade)} kg</b>
+  • ${l.hora}
+</div>            <span class="tag ${l.tipo}">${l.tipo}</span>
           </div>
           <div style="display:flex;gap:8px">
             <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
