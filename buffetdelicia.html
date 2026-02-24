@@ -43,12 +43,13 @@ body{
 
 /* Container principal ocupa a tela */
 .app{
-  max-width:1400px;             /* usa melhor telas grandes */
+  max-width:1400px;
   margin:0 auto;
   padding:14px 14px 22px;
-  min-height:100dvh;            /* altura real da viewport (mobile safe) */
+  height:100dvh;          /* 👈 fixa a altura real da tela */
   display:flex;
   flex-direction:column;
+  overflow:hidden;       /* 👈 impede vazar */
 }
 
 /* Header fixo no topo */
@@ -73,6 +74,7 @@ body{
   box-shadow:var(--shadow);
   padding:14px;
   margin-bottom:12px;
+  min-height:0;          /* 👈 permite scroll interno funcionar */
 }
 
 /* Linha empresa */
@@ -152,8 +154,8 @@ small{color:var(--muted)}
   gap:10px;
   margin-top:8px;
   overflow:auto;
-  max-height:calc(100dvh - 360px); /* ajusta conforme header + cards */
-  padding-right:4px;
+  flex:1;               /* 👈 ocupa só o espaço disponível */
+  padding-right:6px;
 }
 .item{
   display:grid;
@@ -301,10 +303,10 @@ body, .app{
     <small>Data é travada no dia atual e hora é automática.</small>
   </div>
 
-  <div class="card">
-    <b>📋 Lançamentos de Hoje</b>
-    <div class="list" id="lista"></div>
-  </div>
+<div class="card" style="display:flex; flex-direction:column; min-height:0;">
+  <b>📋 Lançamentos de Hoje</b>
+  <div class="list" id="lista"></div>
+</div>
 <!-- 🔢 RESUMO DE VENDAS DO DIA -->
 <div class="card" id="resumoVendasCard">
   <b>📊 Resumo de Vendas do Dia</b>
