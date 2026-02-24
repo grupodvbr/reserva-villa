@@ -151,7 +151,7 @@ small{color:var(--muted)}
     <span class="badge">Filtro operacional</span>
   </div>
 
-  <!-- FILTRO IGUAL AO DO BUFFET -->
+  <!-- FILTRO -->
   <div class="card">
     <div class="form-grid">
       <div class="field">
@@ -164,17 +164,14 @@ small{color:var(--muted)}
           <option value="M.KIDS">M.Kids</option>
         </select>
       </div>
-
       <div class="field">
         <label>Dia</label>
         <input type="date" id="filtroDia">
       </div>
-
       <div class="field">
         <label>Mês (comparativo)</label>
         <input type="month" id="filtroMes">
       </div>
-
       <div class="field">
         <label>&nbsp;</label>
         <button class="primary" id="btnFiltrar">
@@ -186,6 +183,7 @@ small{color:var(--muted)}
   </div>
 
   <div class="list-wrap">
+
     <div class="card grupo">
       <h3>EMPÓRIO</h3>
       <div id="emporio"></div>
@@ -202,14 +200,20 @@ small{color:var(--muted)}
     </div>
 
     <div class="card grupo">
-      <h3>COMPARATIVO MENSAL (MESMO MÊS DO ANO ANTERIOR)</h3>
-      <div id="comparativo"></div>
+      <h3>COMPARATIVO MENSAL • EMPÓRIO</h3>
+      <div id="comparativoEmporio"></div>
     </div>
+
+    <div class="card grupo">
+      <h3>COMPARATIVO MENSAL • RESTAURANTE</h3>
+      <div id="comparativoRestaurante"></div>
+    </div>
+
   </div>
 
 </div>
 
-<!-- OVERLAY LOADING -->
+<!-- OVERLAY -->
 <div id="loadingOverlay">
   <div style="
     background:#fff; padding:22px 26px; border-radius:16px;
@@ -265,8 +269,8 @@ function classificarEmpresa(nome){
   return "outros";
 }
 
-function showLoading(){ document.getElementById("loadingOverlay").style.display = "flex"; }
-function hideLoading(){ document.getElementById("loadingOverlay").style.display = "none"; }
+function showLoading(){ loadingOverlay.style.display = "flex"; }
+function hideLoading(){ loadingOverlay.style.display = "none"; }
 
 (function setDefaults(){
   const d = new Date();
@@ -293,14 +297,17 @@ async function buscarTodos(){
   return todos;
 }
 
-async function buscarMes(empresa, inicio, fim){
+async function buscarMesPorGrupo(grupo, inicio, fim){
   let total=0, from=0, step=1000;
+  const empresasGrupo = ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"]
+    .filter(e => classificarEmpresa(e) === grupo);
+
   while(true){
     let q = sb.from("resumo_entradas")
       .select("valor, empresa, data_lancamento")
       .gte("data_lancamento", inicio)
-      .lte("data_lancamento", fim);
-    if(empresa!=="todas") q=q.eq("empresa", empresa);
+      .lte("data_lancamento", fim)
+      .in("empresa", empresasGrupo);
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
@@ -315,7 +322,7 @@ async function atualizar(){
 
   const lista = await buscarTodos();
   montarResumo(lista);
-  await montarComparativo();
+  await montarComparativoSeparado();
 
   hideLoading();
 }
@@ -354,8 +361,8 @@ function montarResumo(lista){
   if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
 }
 
-async function montarComparativo(){
-  const mes = filtroMes.value; // YYYY-MM
+async function montarComparativoSeparado(){
+  const mes = filtroMes.value; 
   const [ano,mesNum]=mes.split("-");
   const iniAtual=`${ano}-${mesNum}-01`;
   const fimAtual=new Date(ano,Number(mesNum),0).toISOString().slice(0,10);
@@ -364,33 +371,46 @@ async function montarComparativo(){
   const iniAnt=`${anoAnt}-${mesNum}-01`;
   const fimAnt=new Date(anoAnt,Number(mesNum),0).toISOString().slice(0,10);
 
-  const empresas = filtroEmpresa.value==="todas"
-    ? ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"]
-    : [filtroEmpresa.value];
+  const atualEmp = await buscarMesPorGrupo("emporio", iniAtual, fimAtual);
+  const antEmp = await buscarMesPorGrupo("emporio", iniAnt, fimAnt);
 
-  comparativo.innerHTML="";
+  const atualRest = await buscarMesPorGrupo("restaurante", iniAtual, fimAtual);
+  const antRest = await buscarMesPorGrupo("restaurante", iniAnt, fimAnt);
 
-  for(const emp of empresas){
-    const atual = await buscarMes(emp, iniAtual, fimAtual);
-    const anterior = await buscarMes(emp, iniAnt, fimAnt);
-    const perc = anterior>0 ? (atual/anterior)*100 : 0;
-    const diff = atual-anterior;
+  const percEmp = antEmp>0 ? (atualEmp/antEmp)*100 : 0;
+  const percRest = antRest>0 ? (atualRest/antRest)*100 : 0;
 
-    comparativo.innerHTML += `
-      <div class="bloco">
-        <div class="top">
-          <span>${emp}</span>
-          <span class="badge2 ${diff>=0?'up':'down'}">
-            ${diff>=0?'+':''}${perc.toFixed(1)}%
-          </span>
-        </div>
-        <div class="valores">
-          <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(anterior)}</b></div>
-          <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atual)}</b></div>
-          <div class="box"><span class="muted">Atingido</span><b>${perc.toFixed(1)}%</b></div>
-        </div>
-      </div>`;
-  }
+  comparativoEmporio.innerHTML = `
+    <div class="bloco">
+      <div class="top">
+        <span>EMPÓRIO (grupo)</span>
+        <span class="badge2 ${atualEmp-antEmp>=0?'up':'down'}">
+          ${atualEmp-antEmp>=0?'+':''}${percEmp.toFixed(1)}%
+        </span>
+      </div>
+      <div class="valores">
+        <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(antEmp)}</b></div>
+        <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atualEmp)}</b></div>
+        <div class="box"><span class="muted">Atingido</span><b>${percEmp.toFixed(1)}%</b></div>
+      </div>
+    </div>
+  `;
+
+  comparativoRestaurante.innerHTML = `
+    <div class="bloco">
+      <div class="top">
+        <span>RESTAURANTE (grupo)</span>
+        <span class="badge2 ${atualRest-antRest>=0?'up':'down'}">
+          ${atualRest-antRest>=0?'+':''}${percRest.toFixed(1)}%
+        </span>
+      </div>
+      <div class="valores">
+        <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(antRest)}</b></div>
+        <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atualRest)}</b></div>
+        <div class="box"><span class="muted">Atingido</span><b>${percRest.toFixed(1)}%</b></div>
+      </div>
+    </div>
+  `;
 }
 
 btnFiltrar.onclick = atualizar;
