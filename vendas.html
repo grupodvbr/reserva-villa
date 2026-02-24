@@ -85,10 +85,15 @@ html,body{margin:0;background:var(--bg);overflow-x:hidden}
 <body>
 <div class="app">
 
-  <div class="header">
-    <div class="title">Resumo de Vendas</div>
-    <div class="sub" id="subtitulo">—</div>
-  </div>
+<div class="header">
+  <div class="title">Resumo de Vendas</div>
+  <div class="sub" id="subtitulo">—</div>
+
+  <!-- 👇 BOTÃO MULTI AGENDA (só aparece no plano MASTER) -->
+  <button id="btnMulti" style="display:none" onclick="abrirMultiAgenda()">
+    Multi Agenda
+  </button>
+</div>
 
   <div class="card">
     <div class="filters">
@@ -389,7 +394,24 @@ btnFiltrar.onclick = async ()=>{
   await montarComparativoEmpresas();
   hideLoading();
 };
+async function podeExibirMultiAgenda(){
+  const { data, error } = await sb
+    .from("usuarios")      // 👈 AJUSTE SE SUA TABELA TIVER OUTRO NOME
+    .select("plano")
+    .eq("id", lojaId)
+    .single();
 
+  if(error){
+    console.error("Erro ao buscar plano:", error);
+    return false;
+  }
+
+  return (data?.plano || "").toUpperCase() === "MASTER";
+}
+
+function abrirMultiAgenda(){
+  alert("Multi Agenda disponível apenas para o plano MASTER.");
+}
 (async ()=>{
   const { data:{session} } = await sb.auth.getSession();
   if(!session) location.href="login.html";
@@ -398,10 +420,12 @@ btnFiltrar.onclick = async ()=>{
 
   const exibirMulti = await podeExibirMultiAgenda();
   const btn = document.getElementById("btnMulti");
-  if(btn) btn.style.display = exibirMulti ? "block" : "none";
+  if(btn) btn.style.display = exibirMulti ? "inline-flex" : "none";
 
-  carregar();
+  // ❗ Se não existir a função carregar() neste arquivo, REMOVA esta linha:
+  // carregar();
 })();
+
 </script>
 </body>
 </html>
