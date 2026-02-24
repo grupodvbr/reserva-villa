@@ -188,10 +188,27 @@ const frames = {
 };
 
 function go(el, key){
+  // remove active de todos os botões
   document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+
+  // ativa o botão clicado
   el.classList.add("active");
-  Object.values(frames).forEach(f=>f.classList.remove("active"));
-  frames[key]?.classList.add("active");
+
+  // esconde todos os iframes
+  Object.values(frames).forEach(f=>{
+    if(!f) return;
+    f.classList.remove("active");
+    f.style.display = "none";
+  });
+
+  // mostra o iframe correto (CMV incluso)
+  if(frames[key]){
+    frames[key].style.display = "block";
+    frames[key].classList.add("active");
+  }
+
+  // fecha menu financeiro se estiver aberto
+  document.getElementById("navConfig").classList.remove("open");
 }
 function toggleConfigMenu(e){
   e.stopPropagation();
@@ -217,6 +234,17 @@ function refreshIframes(){
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js");
 }
+
+
+window.addEventListener("load", () => {
+  Object.values(frames).forEach(f=>{
+    if(!f) return;
+    f.style.display = "none";
+    f.classList.remove("active");
+  });
+  frames.home.style.display = "block";
+  frames.home.classList.add("active");
+});
 </script>
 
 </body>
