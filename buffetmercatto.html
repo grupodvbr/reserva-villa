@@ -342,7 +342,27 @@ body, .app{
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
   const empresaSelect = document.getElementById("empresaSelect");
+// ================== TARA PADRÃO POR PRODUTO ==================
+produtoInput.addEventListener("change", aplicarTaraPadraoPorProduto);
+produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
 
+async function aplicarTaraPadraoPorProduto(){
+  const empresa = empresaSelect.value;
+  const nome = produtoInput.value.trim().toUpperCase();
+  if(!nome) return;
+
+  const { data:prod } = await sb
+    .from("buffet_produtos")
+    .select("tara_padrao")
+    .eq("empresa", empresa)
+    .eq("nome", nome)
+    .maybeSingle();
+
+  if(prod?.tara_padrao != null){
+    taraInput.value = formatPeso(prod.tara_padrao);
+    atualizarLiquidoPreview();
+  }
+}
   const hoje = new Date();
   const dataISO = hoje.toISOString().slice(0,10);
   const dataBR = hoje.toLocaleDateString("pt-BR");
@@ -532,8 +552,13 @@ taraInput.value = "";
 
   btnSalvar.onclick = salvar;
   btnLimpar.onclick = limpar;
-  empresaSelect.onchange = () => { carregarProdutos(); carregarLancamentos(); };
-
+empresaSelect.onchange = () => {
+  carregarProdutos();
+  carregarLancamentos();
+  taraInput.value = "";  // limpa a tara ao trocar empresa
+  document.getElementById("pesoLiquidoPreview").innerHTML =
+    `Líquido: <b>0,000 kg</b>`;
+};
   carregarProdutos();
   carregarLancamentos();
 
