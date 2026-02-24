@@ -20,10 +20,10 @@
   --success:#16a34a;
   --danger:#dc2626;
   --radius:18px;
-  --shadow:0 16px 40px rgba(0,0,0,.12);
+  --shadow:0 12px 30px rgba(0,0,0,.12);
 }
 
-/* Reset e base */
+/* RESET */
 *{
   box-sizing:border-box;
   font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -33,51 +33,53 @@ html, body{
   width:100%;
   height:100%;
   margin:0;
-  padding:0;
-  background:linear-gradient(180deg,#fff, var(--bg));
-  overscroll-behavior: none;
+  background:#f4f6fb;
 }
 body{
-  overflow:hidden;              /* tela cheia sem scroll da página */
+  overflow:hidden;
 }
 
-/* Container principal ocupa a tela */
+/* APP */
 .app{
   max-width:1400px;
   margin:0 auto;
-  padding:14px 14px 22px;
-  height:100dvh;          /* 👈 fixa a altura real da tela */
+  padding:14px;
+  height:100dvh;
   display:flex;
   flex-direction:column;
-  overflow:hidden;       /* 👈 impede vazar */
+  gap:12px;
+  overflow:hidden;
 }
 
-/* Header fixo no topo */
+/* HEADER */
 .header{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  margin-bottom:12px;
 }
-.title{font-size:22px;font-weight:900}
+.title{
+  font-size:22px;
+  font-weight:900;
+}
 .badge{
-  background:#111827;color:#fff;
-  padding:6px 10px;border-radius:999px;
-  font-size:12px;white-space:nowrap
+  background:#0f172a;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
 }
 
-/* Cards */
+/* CARDS */
 .card{
   background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
+  border-radius:18px;
+  box-shadow:0 6px 22px rgba(0,0,0,.08);
   padding:14px;
-  margin-bottom:12px;
-  min-height:0;          /* 👈 permite scroll interno funcionar */
+  min-height:0;
 }
 
-/* Linha empresa */
+/* EMPRESA */
 .company-row{
   display:flex;
   gap:10px;
@@ -85,19 +87,17 @@ body{
 }
 .company-row select{flex:1}
 
+/* FORM */
 .form-grid{
   display:grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap:12px;
-  align-items:end;
 }
-
 .field{
   display:flex;
   flex-direction:column;
   gap:6px;
 }
-
 .field label{
   font-size:12px;
   font-weight:700;
@@ -105,56 +105,53 @@ body{
 }
 
 input, select, button{
-  padding:14px 14px;
-  border-radius:14px;
-  border:1px solid var(--border);
-  font-size:16px;
-  outline:none;
   height:48px;
-}
-
-.input-weight{
-  font-weight:900;
-  letter-spacing:.02em;
-}
-
-.input-tara{
-  background:#fff7ed;
-  border-color:#fed7aa;
-}
-
-.net-preview{
-  font-size:12px;
-  color:#374151;
-  margin-top:4px;
-}
-
-.net-preview b{
-  color:#16a34a;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-size:15px;
+  outline:none;
+  background:#fff;
 }
 input:focus, select:focus{
   border-color:var(--primary);
   box-shadow:0 0 0 3px rgba(255,106,0,.15);
 }
 
+.input-weight{font-weight:900}
+.input-tara{background:#fff7ed;border-color:#fed7aa}
+
+.net-preview{
+  font-size:12px;
+  color:#374151;
+}
+.net-preview b{color:var(--success)}
+
 button.primary{
-  background:var(--primary);
-  color:#fff;border:none;
+  background:linear-gradient(180deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  border:none;
   font-weight:800;
 }
-button.primary:active{transform:scale(.98)}
+button.primary:hover{filter:brightness(1.05)}
 button.ghost{
-  background:#fff;border:1px dashed var(--border)
+  background:#fff;
+  border:1px dashed var(--border);
 }
 small{color:var(--muted)}
 
-/* Lista com scroll interno (tela cheia) */
+/* LISTA */
+.card:last-of-type{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+  min-height:0;
+}
 .list{
+  flex:1;
+  overflow:auto;
   display:grid;
   gap:10px;
-  margin-top:8px;
-  overflow:auto;
-  flex:1;               /* 👈 ocupa só o espaço disponível */
   padding-right:6px;
 }
 .item{
@@ -165,30 +162,46 @@ small{color:var(--muted)}
   border-radius:14px;
   border:1px solid var(--border);
   background:#fff;
+  transition:.15s;
+}
+.item:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(0,0,0,.08);
 }
 .item .name{font-weight:800}
-.meta{font-size:13px;color:var(--muted)}
+.meta{font-size:13px;color:#64748b}
+.meta b{color:#0f172a}
+
 .tag{
-  padding:6px 10px;border-radius:999px;
-  font-size:12px;font-weight:800
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  margin-top:6px;
 }
 .MONTAGEM{background:#dcfce7;color:#166534}
 .REPOSICAO{background:#e0f2fe;color:#075985}
 .RETIRADA{background:#fee2e2;color:#991b1b}
 .DEVOLUCAO{background:#fef3c7;color:#92400e}
+
 .icon-btn{
   border:1px solid var(--border);
-  background:#fff;border-radius:10px;padding:8px
+  background:#fff;
+  border-radius:10px;
+  padding:8px;
+  cursor:pointer;
 }
+.icon-btn:hover{background:#f1f5f9}
 .icon-btn.danger{border-color:#fecaca;color:#b91c1c}
 
-/* Modal fullscreen no mobile */
+/* MODAL */
 .modal-backdrop{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.45);
+  background:rgba(15,23,42,.55);
   display:none;
-  align-items:flex-end;
+  align-items:center;
   justify-content:center;
   z-index:999;
 }
@@ -196,50 +209,24 @@ small{color:var(--muted)}
   width:100%;
   max-width:560px;
   background:#fff;
-  border-radius:22px 22px 0 0;
-  padding:16px;
-  box-shadow:0 -20px 40px rgba(0,0,0,.25);
-  animation:slideUp .18s ease-out;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
 }
-@keyframes slideUp{
-  from{transform:translateY(24px);opacity:.6}
-  to{transform:none;opacity:1}
-}
-.modal h3{margin:0 0 8px 0}
 .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 
-/* Desktop: modal centralizado */
-@media (min-width: 900px){
-  .modal-backdrop{align-items:center}
-  .modal{border-radius:22px}
-}
-
-/* Mobile: tudo em coluna, sem zoom */
-@media (max-width: 720px){
+/* MOBILE */
+@media (max-width: 900px){
   .form-grid{grid-template-columns:1fr}
   .title{font-size:20px}
-  .badge{font-size:11px}
-  .list{
-    max-height:calc(100dvh - 400px); /* mais espaço pro teclado */
-  }
+  .app{padding:10px}
 }
 
-/* Evita rolagem lateral */
-body, .app{
-  overflow-x:hidden;
-}
-
+/* SPINNER */
 @keyframes spin{
   from{transform:rotate(0deg)}
   to{transform:rotate(360deg)}
-}
-
-
-/* cole no <style> */
-.meta b{
-  color:#0f172a;
-  font-weight:800;
 }
 </style>
 </head>
