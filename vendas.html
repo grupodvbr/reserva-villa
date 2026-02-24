@@ -233,6 +233,15 @@ if(filtroEmpresa.value === "EMPORIO_MERCATTO"){
 else if(filtroEmpresa.value === "RESTAURANTE_MERCATTO"){
   q = q.ilike("empresa", "%rest%mercat%");
 } 
+else if(filtroEmpresa.value === "DELÍCIA GOURMET"){
+  q = q.ilike("empresa", "%delicia%gourmet%");
+}
+else if(filtroEmpresa.value === "VILLA GOURMET"){
+  q = q.ilike("empresa", "%villa%gourmet%");
+}
+else if(filtroEmpresa.value === "M.KIDS"){
+  q = q.ilike("empresa", "%kids%");
+}
 else {
   q = q.ilike("empresa", `%${filtroEmpresa.value}%`);
 }
@@ -263,6 +272,15 @@ if(empresa === "EMPORIO_MERCATTO"){
 else if(empresa === "RESTAURANTE_MERCATTO"){
   q = q.ilike("empresa", "%rest%mercat%");
 } 
+else if(empresa === "DELÍCIA GOURMET"){
+  q = q.ilike("empresa", "%delicia%gourmet%");
+}
+else if(empresa === "VILLA GOURMET"){
+  q = q.ilike("empresa", "%villa%gourmet%");
+}
+else if(empresa === "M.KIDS"){
+  q = q.ilike("empresa", "%kids%");
+}
 else {
   q = q.ilike("empresa", `%${empresa}%`);
 }
