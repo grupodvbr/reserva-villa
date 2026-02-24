@@ -199,15 +199,23 @@ flatpickr("#rangeDatas", {
 });
 
 (function initDefaults(){
-  const ontem = new Date(Date.now()-86400000);
-  rangeSelecionado = [
-    ontem.toISOString().slice(0,10),
-    ontem.toISOString().slice(0,10)
-  ];
-  filtroMes.value = ontem.toISOString().slice(0,7);
-  document.getElementById("rangeDatas")._flatpickr.setDate([ontem, ontem], true);
-})();
+  const hoje = new Date();
 
+  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+  rangeSelecionado = [
+    inicioMes.toISOString().slice(0,10),
+    fimMes.toISOString().slice(0,10)
+  ];
+
+  filtroMes.value = hoje.toISOString().slice(0,7);
+
+  document.getElementById("rangeDatas")._flatpickr.setDate(
+    [inicioMes, fimMes],
+    true
+  );
+})();
 async function carregarDados(){
   let todos=[], from=0, step=1000;
 
@@ -305,13 +313,16 @@ function montarResumo(lista){
 }
 
 async function montarComparativoEmpresas(){
-  const [ano, mes] = filtroMes.value.split("-");
-  const iniAtual = `${ano}-${mes}-01`;
-  const fimAtual = new Date(ano, Number(mes), 0).toISOString().slice(0,10);
+const [ano, mes] = filtroMes.value.split("-");
 
-  const anoAnt = Number(ano) - 1;
-  const iniAnt = `${anoAnt}-${mes}-01`;
-  const fimAnt = new Date(anoAnt, Number(mes), 0).toISOString().slice(0,10);
+const mesNum = Number(mes) - 1;
+
+const iniAtual = new Date(ano, mesNum, 1).toISOString().slice(0,10);
+const fimAtual = new Date(ano, mesNum + 1, 0).toISOString().slice(0,10);
+
+const anoAnt = Number(ano) - 1;
+const iniAnt = new Date(anoAnt, mesNum, 1).toISOString().slice(0,10);
+const fimAnt = new Date(anoAnt, mesNum + 1, 0).toISOString().slice(0,10);
 
   const empresas = ["EMPORIO_MERCATTO","RESTAURANTE_MERCATTO","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"];
 
