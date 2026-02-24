@@ -258,22 +258,27 @@ if(filtroEmpresa.value !== "todas"){
 }
 
 async function buscarMesPorEmpresa(empresa, inicio, fim){
-  let total=0, from=0, step=1000;
+  let total = 0, from = 0, step = 1000;
 
   while(true){
     let q = sb.from("resumo_entradas")
       .select("valor, empresa, data_lancamento")
-.gte("data_lancamento", inicio + "T00:00:00")
-.lte("data_lancamento", fim + "T23:59:59");
+      .gte("data_lancamento", inicio)
+      .lte("data_lancamento", fim);
 
-q = aplicarFiltroEmpresa(q, empresa);
+    q = aplicarFiltroEmpresa(q, empresa);
 
-    const { data } = await q.range(from, from+step-1);
+    const { data, error } = await q.range(from, from + step - 1);
+    if(error){
+      console.error("Erro Supabase:", error);
+      break;
+    }
     if(!data || !data.length) break;
 
-    data.forEach(r => total += Number(r.valor||0));
+    data.forEach(r => total += Number(r.valor || 0));
     from += step;
   }
+
   return total;
 }
 
