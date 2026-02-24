@@ -342,6 +342,36 @@ body, .app{
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
   const empresaSelect = document.getElementById("empresaSelect");
+
+// ================== CONFIGURAÇÕES DE TARA POR TIPO ==================
+const TARA_REPOSICAO = 0.280;
+
+// restaura último tipo selecionado
+const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
+if (tipoSalvo) {
+  tipoSelect.value = tipoSalvo;
+}
+// aplica tara 0,280 ao abrir se último tipo foi reposição
+if (tipoSelect.value === "REPOSICAO") {
+  taraInput.value = formatPeso(0.280);
+  atualizarLiquidoPreview();
+}
+// aplica tara automática quando muda o tipo
+tipoSelect.addEventListener("change", () => {
+  const tipo = tipoSelect.value;
+
+  // salva o tipo no navegador
+  localStorage.setItem("buffet_tipo_selecionado", tipo);
+
+  // se for reposição, força tara 0,280 (mas deixa editar)
+  if (tipo === "REPOSICAO") {
+    taraInput.value = formatPeso(TARA_REPOSICAO);
+    atualizarLiquidoPreview();
+  }
+});
+
+
+  
 // ================== TARA PADRÃO POR PRODUTO ==================
 produtoInput.addEventListener("change", aplicarTaraPadraoPorProduto);
 produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
@@ -349,7 +379,14 @@ produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
 async function aplicarTaraPadraoPorProduto(){
   const empresa = empresaSelect.value;
   const nome = produtoInput.value.trim().toUpperCase();
+  const tipo = tipoSelect.value;
+
   if(!nome) return;
+
+  // 👉 se for REPOSIÇÃO, NÃO altera a tara do produto
+  if (tipo === "REPOSICAO") {
+    return;
+  }
 
   const { data:prod } = await sb
     .from("buffet_produtos")
@@ -480,19 +517,20 @@ async function salvar(){
       .order("created_at", { ascending:false })
       .limit(3);
 
-    if(ultimas?.length){
-      const maisUsada = ultimas
-        .map(x => Number(x.tara || 0))
-        .sort((a,b) =>
-          ultimas.filter(u=>u.tara===a).length -
-          ultimas.filter(u=>u.tara===b).length
-        )
-        .pop();
+// só atualiza tara padrão se NÃO for reposição
+if(ultimas?.length && tipo !== "REPOSICAO"){
+  const maisUsada = ultimas
+    .map(x => Number(x.tara || 0))
+    .sort((a,b) =>
+      ultimas.filter(u=>u.tara===a).length -
+      ultimas.filter(u=>u.tara===b).length
+    )
+    .pop();
 
-      await sb.from("buffet_produtos")
-        .update({ tara_padrao: maisUsada })
-        .eq("id", prod.id);
-    }
+  await sb.from("buffet_produtos")
+    .update({ tara_padrao: maisUsada })
+    .eq("id", prod.id);
+}
 
     limpar();
     carregarLancamentos();
@@ -545,20 +583,20 @@ function hideSaving(){
 function limpar(){
   produtoInput.value = "";
   quantidadeInput.value = "";
-taraInput.value = "";
+  taraInput.value = "";
   unidadeSelect.value = "KG";
-  tipoSelect.value = "MONTAGEM";
-}
 
-  btnSalvar.onclick = salvar;
-  btnLimpar.onclick = limpar;
-empresaSelect.onchange = () => {
-  carregarProdutos();
-  carregarLancamentos();
-  taraInput.value = "";  // limpa a tara ao trocar empresa
-  document.getElementById("pesoLiquidoPreview").innerHTML =
-    `Líquido: <b>0,000 kg</b>`;
-};
+  // mantém o último tipo selecionado
+  const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
+  tipoSelect.value = tipoSalvo || "MONTAGEM";
+
+  // se for reposição, reaplica tara 0,280
+  if (tipoSelect.value === "REPOSICAO") {
+    taraInput.value = formatPeso(0.280);
+  }
+
+  atualizarLiquidoPreview();
+}
   carregarProdutos();
   carregarLancamentos();
 
