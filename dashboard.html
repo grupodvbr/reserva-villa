@@ -119,8 +119,12 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg)}
 <!-- CONTEÚDO (IFRAMES) -->
 <div class="content">
   <iframe id="frame-home" src="analise.html"></iframe>
-  <iframe id="frame-produtos" src="vendas.html"></iframe>
-  <iframe id="frame-agenda" src="cmv.html"></iframe>
+<iframe 
+  id="frame-produtos" 
+  src="./vendas.html" 
+  loading="lazy"
+  referrerpolicy="no-referrer"
+></iframe>  <iframe id="frame-agenda" src="cmv.html"></iframe>
   <iframe id="frame-pedidos" src="pedidos.html"></iframe>
 
   <iframe id="frame-pagar" src="pagar.html"></iframe>
@@ -257,6 +261,15 @@ window.addEventListener("load", () => {
   const firstNav = document.querySelector(`.nav-item[data-key="${last}"]`) || document.querySelector('.nav-item[data-key="home"]');
   setActiveNav(firstNav);
   showFrame(last);
+});
+
+// DEBUG do iframe vendas.html
+frames.produtos.addEventListener("load", () => {
+  console.log("✅ vendas.html carregou com sucesso");
+});
+
+frames.produtos.addEventListener("error", () => {
+  alert("❌ vendas.html não foi encontrado ou está bloqueado para iframe.");
 });
 </script>
 
