@@ -227,13 +227,15 @@ async function carregarDados(){
       .order("data_lancamento",{ascending:true});
 
     if(filtroEmpresa.value !== "todas"){
-      if(filtroEmpresa.value === "EMPORIO_MERCATTO"){
-        q = q.ilike("empresa", "%Mercatto%Emp%"); 
-      } else if(filtroEmpresa.value === "RESTAURANTE_MERCATTO"){
-        q = q.ilike("empresa", "%Mercatto%Rest%");
-      } else {
-        q = q.eq("empresa", filtroEmpresa.value);
-      }
+if(filtroEmpresa.value === "EMPORIO_MERCATTO"){
+  q = q.ilike("empresa", "%empor%mercat%"); 
+} 
+else if(filtroEmpresa.value === "RESTAURANTE_MERCATTO"){
+  q = q.ilike("empresa", "%rest%mercat%");
+} 
+else {
+  q = q.ilike("empresa", `%${filtroEmpresa.value}%`);
+}
     }
 
     const { data } = await q.range(from, from+step-1);
@@ -252,16 +254,18 @@ async function buscarMesPorEmpresa(empresa, inicio, fim){
   while(true){
     let q = sb.from("resumo_entradas")
       .select("valor, empresa, data_lancamento")
-      .gte("data_lancamento", inicio)
-      .lte("data_lancamento", fim);
+.gte("data_lancamento", inicio + "T00:00:00")
+.lte("data_lancamento", fim + "T23:59:59");
 
-    if(empresa === "EMPORIO_MERCATTO"){
-      q = q.ilike("empresa", "%Mercatto%Emp%");
-    } else if(empresa === "RESTAURANTE_MERCATTO"){
-      q = q.ilike("empresa", "%Mercatto%Rest%");
-    } else {
-      q = q.eq("empresa", empresa);
-    }
+if(empresa === "EMPORIO_MERCATTO"){
+  q = q.ilike("empresa", "%empor%mercat%");
+} 
+else if(empresa === "RESTAURANTE_MERCATTO"){
+  q = q.ilike("empresa", "%rest%mercat%");
+} 
+else {
+  q = q.ilike("empresa", `%${empresa}%`);
+}
 
     const { data } = await q.range(from, from+step-1);
     if(!data || !data.length) break;
