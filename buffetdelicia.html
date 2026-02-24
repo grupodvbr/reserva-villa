@@ -305,7 +305,41 @@ body, .app{
     <b>📋 Lançamentos de Hoje</b>
     <div class="list" id="lista"></div>
   </div>
+<!-- 🔢 RESUMO DE VENDAS DO DIA -->
+<div class="card" id="resumoVendasCard">
+  <b>📊 Resumo de Vendas do Dia</b>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+    <div class="field">
+      <label>Total de Vendas (R$)</label>
+      <input id="totalVendasDia" class="input-weight" readonly value="0,00">
+    </div>
+    <div class="field">
+      <label>Quantidade de Vendas</label>
+      <input id="qtdVendasDia" class="input-weight" readonly value="0">
+    </div>
+  </div>
+</div>
 
+<!-- 🧾 REGISTRAR VENDAS DO DIA -->
+<div class="card" id="registrarVendasCard">
+  <b>🧾 Registrar Vendas do Dia</b>
+  <div class="form-grid" style="margin-top:10px">
+    <div class="field">
+      <label>Total vendido hoje (R$)</label>
+      <input id="inputTotalVendasDia" inputmode="decimal" placeholder="0,00">
+    </div>
+    <div class="field">
+      <label>Quantidade de vendas</label>
+      <input id="inputQtdVendasDia" inputmode="numeric" placeholder="0">
+    </div>
+    <div class="field">
+      <button class="primary" id="btnSalvarVendasDia">
+        <i class="ri-save-3-line"></i> Salvar vendas do dia
+      </button>
+    </div>
+  </div>
+  <small>Esse valor fica salvo como o último registro do dia.</small>
+</div>
 </div>
 
 <datalist id="produtosList"></datalist>
@@ -515,6 +549,42 @@ function onProdutoChange(){
     });
   }
 
+
+
+
+
+
+
+
+
+
+
+
+  async function carregarResumoVendasDia(){
+  const empresa = empresaSelect.value;
+
+  // último registro do dia com vendas
+  const { data } = await sb
+    .from("buffet_lancamentos")
+    .select("vendas")
+    .eq("empresa", empresa)
+    .eq("data", dataISO)
+    .not("vendas", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  document.getElementById("totalVendasDia").value =
+    data?.length ? Number(data[0].vendas || 0).toFixed(2).replace(".", ",") : "0,00";
+
+  // quantidade de vendas do dia (total de registros)
+  const { count } = await sb
+    .from("buffet_lancamentos")
+    .select("*", { count: "exact", head: true })
+    .eq("empresa", empresa)
+    .eq("data", dataISO);
+
+  document.getElementById("qtdVendasDia").value = count || 0;
+}
 async function salvar(){
   try{
     showSaving(); // 👈 abre overlay
@@ -657,8 +727,9 @@ function limpar(){
 
   atualizarLiquidoPreview();
 }
-  carregarProdutos();
-  carregarLancamentos();
+carregarProdutos();
+carregarLancamentos();
+carregarResumoVendasDia();
 
 
 function parsePeso(v){
@@ -704,6 +775,40 @@ taraInput.addEventListener("input", () => {
   aplicarMascaraKg(taraInput);
   atualizarLiquidoPreview();
 });
+
+  document.getElementById("btnSalvarVendasDia").onclick = async () => {
+  const empresa = empresaSelect.value;
+  const total = Number(
+    String(document.getElementById("inputTotalVendasDia").value)
+      .replace(",", ".")
+      .replace(/[^\d.]/g, "")
+  );
+  const qtd = Number(
+    String(document.getElementById("inputQtdVendasDia").value)
+      .replace(/[^\d]/g, "")
+  );
+
+  if(!total || total <= 0){
+    alert("Informe o total de vendas do dia.");
+    return;
+  }
+
+  await sb.from("buffet_lancamentos").insert({
+    empresa,
+    data: dataISO,
+    vendas: total,
+    quantidade: qtd || 0,
+    tipo: "VENDAS_DIA",
+    produto_nome: "TOTAL DO DIA",
+    hora: new Date().toTimeString().slice(0,8)
+  });
+
+  document.getElementById("inputTotalVendasDia").value = "";
+  document.getElementById("inputQtdVendasDia").value = "";
+
+  carregarResumoVendasDia();
+  alert("Vendas do dia registradas!");
+};
 </script>
 <!-- OVERLAY DE SALVAMENTO -->
 <div id="savingOverlay" style="
