@@ -156,6 +156,31 @@ th{
   background:#f1f5f9;
   color:#0f172a;
 }
+
+/* 🔒 Garante que nada estoure a largura da tela no celular */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* 🧩 Tabela sempre se adapta ao tamanho da tela */
+.table-wrap, table {
+  max-width: 100%;
+}
+
+/* 📱 Inputs e selects 100% no mobile */
+@media(max-width: 899px){
+  .filters input,
+  .filters select,
+  .filters button{
+    width: 100%;
+  }
+
+  /* 🔽 Esconde o botão Atualizar no mobile (já é automático) */
+  #btnFiltrar{
+    display:none;
+  }
+}
 </style>
 </head>
 
@@ -367,13 +392,32 @@ chart = new Chart(document.getElementById("chart"), {
 
 
 
-btnFiltrar.onclick = carregar;
+// 🔁 Atualiza automaticamente quando mudar empresa
 empresaSelect.onchange = () => {
   searchPrato.value = "";
   carregar();
 };
-carregar();
+
+// 🔎 Atualiza enquanto digita o prato
 searchPrato.oninput = carregar;
+
+// 📅 Atualiza quando mudar o período (flatpickr)
+flatpickr("#rangeDatas", {
+  mode: "range",
+  dateFormat: "Y-m-d",
+  altInput: true,
+  altFormat: "d/m/Y",
+  locale: "pt",
+  defaultDate: rangeSelecionado,
+  onChange: (datas) => {
+    if (datas.length === 2) {
+      rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
+      carregar(); // ✅ atualiza automaticamente ao mudar data
+    }
+  }
+});
+
+carregar();
 let modalAberto = false;
 
 async function abrirResumoConsumo(nome){
