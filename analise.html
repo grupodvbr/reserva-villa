@@ -219,7 +219,27 @@ html, body {
       <canvas id="chart"></canvas>
     </div>
   </div>
-
+<div class="card">
+  <b>Resumo do período selecionado</b>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
+    <div class="card" style="padding:10px">
+      <small>Total Produzido</small>
+      <h3 id="totalProduzido">0</h3>
+    </div>
+    <div class="card" style="padding:10px">
+      <small>Total Retirado</small>
+      <h3 id="totalRetirado">0</h3>
+    </div>
+    <div class="card" style="padding:10px">
+      <small>Total Desperdício</small>
+      <h3 id="totalDesperdicio">0</h3>
+    </div>
+    <div class="card" style="padding:10px;background:#ecfeff">
+      <small>Total Vendido (Reposto - Retirado - Desperdício)</small>
+      <h3 id="totalVendido">0</h3>
+    </div>
+  </div>
+</div>
   <div class="card">
     <b>Resumo por prato (Empresa selecionada)</b>
 
@@ -304,16 +324,26 @@ if(error){
 
 const porPrato = {};
 const porDia = {};
-
+let totalMontado = 0;
+let totalReposto = 0;
+let totalRetirado = 0;
+let totalDesperdicio = 0;
+  
 (data || []).forEach(r=>{
-    porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
-    porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
+  porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
+  porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
 
-    if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
-      porDia[r.data] = (porDia[r.data]||0) + Number(r.quantidade||0);
-    }
-  });
+  const q = Number(r.quantidade || 0);
 
+  if(r.tipo === "MONTAGEM") totalMontado += q;
+  if(r.tipo === "REPOSICAO") totalReposto += q;
+  if(r.tipo === "RETIRADA") totalRetirado += q;
+  if(r.tipo === "DEVOLUCAO") totalDesperdicio += q;
+
+  if(r.tipo==='MONTAGEM' || r.tipo==='REPOSICAO'){
+    porDia[r.data] = (porDia[r.data]||0) + q;
+  }
+});
 const termo = (searchPrato.value || "").toLowerCase();
 
 const pratosFiltrados = Object.entries(porPrato)
@@ -358,6 +388,21 @@ tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
   const valores = dias.map(d=>porDia[d]);
 
   if(chart) chart.destroy();
+  // ===== RESUMO DO PERÍODO =====
+const totalProduzido = totalMontado + totalReposto;
+const totalVendido = totalReposto - totalRetirado - totalDesperdicio;
+
+document.getElementById("totalProduzido").innerText =
+  totalProduzido.toFixed(2);
+
+document.getElementById("totalRetirado").innerText =
+  totalRetirado.toFixed(2);
+
+document.getElementById("totalDesperdicio").innerText =
+  totalDesperdicio.toFixed(2);
+
+document.getElementById("totalVendido").innerText =
+  totalVendido.toFixed(2);
 chart = new Chart(document.getElementById("chart"), {
   type: 'line',
   data: {
