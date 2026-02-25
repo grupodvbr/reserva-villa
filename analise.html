@@ -263,12 +263,15 @@ if(rangeSelecionado.length === 2){
   q = q.lte("data", rangeSelecionado[1]);
 }
 
-  const { data } = await q.order("data",{ascending:true});
+const { data, error } = await q.order("data",{ascending:true});
+if(error){
+  console.error("Erro ao carregar buffet_lancamentos:", error);
+}
 
-  const porPrato = {};
-  const porDia = {};
+const porPrato = {};
+const porDia = {};
 
-  data?.forEach(r=>{
+(data || []).forEach(r=>{
     porPrato[r.produto_nome] ||= {MONTAGEM:0,REPOSICAO:0,RETIRADA:0,DEVOLUCAO:0, UNIDADE:r.unidade};
     porPrato[r.produto_nome][r.tipo] += Number(r.quantidade||0);
 
@@ -356,8 +359,11 @@ btnFiltrar.onclick = carregar;
 empresaSelect.onchange = carregar;
 
 carregar();
+let modalAberto = false;
+
 async function abrirResumoConsumo(nome){
-  if(nome !== "CONSUMO AUTORIZADO") return; // só abre para esse registro
+  if(nome !== "CONSUMO AUTORIZADO" || modalAberto) return;
+  modalAberto = true;
 
   const empresa = empresaSelect.value;
 
@@ -397,6 +403,7 @@ document.body.style.overflow = "hidden";}
 function fecharResumoConsumo(){
   document.getElementById("modalResumoConsumo").style.display = "none";
   document.body.style.overflow = "auto";
+  modalAberto = false;
 }
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
