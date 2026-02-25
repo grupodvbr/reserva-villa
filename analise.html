@@ -168,16 +168,25 @@ th{
   </div>
 
   <div class="card">
-    <div class="filters">
-      <select id="empresaSelect">
-        <option value="VILLA GOURMET">Villa Gourmet</option>
-        <option value="CHURRASCADA">Churrascada</option>
-        <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-        <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-      </select>
-<input type="text" id="rangeDatas" placeholder="Selecione o período">
-      <button id="btnFiltrar">Atualizar</button>
-    </div>
+<div class="filters">
+  <select id="empresaSelect">
+    <option value="VILLA GOURMET">Villa Gourmet</option>
+    <option value="CHURRASCADA">Churrascada</option>
+    <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+    <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
+  </select>
+
+  <input type="text" id="rangeDatas" placeholder="Selecione o período">
+
+  <!-- 🔎 NOVO -->
+  <input
+    type="text"
+    id="searchPrato"
+    placeholder="Buscar prato..."
+  >
+
+  <button id="btnFiltrar">Atualizar</button>
+</div>
   </div>
 
   <div class="card">
@@ -223,6 +232,7 @@ const sb = window.supabase.createClient(
 const empresaSelect = document.getElementById("empresaSelect");
 
 const btnFiltrar = document.getElementById("btnFiltrar");
+const searchPrato = document.getElementById("searchPrato");
 const hoje = new Date();
 const seteDiasAtras = new Date(hoje.getTime() - 6*24*60*60*1000);
 
@@ -280,43 +290,45 @@ const porDia = {};
     }
   });
 
-list.innerHTML = Object.entries(porPrato)
-  .sort((a,b)=> a[0].localeCompare(b[0], 'pt-BR'))
-  .map(([nome,v])=>{
-    const total = v.MONTAGEM + v.REPOSICAO;
-    return `
-      <div class="item">
-        <div class="name">${nome}</div>
-        <div class="row"><span class="badge mont">Montado</span><b>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
-        <div class="row"><span class="badge dev">desperdício</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
-      </div>
-    `;
-  }).join("");
+const termo = (searchPrato.value || "").toLowerCase();
 
-  tbody.innerHTML = Object.entries(porPrato)
-  .sort((a,b)=> a[0].localeCompare(b[0], 'pt-BR'))
-  .map(([nome,v])=>{
-    const total = v.MONTAGEM + v.REPOSICAO;
-    return `
-      <tr>
-<td>
-  ${
-    nome === "CONSUMO AUTORIZADO"
-      ? `<b style="cursor:pointer;color:#ff6a00;text-decoration:underline" onclick="abrirResumoConsumo('${nome}')">${nome}</b>`
-      : `<b>${nome}</b>`
-  }
-</td>
-<td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
-        <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
-        <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
-        <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
-        <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
-      </tr>
-    `;
-  }).join("");
+const pratosFiltrados = Object.entries(porPrato)
+  .filter(([nome]) => (nome || "").toLowerCase().includes(termo))
+  .sort((a,b)=> (a[0] || "").localeCompare(b[0] || "", 'pt-BR'));
+
+list.innerHTML = pratosFiltrados.map(([nome,v])=>{
+  const total = v.MONTAGEM + v.REPOSICAO;
+  return `
+    <div class="item">
+      <div class="name">${nome}</div>
+      <div class="row"><span class="badge mont">Montado</span><b>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</b></div>
+      <div class="row"><span class="badge rep">Reposto</span><b>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</b></div>
+      <div class="row"><span class="badge tot">Total</span><b>${total.toFixed(2)} ${v.UNIDADE}</b></div>
+      <div class="row"><span class="badge ret">Retirado</span><b>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</b></div>
+      <div class="row"><span class="badge dev">desperdício</span><b>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</b></div>
+    </div>
+  `;
+}).join("");
+
+tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
+  const total = v.MONTAGEM + v.REPOSICAO;
+  return `
+    <tr>
+      <td>
+        ${
+          nome === "CONSUMO AUTORIZADO"
+            ? `<b style="cursor:pointer;color:#ff6a00;text-decoration:underline" onclick="abrirResumoConsumo('${nome}')">${nome}</b>`
+            : `<b>${nome}</b>`
+        }
+      </td>
+      <td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
+      <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
+      <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
+      <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
+      <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
+    </tr>
+  `;
+}).join("");
 
   const dias = Object.keys(porDia).sort();
   const valores = dias.map(d=>porDia[d]);
@@ -356,9 +368,12 @@ chart = new Chart(document.getElementById("chart"), {
 
 
 btnFiltrar.onclick = carregar;
-empresaSelect.onchange = carregar;
-
+empresaSelect.onchange = () => {
+  searchPrato.value = "";
+  carregar();
+};
 carregar();
+searchPrato.oninput = carregar;
 let modalAberto = false;
 
 async function abrirResumoConsumo(nome){
