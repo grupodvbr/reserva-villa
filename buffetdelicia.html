@@ -597,9 +597,9 @@ async function salvar(consumoPara){
     const unidade = unidadeSelect.value;
 let tipo = tipoSelect.value;
 
-// 🔒 se for consumo autorizado, força o tipo CONSUMO (interno)
+// 🔒 se for consumo autorizado, salva como RETIRADA e marca flag
 if (produtoNome === "CONSUMO AUTORIZADO") {
-  tipo = "CONSUMO";
+  tipo = "RETIRADA";
 }
 
 // ⛔ bloqueia qualquer tentativa de salvar CONSUMO fora do fluxo correto
@@ -639,25 +639,30 @@ if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
 
     const hora = new Date().toTimeString().slice(0,8);
 
-await sb.from("buffet_lancamentos").insert({
-  empresa,
-  produto_id: prod.id,
-  produto_nome: produtoNome,
-  tipo,
-  quantidade: quantidadeLiquida,
-  tara,
-  unidade,
-  data: dataISO,
-  hora,
+const payload = {
+  empresa: String(empresaSelect.value),
+  produto_id: String(prod.id),
+  produto_nome: String(produtoNome),
+  tipo: String(tipo),
+  quantidade: Number(quantidadeLiquida),
+  unidade: String(unidade),
+  data: String(dataISO),
+  hora: String(hora),
+  tara: tara != null ? Number(tara) : 0,
+  consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO",
+  consumo_para_nome: produtoNome === "CONSUMO AUTORIZADO" ? String(consumoPara) : null
+};
 
-  // 🔒 se o prato for CONSUMO AUTORIZADO, sempre true
-  consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO" ? true : !!consumoPara,
+const { error: insertError } = await sb
+  .from("buffet_lancamentos")
+  .insert(payload);
 
-  // 🔒 só grava nome se for consumo autorizado
-  consumo_para_nome: produtoNome === "CONSUMO AUTORIZADO"
-    ? consumoPara
-    : (consumoPara || null)
-});
+if (insertError) {
+  console.error("ERRO INSERT buffet_lancamentos:", insertError);
+  alert("Erro ao salvar: " + insertError.message);
+  hideSaving();
+  return;
+}
 
     const { data:ultimas } = await sb
       .from("buffet_lancamentos")
