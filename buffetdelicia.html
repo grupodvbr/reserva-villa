@@ -668,7 +668,7 @@ await sb.from("buffet_lancamentos").insert({
       .limit(3);
 
 // só atualiza tara padrão se NÃO for reposição
-if(ultimas?.length && tipo !== "REPOSICAO"){
+if(ultimas?.length && tipo !== "REPOSICAO" && tipo !== "CONSUMO"){
   const maisUsada = ultimas
     .map(x => Number(x.tara || 0))
     .sort((a,b) =>
@@ -707,20 +707,25 @@ function abrirModal(id, qtd, un, tipo){
 
   const editTipo = document.getElementById("editTipo");
 
-  if (tipo === "CONSUMO") {
-    editTipo.value = "MONTAGEM";     // valor dummy
-    editTipo.disabled = true;       // 🔒 trava edição
-  } else {
-    editTipo.value = tipo;
-    editTipo.disabled = false;
-  }
+if (tipo === "CONSUMO") {
+  editTipo.value = "MONTAGEM";     
+  editTipo.disabled = true;       
+
+  document.getElementById("editUnidade").disabled = true; // 🔒 trava unidade
+} else {
+  editTipo.value = tipo;
+  editTipo.disabled = false;
+  document.getElementById("editUnidade").disabled = false;
+}
 
   document.getElementById("modalBackdrop").style.display = "flex";
 }
-  function fecharModal(){
-    document.getElementById("modalBackdrop").style.display = "none";
-    editId = null;
-  }
+function fecharModal(){
+  document.getElementById("modalBackdrop").style.display = "none";
+  document.getElementById("editTipo").disabled = false;    // 🔓 destrava tipo
+  document.getElementById("editUnidade").disabled = false; // 🔓 destrava unidade
+  editId = null;
+}
 async function confirmarEdicao(){
   const qtd = parseFloat(document.getElementById("editQuantidade").value);
   const un = document.getElementById("editUnidade").value;
@@ -759,6 +764,7 @@ function limpar(){
   quantidadeInput.value = "";
   taraInput.value = "";
   unidadeSelect.value = "KG";
+  consumoAutorizado.checked = false; // 🔒 limpa flag interna de consumo
 
   // mantém o último tipo selecionado
   const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
