@@ -563,20 +563,26 @@ async function carregarLancamentos(){
   lista.innerHTML = "";
   (data || []).forEach(l=>{
 lista.innerHTML += `
-  <div class="item">
+  <div class="item" style="padding:14px 14px 16px">
     <div>
-      <div class="name">
-        ${l.produto_nome}
+
+      <!-- TÍTULO -->
+      <div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
+        <span>${l.produto_nome}</span>
+
         ${
           l.consumo_autorizado && l.consumo_para_nome
             ? `<span style="
-                margin-left:8px;
                 background:#ede9fe;
                 color:#5b21b6;
-                padding:4px 8px;
+                padding:6px 12px;
                 border-radius:999px;
-                font-size:11px;
+                font-size:12px;
                 font-weight:800;
+                display:inline-flex;
+                align-items:center;
+                gap:6px;
+                line-height:1;
               ">
                 👤 ${l.consumo_para_nome}
               </span>`
@@ -584,21 +590,23 @@ lista.innerHTML += `
         }
       </div>
 
-      <div class="meta">
+      <!-- META -->
+      <div class="meta" style="line-height:1.5; margin-bottom:8px">
         Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
         • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
-        • Líquido: <b>${formatPeso(l.quantidade)} kg</b>
-        • ${l.hora}
+        • Líquido: <b>${formatPeso(l.quantidade)} kg</b><br>
+        <span style="color:#6b7280">⏱ ${l.hora}</span>
       </div>
 
+      <!-- TAG -->
       ${
         l.consumo_autorizado
-          ? `<span class="tag RETIRADA">CONSUMO AUTORIZADO</span>`
-          : `<span class="tag ${l.tipo}">${l.tipo}</span>`
+          ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
+          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">${l.tipo}</span>`
       }
     </div>
 
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:10px;align-items:flex-start">
       <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
         <i class="ri-edit-2-line"></i>
       </button>
