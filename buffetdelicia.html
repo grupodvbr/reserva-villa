@@ -239,6 +239,12 @@ body, .app{
   color:#0f172a;
   font-weight:800;
 }
+
+/* 🔒 trava visual da flag para nunca aparecer */
+#consumoAutorizado,
+#consumoAutorizado * {
+  display: none !important;
+}
 </style>
 </head>
 
@@ -370,6 +376,8 @@ body, .app{
   const lista = document.getElementById("lista");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
+const empresaSelect = document.getElementById("empresaSelect");
+  
 const consumoAutorizado = document.getElementById("consumoAutorizado");
 
 // 🔒 nunca mostrar a flag na tela
