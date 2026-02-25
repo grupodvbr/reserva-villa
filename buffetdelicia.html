@@ -372,15 +372,37 @@ body, .app{
   const btnLimpar = document.getElementById("btnLimpar");
   const empresaSelect = document.getElementById("empresaSelect");
 const consumoAutorizado = document.getElementById("consumoAutorizado");
+produtoInput.addEventListener("input", () => {
+  const nome = produtoInput.value.trim().toUpperCase();
+  const field = consumoAutorizado.closest(".field");
 
+  if (nome === "CONSUMO AUTORIZADO") {
+    field.style.display = "none";        // esconde checkbox
+    consumoAutorizado.checked = true;   // marca internamente
+  } else {
+    field.style.display = "flex";       // volta ao normal
+  }
+});
 btnSalvar.onclick = () => {
+  if (salvandoAgora) return;
+  salvandoAgora = true;
+
+  const nomePrato = produtoInput.value.trim().toUpperCase();
+
+  if (nomePrato === "CONSUMO AUTORIZADO") {
+    abrirConsumo();
+    consumoAutorizado.checked = true;
+    salvandoAgora = false;
+    return;
+  }
+
   if (consumoAutorizado.checked) {
     abrirConsumo();
+    salvandoAgora = false;
   } else {
-    salvar(null);
+    salvar(null).finally(() => salvandoAgora = false);
   }
 };
-
 btnLimpar.onclick = limpar;
 // ================== CONFIGURAÇÕES DE TARA POR TIPO ==================
 const TARA_REPOSICAO = 0.280;
@@ -511,17 +533,21 @@ function onProdutoChange(){
     });
   }
 
-  async function carregarLancamentos(){
-    const empresa = empresaSelect.value;
-    const { data } = await sb
-      .from("buffet_lancamentos")
-      .select("*")
-      .eq("empresa", empresa)
-      .eq("data", dataISO)
-      .order("created_at", { ascending:false });
+async function carregarLancamentos(){
+  const empresa = empresaSelect.value;
+  const { data, error } = await sb
+    .from("buffet_lancamentos")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("data", dataISO)
+    .order("created_at", { ascending:false });
 
-    lista.innerHTML = "";
-    data?.forEach(l=>{
+  if(error){
+    console.error("Erro ao carregar lançamentos:", error);
+  }
+
+  lista.innerHTML = "";
+  (data || []).forEach(l=>{
       lista.innerHTML += `
         <div class="item">
           <div>
@@ -598,8 +624,14 @@ await sb.from("buffet_lancamentos").insert({
   unidade,
   data: dataISO,
   hora,
-  consumo_autorizado: !!consumoPara,
-  consumo_para_nome: consumoPara || null
+
+  // 🔒 se o prato for CONSUMO AUTORIZADO, sempre true
+  consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO" ? true : !!consumoPara,
+
+  // 🔒 só grava nome se for consumo autorizado
+  consumo_para_nome: produtoNome === "CONSUMO AUTORIZADO"
+    ? consumoPara
+    : (consumoPara || null)
 });
 
     const { data:ultimas } = await sb
@@ -748,6 +780,7 @@ taraInput.addEventListener("input", () => {
 function fecharConsumo(){
   document.getElementById("modalConsumo").style.display = "none";
   document.body.style.overflow = "auto";
+  document.getElementById("consumoNome").value = ""; // limpa campo
 }
 
 async function carregarConsumidores(){
