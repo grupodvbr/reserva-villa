@@ -388,9 +388,14 @@ tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
   const valores = dias.map(d=>porDia[d]);
 
   if(chart) chart.destroy();
-  // ===== RESUMO DO PERÍODO =====
+// ===== RESUMO DO PERÍODO (REGRA CORRETA) =====
 const totalProduzido = totalMontado + totalReposto;
-const totalVendido = totalReposto - totalRetirado - totalDesperdicio;
+
+// Vendido real do buffet
+let totalVendido = totalProduzido - totalRetirado - totalDesperdicio;
+
+// nunca deixa negativo
+if (totalVendido < 0) totalVendido = 0;
 
 document.getElementById("totalProduzido").innerText =
   totalProduzido.toFixed(2);
