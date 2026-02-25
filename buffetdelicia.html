@@ -294,9 +294,9 @@ body, .app{
   </select>
 </div>
 
-<div class="field">
+<div class="field" style="display:none">
   <label style="display:flex;gap:8px;align-items:center">
-    <input type="checkbox" id="consumoAutorizado">
+    <input type="checkbox" id="consumoAutorizado" hidden>
     Consumo autorizado
   </label>
 </div>
@@ -370,17 +370,18 @@ body, .app{
   const lista = document.getElementById("lista");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
-  const empresaSelect = document.getElementById("empresaSelect");
 const consumoAutorizado = document.getElementById("consumoAutorizado");
+
+// 🔒 nunca mostrar a flag na tela
+consumoAutorizado.closest(".field").style.display = "none";
+
 produtoInput.addEventListener("input", () => {
   const nome = produtoInput.value.trim().toUpperCase();
-  const field = consumoAutorizado.closest(".field");
 
   if (nome === "CONSUMO AUTORIZADO") {
-    field.style.display = "none";        // esconde checkbox
     consumoAutorizado.checked = true;   // marca internamente
   } else {
-    field.style.display = "flex";       // volta ao normal
+    consumoAutorizado.checked = false;  // limpa quando não for consumo autorizado
   }
 });
 btnSalvar.onclick = () => {
