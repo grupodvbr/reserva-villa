@@ -245,6 +245,11 @@ body, .app{
 #consumoAutorizado * {
   display: none !important;
 }
+
+.CONSUMO{
+  background:#ede9fe;
+  color:#5b21b6;
+}
 </style>
 </head>
 
@@ -590,8 +595,19 @@ async function salvar(consumoPara){
     const pesoBruto = parsePeso(quantidadeInput.value);
     const tara = parsePeso(taraInput.value || 0);
     const unidade = unidadeSelect.value;
-    const tipo = tipoSelect.value;
+let tipo = tipoSelect.value;
 
+// 🔒 se for consumo autorizado, força o tipo CONSUMO (interno)
+if (produtoNome === "CONSUMO AUTORIZADO") {
+  tipo = "CONSUMO";
+}
+
+// ⛔ bloqueia qualquer tentativa de salvar CONSUMO fora do fluxo correto
+if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
+  alert("Tipo CONSUMO é reservado apenas para CONSUMO AUTORIZADO.");
+  hideSaving();
+  return;
+}
     if(!produtoNome || pesoBruto <= 0){
       alert("Preencha tudo");
       hideSaving();
@@ -684,29 +700,53 @@ function showSaving(){
 function hideSaving(){
   document.getElementById("savingOverlay").style.display = "none";
 }
-  function abrirModal(id, qtd, un, tipo){
-    editId = id;
-    document.getElementById("editQuantidade").value = qtd;
-    document.getElementById("editUnidade").value = un;
-    document.getElementById("editTipo").value = tipo;
-    document.getElementById("modalBackdrop").style.display = "flex";
+function abrirModal(id, qtd, un, tipo){
+  editId = id;
+  document.getElementById("editQuantidade").value = qtd;
+  document.getElementById("editUnidade").value = un;
+
+  const editTipo = document.getElementById("editTipo");
+
+  if (tipo === "CONSUMO") {
+    editTipo.value = "MONTAGEM";     // valor dummy
+    editTipo.disabled = true;       // 🔒 trava edição
+  } else {
+    editTipo.value = tipo;
+    editTipo.disabled = false;
   }
+
+  document.getElementById("modalBackdrop").style.display = "flex";
+}
   function fecharModal(){
     document.getElementById("modalBackdrop").style.display = "none";
     editId = null;
   }
-  async function confirmarEdicao(){
-    const qtd = parseFloat(document.getElementById("editQuantidade").value);
-    const un = document.getElementById("editUnidade").value;
-    const tipo = document.getElementById("editTipo").value;
-    if(!qtd){ alert("Quantidade inválida"); return; }
+async function confirmarEdicao(){
+  const qtd = parseFloat(document.getElementById("editQuantidade").value);
+  const un = document.getElementById("editUnidade").value;
+  const tipo = document.getElementById("editTipo").value;
 
-    await sb.from("buffet_lancamentos")
-      .update({ quantidade:qtd, unidade:un, tipo })
-      .eq("id", editId);
+  if(!qtd){ alert("Quantidade inválida"); return; }
 
-    fecharModal(); carregarLancamentos();
+  // 🔒 não permite alterar tipo de um CONSUMO
+  const { data:atual } = await sb
+    .from("buffet_lancamentos")
+    .select("tipo, produto_nome")
+    .eq("id", editId)
+    .maybeSingle();
+
+  if (atual?.tipo === "CONSUMO" && tipo !== "CONSUMO") {
+    alert("Lançamentos de CONSUMO não podem ter o tipo alterado.");
+    return;
   }
+
+  await sb.from("buffet_lancamentos")
+    .update({ quantidade:qtd, unidade:un, tipo })
+    .eq("id", editId);
+
+  fecharModal(); 
+  carregarLancamentos();
+}
 
   async function excluir(id){
     if(!confirm("Excluir esse lançamento?")) return;
