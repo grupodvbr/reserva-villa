@@ -257,8 +257,14 @@ list.innerHTML = Object.entries(porPrato)
     const total = v.MONTAGEM + v.REPOSICAO;
     return `
       <tr>
-        <td><b>${nome}</b></td>
-        <td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
+<td>
+  ${
+    nome === "CONSUMO AUTORIZADO"
+      ? `<b style="cursor:pointer;color:#ff6a00;text-decoration:underline" onclick="abrirResumoConsumo('${nome}')">${nome}</b>`
+      : `<b>${nome}</b>`
+  }
+</td>
+<td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
         <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
         <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
         <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
@@ -308,6 +314,56 @@ btnFiltrar.onclick = carregar;
 empresaSelect.onchange = carregar;
 
 carregar();
+async function abrirResumoConsumo(nome){
+  if(nome !== "CONSUMO AUTORIZADO") return; // só abre para esse registro
+
+  const empresa = empresaSelect.value;
+
+  let q = sb.from("buffet_lancamentos")
+    .select("consumo_para_nome, quantidade")
+    .eq("empresa", empresa)
+    .eq("consumo_autorizado", true);
+
+  if(rangeSelecionado.length === 2){
+    q = q.gte("data", rangeSelecionado[0]);
+    q = q.lte("data", rangeSelecionado[1]);
+  }
+
+  const { data } = await q;
+
+  const porPessoa = {};
+  data?.forEach(r=>{
+    const nome = r.consumo_para_nome || "SEM NOME";
+    porPessoa[nome] = (porPessoa[nome] || 0) + Number(r.quantidade || 0);
+  });
+
+  const html = Object.entries(porPessoa)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([nome,kg])=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee">
+        <b>${nome}</b>
+        <span>${kg.toFixed(3)} KG</span>
+      </div>
+    `).join("");
+
+  document.getElementById("listaResumoConsumo").innerHTML =
+    html || "<small>Nenhum consumo no período.</small>";
+
+  document.getElementById("modalResumoConsumo").style.display = "flex";
+}
+
+function fecharResumoConsumo(){
+  document.getElementById("modalResumoConsumo").style.display = "none";
+}
 </script>
+<!-- MODAL RESUMO CONSUMO AUTORIZADO -->
+<div class="modal-backdrop" id="modalResumoConsumo" onclick="if(event.target===this) fecharResumoConsumo()">  <div class="modal">
+    <h3>📊 Consumo autorizado (KG)</h3>
+    <div id="listaResumoConsumo" style="max-height:60vh;overflow:auto"></div>
+    <div class="actions">
+      <button class="ghost" onclick="fecharResumoConsumo()">Fechar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
