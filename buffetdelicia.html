@@ -562,27 +562,52 @@ async function carregarLancamentos(){
 
   lista.innerHTML = "";
   (data || []).forEach(l=>{
-      lista.innerHTML += `
-        <div class="item">
-          <div>
-            <div class="name">${l.produto_nome}</div>
-<div class="meta">
-  Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
-  • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
-  • Líquido: <b>${formatPeso(l.quantidade)} kg</b>
-  • ${l.hora}
-</div>            <span class="tag ${l.tipo}">${l.tipo}</span>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
-              <i class="ri-edit-2-line"></i>
-            </button>
-            <button class="icon-btn danger" onclick="excluir('${l.id}')">
-              <i class="ri-delete-bin-6-line"></i>
-            </button>
-          </div>
-        </div>
-      `;
+lista.innerHTML += `
+  <div class="item">
+    <div>
+      <div class="name">
+        ${l.produto_nome}
+        ${
+          l.consumo_autorizado && l.consumo_para_nome
+            ? `<span style="
+                margin-left:8px;
+                background:#ede9fe;
+                color:#5b21b6;
+                padding:4px 8px;
+                border-radius:999px;
+                font-size:11px;
+                font-weight:800;
+              ">
+                👤 ${l.consumo_para_nome}
+              </span>`
+            : ``
+        }
+      </div>
+
+      <div class="meta">
+        Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
+        • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
+        • Líquido: <b>${formatPeso(l.quantidade)} kg</b>
+        • ${l.hora}
+      </div>
+
+      ${
+        l.consumo_autorizado
+          ? `<span class="tag RETIRADA">CONSUMO AUTORIZADO</span>`
+          : `<span class="tag ${l.tipo}">${l.tipo}</span>`
+      }
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
+        <i class="ri-edit-2-line"></i>
+      </button>
+      <button class="icon-btn danger" onclick="excluir('${l.id}')">
+        <i class="ri-delete-bin-6-line"></i>
+      </button>
+    </div>
+  </div>
+`;
     });
   }
 
