@@ -22,7 +22,14 @@
   --muted:#9ca3af;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:var(--text)}
+
+html, body{
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;   /* REMOVE O SCROLL LATERAL */
+  width:100%;
+  position:relative;
+}
 
 /* FILTROS EM LINHA */
 .filtros{
@@ -81,6 +88,15 @@ body{background:var(--bg);color:var(--text)}
   padding:10px;
   border:1px dashed var(--border);
   border-radius:12px;
+}
+
+/* CORREÇÃO DEFINITIVA DO BALANÇO DO FLATPICKR */
+.flatpickr-calendar{
+  position:fixed !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:calc(100% - 20px) !important;
+  max-width:400px !important;
 }
 </style>
 </head>
