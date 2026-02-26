@@ -378,8 +378,16 @@ tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
       <td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
       <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
       <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
-      <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
-      <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
+<td>
+  ${
+    v.RETIRADA > 0
+      ? `<b style="cursor:pointer;color:#ef4444;text-decoration:underline"
+           onclick="abrirResumoRetirada('${nome}')">
+           ${v.RETIRADA.toFixed(2)} ${v.UNIDADE}
+         </b>`
+      : `0`
+  }
+</td>      <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
     </tr>
   `;
 }).join("");
@@ -508,8 +516,66 @@ async function abrirResumoConsumo(nome){
 document.getElementById("modalResumoConsumo").style.display = "flex";
 document.body.style.overflow = "hidden";}
 
+
+async function abrirResumoRetirada(nomePrato){
+  if(modalAberto) return;
+  modalAberto = true;
+
+  const empresa = empresaSelect.value;
+
+  let q = sb.from("buffet_lancamentos")
+    .select("consumo_para_nome, quantidade")
+    .eq("empresa", empresa)
+    .eq("produto_nome", nomePrato)
+    .eq("tipo", "RETIRADA");
+
+  if(rangeSelecionado.length === 2){
+    q = q.gte("data", rangeSelecionado[0]);
+    q = q.lte("data", rangeSelecionado[1]);
+  }
+
+  const { data } = await q;
+
+  const porDestino = {};
+
+  data?.forEach(r=>{
+    const destino = r.consumo_para_nome || "SEM DESTINO";
+    porDestino[destino] = (porDestino[destino] || 0) + Number(r.quantidade || 0);
+  });
+
+  const html = Object.entries(porDestino)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([destino,kg])=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee">
+        <b>${destino}</b>
+        <span>${kg.toFixed(3)} KG</span>
+      </div>
+    `).join("");
+
+  document.getElementById("tituloResumoRetirada").innerText =
+    `📦 Retirada • ${nomePrato}`;
+
+  document.getElementById("listaResumoRetirada").innerHTML =
+    html || "<small>Nenhuma retirada no período.</small>";
+
+  document.getElementById("modalResumoRetirada").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+
+
+
+
+
+  
 function fecharResumoConsumo(){
   document.getElementById("modalResumoConsumo").style.display = "none";
+  document.body.style.overflow = "auto";
+  modalAberto = false;
+}
+
+function fecharResumoRetirada(){
+  document.getElementById("modalResumoRetirada").style.display = "none";
   document.body.style.overflow = "auto";
   modalAberto = false;
 }
@@ -520,6 +586,26 @@ function fecharResumoConsumo(){
     <div id="listaResumoConsumo" style="max-height:60vh;overflow:auto"></div>
     <div class="actions">
       <button class="ghost" onclick="fecharResumoConsumo()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+
+  <!-- MODAL RESUMO RETIRADA -->
+<div class="modal-backdrop"
+     id="modalResumoRetirada"
+     onclick="if(event.target===this) fecharResumoRetirada()">
+
+  <div class="modal">
+    <h3 id="tituloResumoRetirada">📦 Retirada</h3>
+
+    <div id="listaResumoRetirada"
+         style="max-height:60vh;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharResumoRetirada()">
+        Fechar
+      </button>
     </div>
   </div>
 </div>
