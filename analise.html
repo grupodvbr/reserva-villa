@@ -287,14 +287,15 @@ let rangeSelecionado = [
 
 flatpickr("#rangeDatas", {
   mode: "range",
-  dateFormat: "Y-m-d",     // formato interno (para o Supabase)
-  altInput: true,         // cria um input visual alternativo
-  altFormat: "d/m/Y",     // formato exibido (dia/mês/ano)
+  dateFormat: "Y-m-d",
+  altInput: true,
+  altFormat: "d/m/Y",
   locale: "pt",
   defaultDate: rangeSelecionado,
   onChange: (datas) => {
     if (datas.length === 2) {
       rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
+      carregar(); // 🔥 atualiza aqui
     }
   }
 });
@@ -458,21 +459,6 @@ empresaSelect.onchange = () => {
 // 🔎 Atualiza enquanto digita o prato
 searchPrato.oninput = carregar;
 
-// 📅 Atualiza quando mudar o período (flatpickr)
-flatpickr("#rangeDatas", {
-  mode: "range",
-  dateFormat: "Y-m-d",
-  altInput: true,
-  altFormat: "d/m/Y",
-  locale: "pt",
-  defaultDate: rangeSelecionado,
-  onChange: (datas) => {
-    if (datas.length === 2) {
-      rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
-      carregar(); // ✅ atualiza automaticamente ao mudar data
-    }
-  }
-});
 
 carregar();
 let modalAberto = false;
@@ -562,8 +548,6 @@ async function abrirResumoRetirada(nomePrato){
   document.body.style.overflow = "hidden";
 }
 
-
-<script>
 async function abrirResumoTotalRetirada(){
   if(modalAberto) return;
   modalAberto = true;
@@ -634,7 +618,6 @@ function fecharResumoTotalRetirada(){
   document.body.style.overflow = "auto";
   modalAberto = false;
 }
-</script>
 
 
 
