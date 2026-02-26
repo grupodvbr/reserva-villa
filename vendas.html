@@ -22,12 +22,8 @@
   --muted:#9ca3af;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html, body{
-  background:var(--bg);
-  color:var(--text);
-  overflow-x:hidden;   /* REMOVE O BALANÇO */
-  width:100%;
-}
+body{background:var(--bg);color:var(--text)}
+
 /* FILTROS EM LINHA */
 .filtros{
   padding:16px;
@@ -37,7 +33,6 @@ html, body{
 .filtros select,
 .filtros input{
   flex:1;
-  min-width:0;          /* IMPEDIR EXPANSÃO */
   padding:12px;
   border-radius:12px;
   border:1px solid var(--border);
@@ -45,6 +40,7 @@ html, body{
   color:#fff;
   font-size:14px;
 }
+
 /* HEADER */
 .header{padding:0 16px 16px}
 .header h2{font-size:18px;font-weight:800}
