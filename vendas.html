@@ -35,7 +35,7 @@ html,body{
   overflow-x:hidden; /* REMOVE BALANÇO */
 }
 
-/* ===== FILTROS EM LINHA ===== */
+/* FILTROS EM LINHA */
 .filtros{
   padding:14px;
   display:flex;
@@ -58,13 +58,13 @@ html,body{
   text-overflow:ellipsis;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header{
-  padding:0 14px 14px 14px;
+  padding:0 14px 14px;
 }
 
 .header h2{
-  font-size:17px;
+  font-size:18px;
   font-weight:800;
 }
 
@@ -73,15 +73,14 @@ html,body{
   color:var(--muted);
 }
 
-/* ===== EMPRESAS ===== */
 .empresa-bloco{
-  padding:0 14px 18px 14px;
+  padding:0 14px 20px;
 }
 
 .empresa-bloco h3{
   font-size:13px;
   color:var(--gold);
-  margin-bottom:6px;
+  margin-bottom:8px;
 }
 
 .card{
@@ -111,7 +110,6 @@ html,body{
 }
 
 .muted{
-  margin:16px;
   color:var(--muted);
   font-size:13px;
   padding:10px;
@@ -137,25 +135,34 @@ html,body{
 
 <script>
 
-/* ===== SUPABASE ===== */
+/* SUPABASE */
 const { createClient } = supabase;
 const sb = createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-/* ===== CATEGORIAS ===== */
+/* CATEGORIAS */
 const categoriasAgrupadas = {
-  "crédito": ["credito","cartao credito","credito pos"],
-  "débito": ["debito","cartao debito","debito pos"],
-  "pix": ["pix"],
-  "dinheiro": ["dinheiro"],
-  "voucher": ["voucher"],
+  "crédito": ["credito","cartao credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
+  "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
+  "pix": ["pix","pgto online pix","qrcode","pix tef","pix cnpj","pix offline","pix itau","pix pos"],
+  "online": ["pagamento online","pagamentos online","refeicao","cart alimentacao"],
+  "consumo interno": ["funcionario","convenio empresa","consumo funcionarios","consumo musicos"],
   "boleto": ["boleto"],
-  "consumo interno": ["funcionario","convenio"],
-  "online": ["pagamento online"],
+  "crediário": ["crediario","crediario clientes"],
+  "voucher": ["voucher","cartao voucher","voucher pos","voucher delicia","voucher villa"],
+  "dinheiro": ["dinheiro","pgto online dinheiro"],
+  "bonificação": ["bonificacao"],
+  "catálogo delivery": ["catalogo delivery","catálogo delivery"],
+  "consumo sócio": ["socio","consumo sócio","consumo socio"],
+  "marketing": ["marketing"],
+  "transferência bancária": ["transferencia bancar","transferencia bancaria"],
+  "erros garçom": ["erros garcons"],
+  "sem faturamento": ["sem faturamento"],
   "outros": []
 };
+
 
 function normalizarCategoria(mod){
   if(!mod) return "outros";
@@ -168,26 +175,27 @@ function normalizarCategoria(mod){
 
 const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
 
+/* FORMATAR BR */
 function fmtBR(d){
   const [ano,mes,dia] = d.split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
-/* ===== DATA PADRÃO = ONTEM ===== */
+/* DATA PADRÃO = ONTEM */
 const ontem = new Date();
 ontem.setDate(ontem.getDate()-1);
 const dataPadrao = ontem.toISOString().split("T")[0];
 
-/* ===== FLATPICKR ===== */
+/* FLATPICKR */
 const fp = flatpickr("#periodo", {
   mode: "range",
   locale: "pt",
-  dateFormat: "d/m/Y",
+  dateFormat: "d/m/Y", /* FORMATO BR */
   defaultDate: [dataPadrao, dataPadrao],
   onClose: carregarDados
 });
 
-/* ===== CARREGAR EMPRESAS ===== */
+/* CARREGAR EMPRESAS */
 async function carregarEmpresas(){
   const { data } = await sb.from("resumo_entradas").select("empresa");
   const unicas = [...new Set(data.map(d=>d.empresa))].sort();
@@ -202,7 +210,7 @@ async function carregarEmpresas(){
   select.addEventListener("change", carregarDados);
 }
 
-/* ===== BUSCAR DADOS ===== */
+/* BUSCAR DADOS */
 async function carregarDados(){
 
   const empresaFiltro = document.getElementById("empresaSelect").value;
@@ -243,7 +251,7 @@ async function carregarDados(){
   montarResumo(todos);
 }
 
-/* ===== MONTAR RESUMO ===== */
+/* MONTAR RESUMO */
 function montarResumo(lista){
 
   const porEmpresa={};
@@ -261,6 +269,7 @@ function montarResumo(lista){
   container.innerHTML="";
 
   Object.entries(porEmpresa).forEach(([empresa,info])=>{
+
     const bloco=`
       <div class="empresa-bloco">
         <h3>${empresa}</h3>
@@ -278,11 +287,12 @@ function montarResumo(lista){
         </div>
       </div>
     `;
+
     container.innerHTML+=bloco;
   });
 
   if(!container.innerHTML){
-    container.innerHTML='<div class="muted">Sem vendas</div>';
+    container.innerHTML='<div class="muted" style="margin:16px">Sem vendas</div>';
   }
 }
 
