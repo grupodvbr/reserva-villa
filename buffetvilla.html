@@ -693,9 +693,7 @@ const payload = {
   hora: String(hora),
   tara: tara != null ? Number(tara) : 0,
 consumo_autorizado:
-  produtoNome === "CONSUMO AUTORIZADO" ||
-  (tipo === "RETIRADA" && !!consumoPara),
-
+  produtoNome === "CONSUMO AUTORIZADO",
 consumo_para_nome:
   produtoNome === "CONSUMO AUTORIZADO"
     ? String(consumoPara)
