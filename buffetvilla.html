@@ -402,7 +402,12 @@ btnSalvar.onclick = () => {
   salvandoAgora = true;
 
   const nomePrato = produtoInput.value.trim().toUpperCase();
-
+// 🔥 NOVO: se for RETIRADA, perguntar destino antes de salvar
+if (tipoSelect.value === "RETIRADA") {
+  abrirConsumo();
+  salvandoAgora = false;
+  return;
+}
   if (nomePrato === "CONSUMO AUTORIZADO") {
     abrirConsumo();
     consumoAutorizado.checked = true;
@@ -571,8 +576,9 @@ lista.innerHTML += `
         <span>${l.produto_nome}</span>
 
         ${
-          l.consumo_autorizado && l.consumo_para_nome
-            ? `<span style="
+(l.consumo_para_nome && l.tipo === "RETIRADA") ||
+(l.consumo_autorizado && l.consumo_para_nome)
+          ? `<span style="
                 background:#ede9fe;
                 color:#5b21b6;
                 padding:6px 12px;
@@ -682,8 +688,16 @@ const payload = {
   data: String(dataISO),
   hora: String(hora),
   tara: tara != null ? Number(tara) : 0,
-  consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO",
-  consumo_para_nome: produtoNome === "CONSUMO AUTORIZADO" ? String(consumoPara) : null
+consumo_autorizado:
+  produtoNome === "CONSUMO AUTORIZADO" ||
+  (tipo === "RETIRADA" && !!consumoPara),
+
+consumo_para_nome:
+  produtoNome === "CONSUMO AUTORIZADO"
+    ? String(consumoPara)
+    : tipo === "RETIRADA"
+      ? String(consumoPara)
+      : null
 };
 
 const { error: insertError } = await sb
