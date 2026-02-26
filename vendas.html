@@ -21,24 +21,25 @@
   --text:#f5f5f5;
   --muted:#9ca3af;
 }
+
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
   font-family:Inter;
 }
+
 html,body{
   background:var(--bg);
   color:var(--text);
   overflow-x:hidden; /* REMOVE BALANÇO */
 }
 
-/* ===== FILTROS FIXOS E ESTÁVEIS ===== */
+/* ===== FILTROS EM LINHA ===== */
 .filtros{
-  padding:14px 14px 6px 14px;
+  padding:14px;
   display:flex;
   gap:8px;
-  width:100%;
 }
 
 .filtros select,
@@ -59,12 +60,14 @@ html,body{
 
 /* ===== HEADER ===== */
 .header{
-  padding:6px 14px 14px 14px;
+  padding:0 14px 14px 14px;
 }
+
 .header h2{
   font-size:17px;
   font-weight:800;
 }
+
 .header span{
   font-size:12px;
   color:var(--muted);
@@ -74,6 +77,7 @@ html,body{
 .empresa-bloco{
   padding:0 14px 18px 14px;
 }
+
 .empresa-bloco h3{
   font-size:13px;
   color:var(--gold);
@@ -101,6 +105,7 @@ html,body{
   font-size:13px;
   border-bottom:1px dashed var(--border);
 }
+
 .item:last-child{
   border-bottom:none;
 }
@@ -162,10 +167,11 @@ function normalizarCategoria(mod){
 }
 
 const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
-const fmtBR = d => {
+
+function fmtBR(d){
   const [ano,mes,dia] = d.split("-");
   return `${dia}/${mes}/${ano}`;
-};
+}
 
 /* ===== DATA PADRÃO = ONTEM ===== */
 const ontem = new Date();
@@ -176,7 +182,7 @@ const dataPadrao = ontem.toISOString().split("T")[0];
 const fp = flatpickr("#periodo", {
   mode: "range",
   locale: "pt",
-  dateFormat: "d/m/Y", /* FORMATO BR */
+  dateFormat: "d/m/Y",
   defaultDate: [dataPadrao, dataPadrao],
   onClose: carregarDados
 });
