@@ -22,13 +22,7 @@
   --muted:#9ca3af;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-html,body{
-  width:100%;
-  height:100%;
-  background:var(--bg);
-  color:var(--text);
-  overflow:auto;
-}
+body{background:var(--bg);color:var(--text)}
 
 /* ================= FILTROS ================= */
 .filtros{
@@ -37,7 +31,6 @@ html,body{
   flex-direction:column;
   gap:10px;
 }
-
 .filtros select,
 .filtros input{
   width:100%;
@@ -48,7 +41,6 @@ html,body{
   color:#fff;
   font-size:14px;
 }
-
 .filtros button{
   padding:12px;
   border:none;
@@ -108,13 +100,11 @@ html,body{
 <div class="filtros">
   <select id="empresaSelect">
     <option value="todas">Todas Empresas</option>
-    <option value="EMPORIO">Empório</option>
-    <option value="RESTAURANTE">Restaurante</option>
   </select>
 
   <input type="text" id="periodo" placeholder="Selecionar período">
 
-  <button onclick="aplicarFiltros()">Aplicar Filtro</button>
+  <button onclick="carregarDados()">Aplicar Filtro</button>
 </div>
 
 <div class="header">
@@ -146,8 +136,21 @@ const sb = createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-/* ================= FLATPICKR RANGE ================= */
-flatpickr("#periodo", {
+/* ================= CATEGORIAS ================= */
+const categoriasAgrupadas = {
+  "crédito": ["credito","cartao credito","totem credito","credito pos"],
+  "débito": ["debito","cartao debito","debito pos"],
+  "pix": ["pix"],
+  "dinheiro": ["dinheiro"],
+  "voucher": ["voucher"],
+  "boleto": ["boleto"],
+  "consumo interno": ["funcionario","convenio"],
+  "online": ["pagamento online"],
+  "outros": []
+};
+
+/* ================= FLATPICKR ================= */
+const fp = flatpickr("#periodo", {
   mode: "range",
   dateFormat: "Y-m-d",
   locale: "pt"
@@ -157,43 +160,51 @@ flatpickr("#periodo", {
 const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
 const fmtBR = d => d.split("-").reverse().join("/");
 
-/* ================= APLICAR FILTRO ================= */
-function aplicarFiltros(){
+/* ================= NORMALIZAR ================= */
+function normalizarCategoria(mod){
+  if(!mod) return "outros";
+  const m = mod.toLowerCase();
+  for(const [cat,keys] of Object.entries(categoriasAgrupadas)){
+    if(keys.some(k => m.includes(k))) return cat;
+  }
+  return "outros";
+}
+
+function classificarEmpresa(nome){
+  const n = (nome||"").toLowerCase();
+  if(n.includes("emp")) return "emporio";
+  if(n.includes("rest")) return "restaurante";
+  return "outros";
+}
+
+/* ================= CARREGAR EMPRESAS DINÂMICO ================= */
+async function carregarEmpresas(){
+  const { data } = await sb.from("resumo_entradas").select("empresa");
+  const unicas = [...new Set(data.map(d=>d.empresa))];
+
+  const select = document.getElementById("empresaSelect");
+  unicas.forEach(e=>{
+    select.innerHTML += `<option value="${e}">${e}</option>`;
+  });
+}
+
+/* ================= BUSCAR DADOS ================= */
+async function carregarDados(){
+
   const empresa = document.getElementById("empresaSelect").value;
-  const periodo = document.getElementById("periodo").value;
+  const datas = fp.selectedDates;
 
   let inicio = null;
   let fim = null;
 
-  if(periodo.includes(" até ")){
-    const partes = periodo.split(" até ");
-    inicio = partes[0];
-    fim = partes[1];
-  }else if(periodo.includes(" to ")){
-    const partes = periodo.split(" to ");
-    inicio = partes[0];
-    fim = partes[1];
+  if(datas.length === 2){
+    inicio = fp.formatDate(datas[0],"Y-m-d");
+    fim = fp.formatDate(datas[1],"Y-m-d");
   }
 
-  localStorage.setItem("EMPRESA_ATIVA", empresa);
-  localStorage.setItem("DATA_INICIO", inicio);
-  localStorage.setItem("DATA_FIM", fim);
+  document.getElementById("subtitulo").innerText =
+    `${empresa} • ${inicio ? fmtBR(inicio) : "—"} até ${fim ? fmtBR(fim) : "—"}`;
 
-  location.reload();
-}
-
-/* ================= PEGAR FILTROS ================= */
-const EMPRESA = localStorage.getItem("EMPRESA_ATIVA") || "todas";
-const DATA_INICIO = localStorage.getItem("DATA_INICIO");
-const DATA_FIM = localStorage.getItem("DATA_FIM");
-
-document.getElementById("empresaSelect").value = EMPRESA;
-
-document.getElementById("subtitulo").innerText =
-  `${EMPRESA} • ${DATA_INICIO ? fmtBR(DATA_INICIO) : "—"} até ${DATA_FIM ? fmtBR(DATA_FIM) : "—"}`;
-
-/* ================= BUSCAR DADOS ================= */
-async function carregarDados(){
   let todos = [];
   let from = 0;
   const step = 1000;
@@ -204,9 +215,9 @@ async function carregarDados(){
       .order("data_lancamento",{ascending:true})
       .range(from, from + step - 1);
 
-    if(EMPRESA !== "todas") q = q.eq("empresa", EMPRESA);
-    if(DATA_INICIO) q = q.gte("data_lancamento", DATA_INICIO);
-    if(DATA_FIM) q = q.lte("data_lancamento", DATA_FIM);
+    if(empresa !== "todas") q = q.eq("empresa", empresa);
+    if(inicio) q = q.gte("data_lancamento", inicio);
+    if(fim) q = q.lte("data_lancamento", fim);
 
     const { data, error } = await q;
     if(error || !data.length) break;
@@ -218,43 +229,62 @@ async function carregarDados(){
   montarResumo(todos);
 }
 
-/* ================= RESUMO ================= */
+/* ================= MONTAR RESUMO ================= */
 function montarResumo(lista){
+
   const porEmpresa = {};
 
   lista.forEach(l=>{
-    const v = Number(l.valor) || 0;
-    if(!porEmpresa[l.empresa]) porEmpresa[l.empresa] = { total:0 };
+    const v = Number(l.valor)||0;
+    if(!porEmpresa[l.empresa]) porEmpresa[l.empresa] = { total:0, cats:{} };
     porEmpresa[l.empresa].total += v;
+
+    const cat = normalizarCategoria(l.modalidade);
+    porEmpresa[l.empresa].cats[cat] =
+      (porEmpresa[l.empresa].cats[cat]||0)+v;
   });
 
-  emporio.innerHTML = "";
-  restaurante.innerHTML = "";
-  outros.innerHTML = "";
+  emporio.innerHTML="";
+  restaurante.innerHTML="";
+  outros.innerHTML="";
+  document.getElementById("grupo-outros").style.display="none";
 
   Object.entries(porEmpresa).forEach(([empresa,info])=>{
+
     const bloco = `
       <div class="card">
         <div class="top">
           <span>${empresa}</span>
           <span>R$ ${BRL(info.total)}</span>
         </div>
+        ${Object.entries(info.cats).map(([c,v])=>`
+          <div class="item">
+            <span>• ${c}</span>
+            <span>R$ ${BRL(v)}</span>
+          </div>
+        `).join("")}
       </div>
     `;
 
-    if(empresa.toLowerCase().includes("emp")) emporio.innerHTML += bloco;
-    else if(empresa.toLowerCase().includes("rest")) restaurante.innerHTML += bloco;
+    const grupo = classificarEmpresa(empresa);
+
+    if(grupo==="emporio") emporio.innerHTML+=bloco;
+    else if(grupo==="restaurante") restaurante.innerHTML+=bloco;
     else{
-      document.getElementById("grupo-outros").style.display = "block";
-      outros.innerHTML += bloco;
+      document.getElementById("grupo-outros").style.display="block";
+      outros.innerHTML+=bloco;
     }
+
   });
 
-  if(!emporio.innerHTML) emporio.innerHTML = '<div class="muted">Sem vendas</div>';
-  if(!restaurante.innerHTML) restaurante.innerHTML = '<div class="muted">Sem vendas</div>';
+  if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
+  if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
 }
 
+/* INIT */
+carregarEmpresas();
 carregarDados();
+
 </script>
 
 </body>
