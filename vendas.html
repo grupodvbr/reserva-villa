@@ -146,7 +146,7 @@ const dataPadrao = ontem.toISOString().split("T")[0];
 /* FLATPICKR */
 const fp = flatpickr("#periodo", {
   mode: "range",
-dateFormat: "d/m/Y",
+  dateFormat: "Y-m-d",
   locale: "pt",
   defaultDate: [dataPadrao, dataPadrao],
   onClose: carregarDados
