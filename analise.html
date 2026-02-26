@@ -181,6 +181,35 @@ html, body {
     display:none;
   }
 }
+
+/* ===== CORREÇÃO CARDS RESUMO ===== */
+
+.card h3{
+  margin:6px 0 0;
+  font-weight:900;
+
+  /* tamanho fluido automático */
+  font-size:clamp(16px, 3vw, 22px);
+
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width: 899px){
+  .card h3{
+    font-size:18px;
+  }
+}
+
+/* 🔥 Permite o grid encolher corretamente */
+.card > div[style*="grid"] > .card{
+  min-width:0;
+}
+
+/* 🔥 Garante que o grid nunca estoure */
+.card > div[style*="grid"]{
+  overflow:hidden;
+}
 </style>
 </head>
 
