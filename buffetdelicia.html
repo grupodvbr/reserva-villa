@@ -257,7 +257,7 @@ body, .app{
 <div class="app">
 
   <div class="header">
-    <div class="title">🍽️ Buffet • Delícia Gourmet</div>
+    <div class="title">🍽️ Buffet • Delícia G</div>
     <span class="badge">Hoje: <b id="dataHoje"></b></span>
   </div>
 
@@ -302,6 +302,8 @@ body, .app{
     <option value="REPOSICAO">Reposição</option>
     <option value="RETIRADA">Retirada</option>
     <option value="DEVOLUCAO">Desperdício</option>
+    <option value="MONTAGEM">Consumo Funcionários</option>
+
   </select>
 </div>
 
@@ -356,7 +358,7 @@ body, .app{
 <!-- MODAL CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalConsumo">
   <div class="modal">
-    <h3>Para quem é o consumo?</h3>
+<h3 id="tituloModalConsumo">Para quem é o consumo?</h3>
     <input id="consumoNome" list="consumidoresList" placeholder="Digite o nome">
     <datalist id="consumidoresList"></datalist>
 
@@ -402,18 +404,27 @@ btnSalvar.onclick = () => {
   salvandoAgora = true;
 
   const nomePrato = produtoInput.value.trim().toUpperCase();
+// 🔥 NOVO: se for RETIRADA, perguntar destino antes de salvar
+if (tipoSelect.value === "RETIRADA") {
+  modoModal = "RETIRADA";     // 👈 marca que é retirada para setor/local
+  abrirConsumo();
+  salvandoAgora = false;
+  return;
+}
+if (nomePrato === "CONSUMO AUTORIZADO") {
+  modoModal = "CONSUMO";      // 👈 marca que é consumo de alguém
+  abrirConsumo();
+  consumoAutorizado.checked = true;
+  salvandoAgora = false;
+  return;
+}
 
-  if (nomePrato === "CONSUMO AUTORIZADO") {
-    abrirConsumo();
-    consumoAutorizado.checked = true;
-    salvandoAgora = false;
-    return;
-  }
-
-  if (consumoAutorizado.checked) {
-    abrirConsumo();
-    salvandoAgora = false;
-  } else {
+if (consumoAutorizado.checked) {
+  modoModal = "CONSUMO";
+  abrirConsumo();
+  salvandoAgora = false;
+}
+else {
     salvar(null).finally(() => salvandoAgora = false);
   }
 };
@@ -571,8 +582,9 @@ lista.innerHTML += `
         <span>${l.produto_nome}</span>
 
         ${
-          l.consumo_autorizado && l.consumo_para_nome
-            ? `<span style="
+(l.consumo_para_nome && l.tipo === "RETIRADA") ||
+(l.consumo_autorizado && l.consumo_para_nome)
+          ? `<span style="
                 background:#ede9fe;
                 color:#5b21b6;
                 padding:6px 12px;
@@ -682,8 +694,14 @@ const payload = {
   data: String(dataISO),
   hora: String(hora),
   tara: tara != null ? Number(tara) : 0,
-  consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO",
-  consumo_para_nome: produtoNome === "CONSUMO AUTORIZADO" ? String(consumoPara) : null
+consumo_autorizado:
+  produtoNome === "CONSUMO AUTORIZADO",
+consumo_para_nome:
+  produtoNome === "CONSUMO AUTORIZADO"
+    ? String(consumoPara)
+    : tipo === "RETIRADA"
+      ? String(consumoPara)
+      : null
 };
 
 const { error: insertError } = await sb
@@ -864,7 +882,15 @@ taraInput.addEventListener("input", () => {
 });
 
 
-  function abrirConsumo(){
+function abrirConsumo(){
+  const titulo = document.getElementById("tituloModalConsumo");
+
+  if (modoModal === "RETIRADA") {
+    titulo.innerText = "Para onde vai a retirada?";
+  } else {
+    titulo.innerText = "Para quem é o consumo?";
+  }
+
   document.getElementById("modalConsumo").style.display = "flex";
   document.body.style.overflow = "hidden";
   carregarConsumidores();
