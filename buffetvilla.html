@@ -356,7 +356,7 @@ body, .app{
 <!-- MODAL CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalConsumo">
   <div class="modal">
-    <h3>Para quem é o consumo?</h3>
+<h3 id="tituloModalConsumo">Para quem é o consumo?</h3>
     <input id="consumoNome" list="consumidoresList" placeholder="Digite o nome">
     <datalist id="consumidoresList"></datalist>
 
@@ -404,21 +404,25 @@ btnSalvar.onclick = () => {
   const nomePrato = produtoInput.value.trim().toUpperCase();
 // 🔥 NOVO: se for RETIRADA, perguntar destino antes de salvar
 if (tipoSelect.value === "RETIRADA") {
+  modoModal = "RETIRADA";     // 👈 marca que é retirada para setor/local
   abrirConsumo();
   salvandoAgora = false;
   return;
 }
-  if (nomePrato === "CONSUMO AUTORIZADO") {
-    abrirConsumo();
-    consumoAutorizado.checked = true;
-    salvandoAgora = false;
-    return;
-  }
+if (nomePrato === "CONSUMO AUTORIZADO") {
+  modoModal = "CONSUMO";      // 👈 marca que é consumo de alguém
+  abrirConsumo();
+  consumoAutorizado.checked = true;
+  salvandoAgora = false;
+  return;
+}
 
-  if (consumoAutorizado.checked) {
-    abrirConsumo();
-    salvandoAgora = false;
-  } else {
+if (consumoAutorizado.checked) {
+  modoModal = "CONSUMO";
+  abrirConsumo();
+  salvandoAgora = false;
+}
+else {
     salvar(null).finally(() => salvandoAgora = false);
   }
 };
@@ -878,7 +882,15 @@ taraInput.addEventListener("input", () => {
 });
 
 
-  function abrirConsumo(){
+function abrirConsumo(){
+  const titulo = document.getElementById("tituloModalConsumo");
+
+  if (modoModal === "RETIRADA") {
+    titulo.innerText = "Para onde vai a retirada?";
+  } else {
+    titulo.innerText = "Para quem é o consumo?";
+  }
+
   document.getElementById("modalConsumo").style.display = "flex";
   document.body.style.overflow = "hidden";
   carregarConsumidores();
