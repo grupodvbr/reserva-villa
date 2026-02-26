@@ -232,6 +232,24 @@ body, .app{
   from{transform:rotate(0deg)}
   to{transform:rotate(360deg)}
 }
+
+
+/* cole no <style> */
+.meta b{
+  color:#0f172a;
+  font-weight:800;
+}
+
+/* 🔒 trava visual da flag para nunca aparecer */
+#consumoAutorizado,
+#consumoAutorizado * {
+  display: none !important;
+}
+
+.CONSUMO{
+  background:#ede9fe;
+  color:#5b21b6;
+}
 </style>
 </head>
 
@@ -243,7 +261,6 @@ body, .app{
     <span class="badge">Hoje: <b id="dataHoje"></b></span>
   </div>
 
-  
   <!-- Seleção de empresa -->
   <div class="card company-row">
     <b>Empresa:</b>
@@ -251,12 +268,12 @@ body, .app{
       <option value="VILLA">Villa Gourmet / Churrascada</option>
     </select>
   </div>
-  
+
   <div class="card">
 <div class="form-grid">
   <div class="field">
     <label>Prato</label>
-    <input id="produto" placeholder="Digite o prato (busca + cadastra)" list="produtosList">
+    <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
   </div>
 
   <div class="field">
@@ -278,15 +295,22 @@ body, .app{
     </select>
   </div>
 
-  <div class="field">
-    <label>Tipo</label>
-    <select id="tipo">
-      <option value="MONTAGEM">Montagem</option>
-      <option value="REPOSICAO">Reposição</option>
-      <option value="RETIRADA">Retirada</option>
-      <option value="DEVOLUCAO">Devolução</option>
-    </select>
-  </div>
+ <div class="field">
+  <label>Tipo</label>
+  <select id="tipo">
+    <option value="MONTAGEM">Montagem</option>
+    <option value="REPOSICAO">Reposição</option>
+    <option value="RETIRADA">Retirada</option>
+    <option value="DEVOLUCAO">Desperdício</option>
+  </select>
+</div>
+
+<div class="field" style="display:none">
+  <label style="display:flex;gap:8px;align-items:center">
+    <input type="checkbox" id="consumoAutorizado" hidden>
+    Consumo autorizado
+  </label>
+</div>
 </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
       <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
@@ -318,12 +342,27 @@ body, .app{
         <option value="MONTAGEM">Montagem</option>
         <option value="REPOSICAO">Reposição</option>
         <option value="RETIRADA">Retirada</option>
-        <option value="DEVOLUCAO">Devolução</option>
+        <option value="DEVOLUCAO">Desperdício</option>
       </select>
     </div>
     <div class="actions">
       <button class="ghost" onclick="fecharModal()">Cancelar</button>
       <button class="primary" onclick="confirmarEdicao()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL CONSUMO AUTORIZADO -->
+<div class="modal-backdrop" id="modalConsumo">
+  <div class="modal">
+    <h3>Para quem é o consumo?</h3>
+    <input id="consumoNome" list="consumidoresList" placeholder="Digite o nome">
+    <datalist id="consumidoresList"></datalist>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharConsumo()">Cancelar</button>
+      <button class="primary" onclick="confirmarConsumo()">Confirmar</button>
     </div>
   </div>
 </div>
@@ -342,16 +381,107 @@ body, .app{
   const lista = document.getElementById("lista");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnLimpar = document.getElementById("btnLimpar");
-  const empresaSelect = document.getElementById("empresaSelect");
+const empresaSelect = document.getElementById("empresaSelect");
+  let salvandoAgora = false;
+const consumoAutorizado = document.getElementById("consumoAutorizado");
+
+// 🔒 nunca mostrar a flag na tela
+consumoAutorizado.closest(".field").style.display = "none";
+
+produtoInput.addEventListener("input", () => {
+  const nome = produtoInput.value.trim().toUpperCase();
+
+  if (nome === "CONSUMO AUTORIZADO") {
+    consumoAutorizado.checked = true;   // marca internamente
+  } else {
+    consumoAutorizado.checked = false;  // limpa quando não for consumo autorizado
+  }
+});
+btnSalvar.onclick = () => {
+  if (salvandoAgora) return;
+  salvandoAgora = true;
+
+  const nomePrato = produtoInput.value.trim().toUpperCase();
+
+  if (nomePrato === "CONSUMO AUTORIZADO") {
+    abrirConsumo();
+    consumoAutorizado.checked = true;
+    salvandoAgora = false;
+    return;
+  }
+
+  if (consumoAutorizado.checked) {
+    abrirConsumo();
+    salvandoAgora = false;
+  } else {
+    salvar(null).finally(() => salvandoAgora = false);
+  }
+};
+btnLimpar.onclick = limpar;
+// ================== CONFIGURAÇÕES DE TARA POR TIPO ==================
+const TARA_REPOSICAO = 0.280;
+
+// restaura último tipo selecionado
+const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
+if (tipoSalvo) {
+  tipoSelect.value = tipoSalvo;
+}
+// aplica tara 0,280 ao abrir se último tipo foi reposição
+if (tipoSelect.value === "REPOSICAO") {
+  taraInput.value = formatPeso(0.280);
+  atualizarLiquidoPreview();
+}
+// aplica tara automática quando muda o tipo
+tipoSelect.addEventListener("change", () => {
+  const tipo = tipoSelect.value;
+
+  // salva o tipo no navegador
+  localStorage.setItem("buffet_tipo_selecionado", tipo);
+
+  // se for reposição, força tara 0,280 (mas deixa editar)
+  if (tipo === "REPOSICAO") {
+    taraInput.value = formatPeso(TARA_REPOSICAO);
+    atualizarLiquidoPreview();
+  }
+});
+
+
+  
 // ================== TARA PADRÃO POR PRODUTO ==================
-produtoInput.addEventListener("change", aplicarTaraPadraoPorProduto);
-produtoInput.addEventListener("blur", aplicarTaraPadraoPorProduto);
+produtoInput.addEventListener("input", onProdutoInput);
+produtoInput.addEventListener("change", onProdutoChange);
+produtoInput.addEventListener("blur", onProdutoChange);
 
 async function aplicarTaraPadraoPorProduto(){
   const empresa = empresaSelect.value;
   const nome = produtoInput.value.trim().toUpperCase();
+  const tipo = tipoSelect.value;
+
   if(!nome) return;
 
+  // 👉 se for REPOSIÇÃO, NÃO altera a tara do produto
+  if (tipo === "REPOSICAO") {
+    return;
+  }
+
+  // 1️⃣ tenta buscar a ÚLTIMA tara usada nos lançamentos
+  const { data:ultimoLanc } = await sb
+    .from("buffet_lancamentos")
+    .select("tara")
+    .eq("empresa", empresa)
+    .eq("produto_nome", nome)
+    .not("tara", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (ultimoLanc?.tara != null && Number(ultimoLanc.tara) > 0) {
+    taraInput.value = formatPeso(ultimoLanc.tara);
+    atualizarLiquidoPreview();
+    return;
+  }
+
+  // 2️⃣ fallback: busca tara padrão do produto
   const { data:prod } = await sb
     .from("buffet_produtos")
     .select("tara_padrao")
@@ -359,7 +489,7 @@ async function aplicarTaraPadraoPorProduto(){
     .eq("nome", nome)
     .maybeSingle();
 
-  if(prod?.tara_padrao != null){
+  if(prod?.tara_padrao != null && Number(prod.tara_padrao) > 0){
     taraInput.value = formatPeso(prod.tara_padrao);
     atualizarLiquidoPreview();
   }
@@ -371,6 +501,35 @@ async function aplicarTaraPadraoPorProduto(){
 
   let editId = null;
 
+
+function onProdutoInput(){
+  const nome = produtoInput.value.trim();
+
+  // se apagar o nome do prato, limpa tara
+  if(!nome){
+    taraInput.value = "";
+    atualizarLiquidoPreview();
+    return;
+  }
+}
+
+function onProdutoChange(){
+  const nome = produtoInput.value.trim();
+
+  if(!nome){
+    taraInput.value = "";
+    atualizarLiquidoPreview();
+    return;
+  }
+
+  aplicarTaraPadraoPorProduto();
+}
+
+
+
+
+
+  
   async function carregarProdutos(){
     const empresa = empresaSelect.value;
     const { data } = await sb
@@ -388,38 +547,79 @@ async function aplicarTaraPadraoPorProduto(){
     });
   }
 
-  async function carregarLancamentos(){
-    const empresa = empresaSelect.value;
-    const { data } = await sb
-      .from("buffet_lancamentos")
-      .select("*")
-      .eq("empresa", empresa)
-      .eq("data", dataISO)
-      .order("created_at", { ascending:false });
+async function carregarLancamentos(){
+  const empresa = empresaSelect.value;
+  const { data, error } = await sb
+    .from("buffet_lancamentos")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("data", dataISO)
+    .order("created_at", { ascending:false });
 
-    lista.innerHTML = "";
-    data?.forEach(l=>{
-      lista.innerHTML += `
-        <div class="item">
-          <div>
-            <div class="name">${l.produto_nome}</div>
-            <div class="meta">${l.quantidade} ${l.unidade} • ${l.hora}</div>
-            <span class="tag ${l.tipo}">${l.tipo}</span>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
-              <i class="ri-edit-2-line"></i>
-            </button>
-            <button class="icon-btn danger" onclick="excluir('${l.id}')">
-              <i class="ri-delete-bin-6-line"></i>
-            </button>
-          </div>
-        </div>
-      `;
+  if(error){
+    console.error("Erro ao carregar lançamentos:", error);
+  }
+
+  lista.innerHTML = "";
+  (data || []).forEach(l=>{
+lista.innerHTML += `
+  <div class="item" style="padding:14px 14px 16px">
+    <div>
+
+      <!-- TÍTULO -->
+      <div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
+        <span>${l.produto_nome}</span>
+
+        ${
+          l.consumo_autorizado && l.consumo_para_nome
+            ? `<span style="
+                background:#ede9fe;
+                color:#5b21b6;
+                padding:6px 12px;
+                border-radius:999px;
+                font-size:12px;
+                font-weight:800;
+                display:inline-flex;
+                align-items:center;
+                gap:6px;
+                line-height:1;
+              ">
+                👤 ${l.consumo_para_nome}
+              </span>`
+            : ``
+        }
+      </div>
+
+      <!-- META -->
+      <div class="meta" style="line-height:1.5; margin-bottom:8px">
+        Bruto: <b>${formatPeso((Number(l.quantidade) + Number(l.tara || 0)))} kg</b>
+        • Tara: <b>${formatPeso(l.tara || 0)} kg</b>
+        • Líquido: <b>${formatPeso(l.quantidade)} kg</b><br>
+        <span style="color:#6b7280">⏱ ${l.hora}</span>
+      </div>
+
+      <!-- TAG -->
+      ${
+        l.consumo_autorizado
+          ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
+          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">${l.tipo}</span>`
+      }
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
+        <i class="ri-edit-2-line"></i>
+      </button>
+      <button class="icon-btn danger" onclick="excluir('${l.id}')">
+        <i class="ri-delete-bin-6-line"></i>
+      </button>
+    </div>
+  </div>
+`;
     });
   }
 
-async function salvar(){
+async function salvar(consumoPara){
   try{
     showSaving(); // 👈 abre overlay
 
@@ -428,8 +628,19 @@ async function salvar(){
     const pesoBruto = parsePeso(quantidadeInput.value);
     const tara = parsePeso(taraInput.value || 0);
     const unidade = unidadeSelect.value;
-    const tipo = tipoSelect.value;
+let tipo = tipoSelect.value;
 
+// 🔒 se for consumo autorizado, salva como RETIRADA e marca flag
+if (produtoNome === "CONSUMO AUTORIZADO") {
+  tipo = "RETIRADA";
+}
+
+// ⛔ bloqueia qualquer tentativa de salvar CONSUMO fora do fluxo correto
+if (tipo === "CONSUMO" && produtoNome !== "CONSUMO AUTORIZADO") {
+  alert("Tipo CONSUMO é reservado apenas para CONSUMO AUTORIZADO.");
+  hideSaving();
+  return;
+}
     if(!produtoNome || pesoBruto <= 0){
       alert("Preencha tudo");
       hideSaving();
@@ -461,17 +672,30 @@ async function salvar(){
 
     const hora = new Date().toTimeString().slice(0,8);
 
-    await sb.from("buffet_lancamentos").insert({
-      empresa,
-      produto_id: prod.id,
-      produto_nome: produtoNome,
-      tipo,
-      quantidade: quantidadeLiquida,
-      tara,
-      unidade,
-      data: dataISO,
-      hora
-    });
+const payload = {
+  empresa: String(empresaSelect.value),
+  produto_id: String(prod.id),
+  produto_nome: String(produtoNome),
+  tipo: String(tipo),
+  quantidade: Number(quantidadeLiquida),
+  unidade: String(unidade),
+  data: String(dataISO),
+  hora: String(hora),
+  tara: tara != null ? Number(tara) : 0,
+  consumo_autorizado: produtoNome === "CONSUMO AUTORIZADO",
+  consumo_para_nome: produtoNome === "CONSUMO AUTORIZADO" ? String(consumoPara) : null
+};
+
+const { error: insertError } = await sb
+  .from("buffet_lancamentos")
+  .insert(payload);
+
+if (insertError) {
+  console.error("ERRO INSERT buffet_lancamentos:", insertError);
+  alert("Erro ao salvar: " + insertError.message);
+  hideSaving();
+  return;
+}
 
     const { data:ultimas } = await sb
       .from("buffet_lancamentos")
@@ -481,19 +705,20 @@ async function salvar(){
       .order("created_at", { ascending:false })
       .limit(3);
 
-    if(ultimas?.length){
-      const maisUsada = ultimas
-        .map(x => Number(x.tara || 0))
-        .sort((a,b) =>
-          ultimas.filter(u=>u.tara===a).length -
-          ultimas.filter(u=>u.tara===b).length
-        )
-        .pop();
+// só atualiza tara padrão se NÃO for reposição
+if(ultimas?.length && tipo !== "REPOSICAO" && tipo !== "CONSUMO"){
+  const maisUsada = ultimas
+    .map(x => Number(x.tara || 0))
+    .sort((a,b) =>
+      ultimas.filter(u=>u.tara===a).length -
+      ultimas.filter(u=>u.tara===b).length
+    )
+    .pop();
 
-      await sb.from("buffet_produtos")
-        .update({ tara_padrao: maisUsada })
-        .eq("id", prod.id);
-    }
+  await sb.from("buffet_produtos")
+    .update({ tara_padrao: maisUsada })
+    .eq("id", prod.id);
+}
 
     limpar();
     carregarLancamentos();
@@ -513,29 +738,58 @@ function showSaving(){
 function hideSaving(){
   document.getElementById("savingOverlay").style.display = "none";
 }
-  function abrirModal(id, qtd, un, tipo){
-    editId = id;
-    document.getElementById("editQuantidade").value = qtd;
-    document.getElementById("editUnidade").value = un;
-    document.getElementById("editTipo").value = tipo;
-    document.getElementById("modalBackdrop").style.display = "flex";
-  }
-  function fecharModal(){
-    document.getElementById("modalBackdrop").style.display = "none";
-    editId = null;
-  }
-  async function confirmarEdicao(){
-    const qtd = parseFloat(document.getElementById("editQuantidade").value);
-    const un = document.getElementById("editUnidade").value;
-    const tipo = document.getElementById("editTipo").value;
-    if(!qtd){ alert("Quantidade inválida"); return; }
+function abrirModal(id, qtd, un, tipo){
+  editId = id;
+  document.getElementById("editQuantidade").value = qtd;
+  document.getElementById("editUnidade").value = un;
 
-    await sb.from("buffet_lancamentos")
-      .update({ quantidade:qtd, unidade:un, tipo })
-      .eq("id", editId);
+  const editTipo = document.getElementById("editTipo");
 
-    fecharModal(); carregarLancamentos();
+if (tipo === "CONSUMO") {
+  editTipo.value = "MONTAGEM";     
+  editTipo.disabled = true;       
+
+  document.getElementById("editUnidade").disabled = true; // 🔒 trava unidade
+} else {
+  editTipo.value = tipo;
+  editTipo.disabled = false;
+  document.getElementById("editUnidade").disabled = false;
+}
+
+  document.getElementById("modalBackdrop").style.display = "flex";
+}
+function fecharModal(){
+  document.getElementById("modalBackdrop").style.display = "none";
+  document.getElementById("editTipo").disabled = false;    // 🔓 destrava tipo
+  document.getElementById("editUnidade").disabled = false; // 🔓 destrava unidade
+  editId = null;
+}
+async function confirmarEdicao(){
+  const qtd = parseFloat(document.getElementById("editQuantidade").value);
+  const un = document.getElementById("editUnidade").value;
+  const tipo = document.getElementById("editTipo").value;
+
+  if(!qtd){ alert("Quantidade inválida"); return; }
+
+  // 🔒 não permite alterar tipo de um CONSUMO
+  const { data:atual } = await sb
+    .from("buffet_lancamentos")
+    .select("tipo, produto_nome")
+    .eq("id", editId)
+    .maybeSingle();
+
+  if (atual?.tipo === "CONSUMO" && tipo !== "CONSUMO") {
+    alert("Lançamentos de CONSUMO não podem ter o tipo alterado.");
+    return;
   }
+
+  await sb.from("buffet_lancamentos")
+    .update({ quantidade:qtd, unidade:un, tipo })
+    .eq("id", editId);
+
+  fecharModal(); 
+  carregarLancamentos();
+}
 
   async function excluir(id){
     if(!confirm("Excluir esse lançamento?")) return;
@@ -546,20 +800,21 @@ function hideSaving(){
 function limpar(){
   produtoInput.value = "";
   quantidadeInput.value = "";
-taraInput.value = "";
+  taraInput.value = "";
   unidadeSelect.value = "KG";
-  tipoSelect.value = "MONTAGEM";
-}
+  consumoAutorizado.checked = false; // 🔒 limpa flag interna de consumo
 
-  btnSalvar.onclick = salvar;
-  btnLimpar.onclick = limpar;
-empresaSelect.onchange = () => {
-  carregarProdutos();
-  carregarLancamentos();
-  taraInput.value = "";  // limpa a tara ao trocar empresa
-  document.getElementById("pesoLiquidoPreview").innerHTML =
-    `Líquido: <b>0,000 kg</b>`;
-};
+  // mantém o último tipo selecionado
+  const tipoSalvo = localStorage.getItem("buffet_tipo_selecionado");
+  tipoSelect.value = tipoSalvo || "MONTAGEM";
+
+  // se for reposição, reaplica tara 0,280
+  if (tipoSelect.value === "REPOSICAO") {
+    taraInput.value = formatPeso(0.280);
+  }
+
+  atualizarLiquidoPreview();
+}
   carregarProdutos();
   carregarLancamentos();
 
@@ -607,6 +862,58 @@ taraInput.addEventListener("input", () => {
   aplicarMascaraKg(taraInput);
   atualizarLiquidoPreview();
 });
+
+
+  function abrirConsumo(){
+  document.getElementById("modalConsumo").style.display = "flex";
+  document.body.style.overflow = "hidden";
+  carregarConsumidores();
+}
+
+function fecharConsumo(){
+  document.getElementById("modalConsumo").style.display = "none";
+  document.body.style.overflow = "auto";
+  document.getElementById("consumoNome").value = ""; // limpa campo
+}
+
+async function carregarConsumidores(){
+  const empresa = empresaSelect.value;
+
+  const { data } = await sb
+    .from("buffet_consumidores")
+    .select("nome")
+    .eq("empresa", empresa)
+    .order("nome");
+
+  const list = document.getElementById("consumidoresList");
+  list.innerHTML = "";
+  data?.forEach(p=>{
+    const o = document.createElement("option");
+    o.value = p.nome;
+    list.appendChild(o);
+  });
+}
+
+async function confirmarConsumo(){
+  const nome = document.getElementById("consumoNome").value.trim().toUpperCase();
+  if(!nome) return alert("Informe o nome");
+
+  const empresa = empresaSelect.value;
+
+  const { data:exist } = await sb
+    .from("buffet_consumidores")
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("nome", nome)
+    .maybeSingle();
+
+  if(!exist){
+    await sb.from("buffet_consumidores").insert({ empresa, nome });
+  }
+
+  fecharConsumo();
+  salvar(nome);
+}
 </script>
 <!-- OVERLAY DE SALVAMENTO -->
 <div id="savingOverlay" style="
