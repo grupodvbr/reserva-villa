@@ -21,38 +21,63 @@
   --text:#f5f5f5;
   --muted:#9ca3af;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
-body{background:var(--bg);color:var(--text)}
-
-/* FILTROS EM LINHA */
-.filtros{
-  padding:16px;
-  display:flex;
-  gap:10px;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
 }
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden; /* REMOVE BALANÇO */
+}
+
+/* ===== FILTROS FIXOS E ESTÁVEIS ===== */
+.filtros{
+  padding:14px 14px 6px 14px;
+  display:flex;
+  gap:8px;
+  width:100%;
+}
+
 .filtros select,
 .filtros input{
   flex:1;
-  padding:12px;
+  min-width:0;
+  height:44px;
+  padding:0 12px;
   border-radius:12px;
   border:1px solid var(--border);
   background:#1a1a1a;
   color:#fff;
   font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-/* HEADER */
-.header{padding:0 16px 16px}
-.header h2{font-size:18px;font-weight:800}
-.header span{font-size:12px;color:var(--muted)}
+/* ===== HEADER ===== */
+.header{
+  padding:6px 14px 14px 14px;
+}
+.header h2{
+  font-size:17px;
+  font-weight:800;
+}
+.header span{
+  font-size:12px;
+  color:var(--muted);
+}
 
+/* ===== EMPRESAS ===== */
 .empresa-bloco{
-  padding:0 16px 20px;
+  padding:0 14px 18px 14px;
 }
 .empresa-bloco h3{
   font-size:13px;
   color:var(--gold);
-  margin-bottom:8px;
+  margin-bottom:6px;
 }
 
 .card{
@@ -61,12 +86,14 @@ body{background:var(--bg);color:var(--text)}
   border-radius:14px;
   padding:12px;
 }
+
 .top{
   display:flex;
   justify-content:space-between;
   font-weight:800;
   margin-bottom:6px;
 }
+
 .item{
   display:flex;
   justify-content:space-between;
@@ -74,8 +101,12 @@ body{background:var(--bg);color:var(--text)}
   font-size:13px;
   border-bottom:1px dashed var(--border);
 }
-.item:last-child{border-bottom:none}
+.item:last-child{
+  border-bottom:none;
+}
+
 .muted{
+  margin:16px;
   color:var(--muted);
   font-size:13px;
   padding:10px;
@@ -101,14 +132,14 @@ body{background:var(--bg);color:var(--text)}
 
 <script>
 
-/* SUPABASE */
+/* ===== SUPABASE ===== */
 const { createClient } = supabase;
 const sb = createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-/* CATEGORIAS */
+/* ===== CATEGORIAS ===== */
 const categoriasAgrupadas = {
   "crédito": ["credito","cartao credito","credito pos"],
   "débito": ["debito","cartao debito","debito pos"],
@@ -121,10 +152,6 @@ const categoriasAgrupadas = {
   "outros": []
 };
 
-/* UTIL */
-const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
-const fmtBR = d => d.split("-").reverse().join("/");
-
 function normalizarCategoria(mod){
   if(!mod) return "outros";
   const m = mod.toLowerCase();
@@ -134,21 +161,27 @@ function normalizarCategoria(mod){
   return "outros";
 }
 
-/* DATA PADRÃO = ONTEM */
+const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+const fmtBR = d => {
+  const [ano,mes,dia] = d.split("-");
+  return `${dia}/${mes}/${ano}`;
+};
+
+/* ===== DATA PADRÃO = ONTEM ===== */
 const ontem = new Date();
 ontem.setDate(ontem.getDate()-1);
 const dataPadrao = ontem.toISOString().split("T")[0];
 
-/* FLATPICKR */
+/* ===== FLATPICKR ===== */
 const fp = flatpickr("#periodo", {
   mode: "range",
-  dateFormat: "Y-m-d",
   locale: "pt",
+  dateFormat: "d/m/Y", /* FORMATO BR */
   defaultDate: [dataPadrao, dataPadrao],
   onClose: carregarDados
 });
 
-/* CARREGAR EMPRESAS */
+/* ===== CARREGAR EMPRESAS ===== */
 async function carregarEmpresas(){
   const { data } = await sb.from("resumo_entradas").select("empresa");
   const unicas = [...new Set(data.map(d=>d.empresa))].sort();
@@ -163,7 +196,7 @@ async function carregarEmpresas(){
   select.addEventListener("change", carregarDados);
 }
 
-/* BUSCAR DADOS */
+/* ===== BUSCAR DADOS ===== */
 async function carregarDados(){
 
   const empresaFiltro = document.getElementById("empresaSelect").value;
@@ -204,7 +237,7 @@ async function carregarDados(){
   montarResumo(todos);
 }
 
-/* MONTAR RESUMO */
+/* ===== MONTAR RESUMO ===== */
 function montarResumo(lista){
 
   const porEmpresa={};
@@ -222,7 +255,6 @@ function montarResumo(lista){
   container.innerHTML="";
 
   Object.entries(porEmpresa).forEach(([empresa,info])=>{
-
     const bloco=`
       <div class="empresa-bloco">
         <h3>${empresa}</h3>
@@ -240,12 +272,11 @@ function montarResumo(lista){
         </div>
       </div>
     `;
-
     container.innerHTML+=bloco;
   });
 
   if(!container.innerHTML){
-    container.innerHTML='<div class="muted" style="margin:16px">Sem vendas</div>';
+    container.innerHTML='<div class="muted">Sem vendas</div>';
   }
 }
 
