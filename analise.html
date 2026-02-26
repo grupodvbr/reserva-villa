@@ -226,10 +226,10 @@ html, body {
       <small>Total Produzido</small>
       <h3 id="totalProduzido">0</h3>
     </div>
-    <div class="card" style="padding:10px">
-      <small>Total Retirado</small>
-      <h3 id="totalRetirado">0</h3>
-    </div>
+<div class="card" style="padding:10px;cursor:pointer" onclick="abrirResumoTotalRetirada()">
+  <small>Total Retirado</small>
+  <h3 id="totalRetirado">0</h3>
+</div>
     <div class="card" style="padding:10px">
       <small>Total Desperdício</small>
       <h3 id="totalDesperdicio">0</h3>
@@ -563,7 +563,78 @@ async function abrirResumoRetirada(nomePrato){
 }
 
 
+<script>
+async function abrirResumoTotalRetirada(){
+  if(modalAberto) return;
+  modalAberto = true;
 
+  const empresa = empresaSelect.value;
+
+  let q = sb.from("buffet_lancamentos")
+    .select("produto_nome, consumo_para_nome, quantidade")
+    .eq("empresa", empresa)
+    .eq("tipo", "RETIRADA");
+
+  if(rangeSelecionado.length === 2){
+    q = q.gte("data", rangeSelecionado[0]);
+    q = q.lte("data", rangeSelecionado[1]);
+  }
+
+  const { data, error } = await q;
+  if(error){
+    console.error(error);
+  }
+
+  const porDestino = {};
+
+  (data || []).forEach(r=>{
+    const destino = r.consumo_para_nome || "SEM DESTINO";
+    porDestino[destino] ||= { total: 0, itens: {} };
+
+    porDestino[destino].total += Number(r.quantidade || 0);
+    porDestino[destino].itens[r.produto_nome] =
+      (porDestino[destino].itens[r.produto_nome] || 0) + Number(r.quantidade || 0);
+  });
+
+  const html = Object.entries(porDestino)
+    .sort((a,b)=>b[1].total - a[1].total)
+    .map(([destino,info])=>`
+      <div style="border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin-bottom:10px">
+        <b style="display:flex;justify-content:space-between;align-items:center">
+          <span>📍 ${destino}</span>
+          <span>${info.total.toFixed(3)} KG</span>
+        </b>
+        <div style="margin-top:6px">
+          ${
+            Object.entries(info.itens)
+              .sort((a,b)=>b[1]-a[1])
+              .map(([prato,kg])=>`
+                <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0">
+                  <span>${prato}</span>
+                  <span>${kg.toFixed(3)} KG</span>
+                </div>
+              `).join("")
+          }
+        </div>
+      </div>
+    `).join("");
+
+  document.getElementById("tituloResumoTotalRetirada").innerText =
+    "📦 Total Retirado por Destino";
+
+  document.getElementById("listaResumoTotalRetirada").innerHTML =
+    html || "<small>Nenhuma retirada no período.</small>";
+
+  document.getElementById("modalResumoTotalRetirada").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function fecharResumoTotalRetirada(){
+  document.getElementById("modalResumoTotalRetirada").style.display = "none";
+  document.body.style.overflow = "auto";
+  modalAberto = false;
+}
+</script>
 
 
 
@@ -604,6 +675,25 @@ function fecharResumoRetirada(){
 
     <div class="actions">
       <button class="ghost" onclick="fecharResumoRetirada()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESUMO TOTAL RETIRADO -->
+<div class="modal-backdrop"
+     id="modalResumoTotalRetirada"
+     onclick="if(event.target===this) fecharResumoTotalRetirada()">
+
+  <div class="modal">
+    <h3 id="tituloResumoTotalRetirada">📦 Total Retirado por Destino</h3>
+
+    <div id="listaResumoTotalRetirada"
+         style="max-height:60vh;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharResumoTotalRetirada()">
         Fechar
       </button>
     </div>
