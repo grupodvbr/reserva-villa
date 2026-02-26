@@ -24,16 +24,16 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
 body{background:var(--bg);color:var(--text)}
 
-/* ================= FILTROS ================= */
+/* ================= FILTROS EM LINHA ================= */
 .filtros{
   padding:16px;
   display:flex;
-  flex-direction:column;
   gap:10px;
+  align-items:center;
 }
 .filtros select,
 .filtros input{
-  width:100%;
+  flex:1;
   padding:12px;
   border-radius:12px;
   border:1px solid var(--border);
@@ -41,18 +41,9 @@ body{background:var(--bg);color:var(--text)}
   color:#fff;
   font-size:14px;
 }
-.filtros button{
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:var(--gold);
-  color:#000;
-  font-weight:700;
-  cursor:pointer;
-}
 
 /* ================= HEADER ================= */
-.header{padding:16px}
+.header{padding:0 16px 16px}
 .header h2{font-size:18px;font-weight:800}
 .header span{font-size:12px;color:var(--muted)}
 
@@ -98,13 +89,8 @@ body{background:var(--bg);color:var(--text)}
 
 <!-- ================= FILTROS ================= -->
 <div class="filtros">
-  <select id="empresaSelect">
-    <option value="todas">Todas Empresas</option>
-  </select>
-
+  <select id="empresaSelect"></select>
   <input type="text" id="periodo" placeholder="Selecionar período">
-
-  <button onclick="carregarDados()">Aplicar Filtro</button>
 </div>
 
 <div class="header">
@@ -138,7 +124,7 @@ const sb = createClient(
 
 /* ================= CATEGORIAS ================= */
 const categoriasAgrupadas = {
-  "crédito": ["credito","cartao credito","totem credito","credito pos"],
+  "crédito": ["credito","cartao credito","credito pos"],
   "débito": ["debito","cartao debito","debito pos"],
   "pix": ["pix"],
   "dinheiro": ["dinheiro"],
@@ -153,14 +139,14 @@ const categoriasAgrupadas = {
 const fp = flatpickr("#periodo", {
   mode: "range",
   dateFormat: "Y-m-d",
-  locale: "pt"
+  locale: "pt",
+  onClose: carregarDados
 });
 
 /* ================= UTIL ================= */
 const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
 const fmtBR = d => d.split("-").reverse().join("/");
 
-/* ================= NORMALIZAR ================= */
 function normalizarCategoria(mod){
   if(!mod) return "outros";
   const m = mod.toLowerCase();
@@ -177,15 +163,19 @@ function classificarEmpresa(nome){
   return "outros";
 }
 
-/* ================= CARREGAR EMPRESAS DINÂMICO ================= */
+/* ================= CARREGAR EMPRESAS ================= */
 async function carregarEmpresas(){
   const { data } = await sb.from("resumo_entradas").select("empresa");
-  const unicas = [...new Set(data.map(d=>d.empresa))];
+  const unicas = [...new Set(data.map(d=>d.empresa))].sort();
 
   const select = document.getElementById("empresaSelect");
+  select.innerHTML = `<option value="todas">Todas Empresas</option>`;
+
   unicas.forEach(e=>{
     select.innerHTML += `<option value="${e}">${e}</option>`;
   });
+
+  select.addEventListener("change", carregarDados);
 }
 
 /* ================= BUSCAR DADOS ================= */
@@ -194,36 +184,34 @@ async function carregarDados(){
   const empresa = document.getElementById("empresaSelect").value;
   const datas = fp.selectedDates;
 
-  let inicio = null;
-  let fim = null;
-
-  if(datas.length === 2){
+  let inicio=null, fim=null;
+  if(datas.length===2){
     inicio = fp.formatDate(datas[0],"Y-m-d");
     fim = fp.formatDate(datas[1],"Y-m-d");
   }
 
   document.getElementById("subtitulo").innerText =
-    `${empresa} • ${inicio ? fmtBR(inicio) : "—"} até ${fim ? fmtBR(fim) : "—"}`;
+    `${empresa} • ${inicio?fmtBR(inicio):"—"} até ${fim?fmtBR(fim):"—"}`;
 
-  let todos = [];
-  let from = 0;
-  const step = 1000;
+  let todos=[];
+  let from=0;
+  const step=1000;
 
   while(true){
     let q = sb.from("resumo_entradas")
       .select("data_lancamento, modalidade, valor, empresa")
       .order("data_lancamento",{ascending:true})
-      .range(from, from + step - 1);
+      .range(from, from+step-1);
 
-    if(empresa !== "todas") q = q.eq("empresa", empresa);
-    if(inicio) q = q.gte("data_lancamento", inicio);
-    if(fim) q = q.lte("data_lancamento", fim);
+    if(empresa!=="todas") q=q.eq("empresa",empresa);
+    if(inicio) q=q.gte("data_lancamento",inicio);
+    if(fim) q=q.lte("data_lancamento",fim);
 
-    const { data, error } = await q;
+    const { data,error } = await q;
     if(error || !data.length) break;
 
     todos.push(...data);
-    from += step;
+    from+=step;
   }
 
   montarResumo(todos);
@@ -232,16 +220,15 @@ async function carregarDados(){
 /* ================= MONTAR RESUMO ================= */
 function montarResumo(lista){
 
-  const porEmpresa = {};
+  const porEmpresa={};
 
   lista.forEach(l=>{
-    const v = Number(l.valor)||0;
-    if(!porEmpresa[l.empresa]) porEmpresa[l.empresa] = { total:0, cats:{} };
-    porEmpresa[l.empresa].total += v;
+    const v=Number(l.valor)||0;
+    if(!porEmpresa[l.empresa]) porEmpresa[l.empresa]={total:0,cats:{}};
+    porEmpresa[l.empresa].total+=v;
 
-    const cat = normalizarCategoria(l.modalidade);
-    porEmpresa[l.empresa].cats[cat] =
-      (porEmpresa[l.empresa].cats[cat]||0)+v;
+    const cat=normalizarCategoria(l.modalidade);
+    porEmpresa[l.empresa].cats[cat]=(porEmpresa[l.empresa].cats[cat]||0)+v;
   });
 
   emporio.innerHTML="";
@@ -251,7 +238,7 @@ function montarResumo(lista){
 
   Object.entries(porEmpresa).forEach(([empresa,info])=>{
 
-    const bloco = `
+    const bloco=`
       <div class="card">
         <div class="top">
           <span>${empresa}</span>
@@ -266,7 +253,7 @@ function montarResumo(lista){
       </div>
     `;
 
-    const grupo = classificarEmpresa(empresa);
+    const grupo=classificarEmpresa(empresa);
 
     if(grupo==="emporio") emporio.innerHTML+=bloco;
     else if(grupo==="restaurante") restaurante.innerHTML+=bloco;
@@ -274,7 +261,6 @@ function montarResumo(lista){
       document.getElementById("grupo-outros").style.display="block";
       outros.innerHTML+=bloco;
     }
-
   });
 
   if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
