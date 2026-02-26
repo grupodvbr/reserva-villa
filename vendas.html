@@ -21,62 +21,34 @@
   --text:#f5f5f5;
   --muted:#9ca3af;
 }
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Inter;
-}
-
-html,body{
-  background:var(--bg);
-  color:var(--text);
-  overflow-x:hidden; /* REMOVE BALANÇO */
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter}
+body{background:var(--bg);color:var(--text)}
 
 /* FILTROS EM LINHA */
 .filtros{
-  padding:14px;
+  padding:16px;
   display:flex;
-  gap:8px;
+  gap:10px;
 }
-
 .filtros select,
 .filtros input{
   flex:1;
-  min-width:0;
-  height:44px;
-  padding:0 12px;
+  padding:12px;
   border-radius:12px;
   border:1px solid var(--border);
   background:#1a1a1a;
   color:#fff;
   font-size:14px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
 /* HEADER */
-.header{
-  padding:0 14px 14px;
-}
-
-.header h2{
-  font-size:18px;
-  font-weight:800;
-}
-
-.header span{
-  font-size:12px;
-  color:var(--muted);
-}
+.header{padding:0 16px 16px}
+.header h2{font-size:18px;font-weight:800}
+.header span{font-size:12px;color:var(--muted)}
 
 .empresa-bloco{
-  padding:0 14px 20px;
+  padding:0 16px 20px;
 }
-
 .empresa-bloco h3{
   font-size:13px;
   color:var(--gold);
@@ -89,14 +61,12 @@ html,body{
   border-radius:14px;
   padding:12px;
 }
-
 .top{
   display:flex;
   justify-content:space-between;
   font-weight:800;
   margin-bottom:6px;
 }
-
 .item{
   display:flex;
   justify-content:space-between;
@@ -104,11 +74,7 @@ html,body{
   font-size:13px;
   border-bottom:1px dashed var(--border);
 }
-
-.item:last-child{
-  border-bottom:none;
-}
-
+.item:last-child{border-bottom:none}
 .muted{
   color:var(--muted);
   font-size:13px;
@@ -144,25 +110,20 @@ const sb = createClient(
 
 /* CATEGORIAS */
 const categoriasAgrupadas = {
-  "crédito": ["credito","cartao credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
-  "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
-  "pix": ["pix","pgto online pix","qrcode","pix tef","pix cnpj","pix offline","pix itau","pix pos"],
-  "online": ["pagamento online","pagamentos online","refeicao","cart alimentacao"],
-  "consumo interno": ["funcionario","convenio empresa","consumo funcionarios","consumo musicos"],
+  "crédito": ["credito","cartao credito","credito pos"],
+  "débito": ["debito","cartao debito","debito pos"],
+  "pix": ["pix"],
+  "dinheiro": ["dinheiro"],
+  "voucher": ["voucher"],
   "boleto": ["boleto"],
-  "crediário": ["crediario","crediario clientes"],
-  "voucher": ["voucher","cartao voucher","voucher pos","voucher delicia","voucher villa"],
-  "dinheiro": ["dinheiro","pgto online dinheiro"],
-  "bonificação": ["bonificacao"],
-  "catálogo delivery": ["catalogo delivery","catálogo delivery"],
-  "consumo sócio": ["socio","consumo sócio","consumo socio"],
-  "marketing": ["marketing"],
-  "transferência bancária": ["transferencia bancar","transferencia bancaria"],
-  "erros garçom": ["erros garcons"],
-  "sem faturamento": ["sem faturamento"],
+  "consumo interno": ["funcionario","convenio"],
+  "online": ["pagamento online"],
   "outros": []
 };
 
+/* UTIL */
+const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+const fmtBR = d => d.split("-").reverse().join("/");
 
 function normalizarCategoria(mod){
   if(!mod) return "outros";
@@ -173,14 +134,6 @@ function normalizarCategoria(mod){
   return "outros";
 }
 
-const BRL = v => Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
-
-/* FORMATAR BR */
-function fmtBR(d){
-  const [ano,mes,dia] = d.split("-");
-  return `${dia}/${mes}/${ano}`;
-}
-
 /* DATA PADRÃO = ONTEM */
 const ontem = new Date();
 ontem.setDate(ontem.getDate()-1);
@@ -189,8 +142,8 @@ const dataPadrao = ontem.toISOString().split("T")[0];
 /* FLATPICKR */
 const fp = flatpickr("#periodo", {
   mode: "range",
+  dateFormat: "Y-m-d",
   locale: "pt",
-  dateFormat: "d/m/Y", /* FORMATO BR */
   defaultDate: [dataPadrao, dataPadrao],
   onClose: carregarDados
 });
