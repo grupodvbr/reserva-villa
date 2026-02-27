@@ -595,28 +595,33 @@ async function abrirResumoTotalRetirada(){
   const { data } = await query;
 
   const porDestino = {};
-  let totalPIA = 0;
+  const pia = { total: 0, itens: {} };
 
   (data || []).forEach(r => {
 
     const qtd = Number(r.quantidade || 0);
 
-    // 🔥 REGRA ESPECIAL PIA = TUDO QUE FOI PRODUZIDO
+    // 🟢 PIA = MONTAGEM + REPOSICAO (vendido)
     if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
-      totalPIA += qtd;
+
+      pia.total += qtd;
+
+      if(!pia.itens[r.produto_nome]){
+        pia.itens[r.produto_nome] = 0;
+      }
+
+      pia.itens[r.produto_nome] += qtd;
+
       return;
     }
 
-    // 🔥 RETIRADAS NORMAIS (menos PIA)
+    // 🔵 RETIRADAS NORMAIS
     if(r.tipo === "RETIRADA" && r.consumo_para_nome !== "PIA"){
 
       const destino = r.consumo_para_nome || "SEM DESTINO";
 
       if(!porDestino[destino]){
-        porDestino[destino] = {
-          total: 0,
-          itens: {}
-        };
+        porDestino[destino] = { total: 0, itens: {} };
       }
 
       porDestino[destino].total += qtd;
@@ -630,8 +635,11 @@ async function abrirResumoTotalRetirada(){
 
   });
 
-  // 🔥 CARD ESPECIAL PIA NO TOPO
-  let html = `
+  // ===== HTML =====
+  let html = "";
+
+  // 🟢 CARD PIA (COM ITENS)
+  html += `
     <div style="
       border:2px solid #16a34a;
       background:#ecfdf5;
@@ -644,18 +652,32 @@ async function abrirResumoTotalRetirada(){
         justify-content:space-between;
         align-items:center;
         font-weight:900;
-        font-size:14px
+        margin-bottom:8px
       ">
-        <span>🟢 PIA (Total Vendido do Buffet)</span>
-        <span>${totalPIA.toFixed(3)} KG</span>
+        <span>🟢 PIA (Total Vendido)</span>
+        <span>${pia.total.toFixed(3)} KG</span>
       </div>
-      <div style="font-size:11px;color:#166534;margin-top:6px">
-        Soma de Montagem + Reposição
-      </div>
+
+      ${
+        Object.entries(pia.itens)
+          .sort((a,b)=> b[1] - a[1])
+          .map(([prato,kg])=>`
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              font-size:12px;
+              padding:4px 0;
+              border-bottom:1px dashed #bbf7d0
+            ">
+              <span>${prato}</span>
+              <span>${kg.toFixed(3)} KG</span>
+            </div>
+          `).join("")
+      }
     </div>
   `;
 
-  // 🔥 OUTROS DESTINOS
+  // 🔵 OUTROS DESTINOS
   html += Object.entries(porDestino)
     .sort((a,b)=> b[1].total - a[1].total)
     .map(([destino,info])=>`
@@ -679,24 +701,22 @@ async function abrirResumoTotalRetirada(){
           <span>${info.total.toFixed(3)} KG</span>
         </div>
 
-        <div style="margin-top:6px">
-          ${
-            Object.entries(info.itens)
-              .sort((a,b)=> b[1] - a[1])
-              .map(([prato,kg])=>`
-                <div style="
-                  display:flex;
-                  justify-content:space-between;
-                  font-size:12px;
-                  padding:4px 0;
-                  border-bottom:1px dashed #f1f5f9
-                ">
-                  <span>${prato}</span>
-                  <span>${kg.toFixed(3)} KG</span>
-                </div>
-              `).join("")
-          }
-        </div>
+        ${
+          Object.entries(info.itens)
+            .sort((a,b)=> b[1] - a[1])
+            .map(([prato,kg])=>`
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:12px;
+                padding:4px 0;
+                border-bottom:1px dashed #f1f5f9
+              ">
+                <span>${prato}</span>
+                <span>${kg.toFixed(3)} KG</span>
+              </div>
+            `).join("")
+        }
 
       </div>
 
