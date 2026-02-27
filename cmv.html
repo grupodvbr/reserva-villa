@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>CMV Executivo Total</title>
+<title>CMV Executivo • Premium</title>
 
 <meta name="viewport"
 content="width=device-width,
@@ -11,27 +11,28 @@ maximum-scale=1,
 user-scalable=no,
 viewport-fit=cover">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-  --bg:#f4f6fb;
+  --bg:#f1f5f9;
   --card:#ffffff;
-  --border:#e5e7eb;
-  --muted:#6b7280;
-  --primary:#111827;
+  --border:#e2e8f0;
+  --muted:#64748b;
+  --dark:#0f172a;
+  --blue:#2563eb;
+  --green:#16a34a;
+  --red:#dc2626;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
   font-family:Inter,sans-serif;
   background:var(--bg);
-  overflow-x:hidden; /* 🔥 garante que nunca role lateral */
+  overflow-x:hidden;
 }
 
 /* HEADER */
@@ -39,12 +40,12 @@ body{
   position:sticky;
   top:0;
   background:#fff;
-  padding:12px;
+  padding:14px;
   display:flex;
   flex-direction:column;
   gap:10px;
   border-bottom:1px solid var(--border);
-  z-index:50;
+  z-index:100;
 }
 
 .header input,
@@ -53,47 +54,48 @@ body{
   padding:14px;
   border-radius:14px;
   border:1px solid var(--border);
-  font-weight:700;
+  font-weight:600;
   font-size:15px;
+  background:#f8fafc;
 }
 
 /* CONTAINER */
 .container{
-  padding:12px;
+  padding:14px;
 }
 
 /* CARD */
 .card{
   background:var(--card);
-  border-radius:20px;
-  padding:14px;
-  margin-bottom:18px;
-  box-shadow:0 8px 30px rgba(0,0,0,.05);
+  border-radius:22px;
+  padding:16px;
+  margin-bottom:22px;
+  box-shadow:0 10px 40px rgba(0,0,0,.06);
 }
 
 /* HEADER CARD */
 .card-header{
   display:flex;
   flex-direction:column;
-  gap:12px;
+  gap:14px;
 }
 
 .card img{
   width:100%;
-  height:180px;
+  height:200px;
   object-fit:cover;
-  border-radius:14px;
-  background:#000;
+  border-radius:18px;
 }
 
 .card h2{
   margin:0;
-  font-size:18px;
+  font-size:20px;
   font-weight:900;
+  color:var(--dark);
 }
 
 .card p{
-  margin:4px 0 0;
+  margin:6px 0 0;
   font-size:13px;
   color:var(--muted);
 }
@@ -102,60 +104,77 @@ body{
 .badges{
   display:flex;
   flex-wrap:wrap;
-  gap:6px;
-  margin-top:8px;
+  gap:8px;
+  margin-top:10px;
 }
 
 .badge{
   background:#eef2ff;
-  padding:6px 10px;
+  padding:6px 12px;
   border-radius:999px;
   font-size:11px;
-  font-weight:800;
+  font-weight:700;
+  color:#1e3a8a;
 }
 
-/* INDICADORES */
+/* METRICS EM UMA LINHA */
 .metrics{
-  margin-top:14px;
+  margin-top:16px;
+  display:flex;
+  gap:8px;
 }
 
 .metric{
-  background:#f9fafb;
+  flex:1;
   padding:10px;
-  border-radius:12px;
-  font-size:13px;
-  margin-bottom:8px;
+  border-radius:14px;
+  background:#f8fafc;
+  text-align:center;
+  min-width:0;
 }
 
-.metric b{
+.metric span{
   display:block;
-  font-size:11px;
-  color:var(--muted);
-  margin-bottom:2px;
+  font-size:12px;
+  font-weight:800;
+  margin-top:4px;
 }
 
-/* SEÇÕES */
+.metric small{
+  font-size:10px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+/* CORES DINÂMICAS */
+.metric.green span{color:var(--green);}
+.metric.red span{color:var(--red);}
+.metric.blue span{color:var(--blue);}
+
+/* INGREDIENTES */
 .section-title{
-  margin-top:18px;
+  margin-top:20px;
   font-weight:900;
   font-size:13px;
+  color:var(--dark);
 }
 
-/* INGREDIENTES VERTICAL */
 .ingrediente{
-  background:#f9fafb;
-  padding:10px;
-  border-radius:12px;
-  margin-bottom:8px;
+  background:#f8fafc;
+  padding:12px;
+  border-radius:14px;
+  margin-top:8px;
   font-size:12px;
 }
 
 .total-box{
-  background:#e5e7eb;
-  padding:10px;
-  border-radius:12px;
+  background:#e2e8f0;
+  padding:12px;
+  border-radius:14px;
+  margin-top:12px;
   font-weight:900;
-  margin-top:8px;
+  font-size:13px;
+  text-align:center;
 }
 </style>
 </head>
@@ -163,7 +182,7 @@ body{
 <body>
 
 <div class="header">
-  <input id="search" placeholder="Buscar prato pelo nome">
+  <input id="search" placeholder="Buscar prato">
   <select id="tipoFilter">
     <option value="">Todos os tipos</option>
   </select>
@@ -258,31 +277,48 @@ function render(lista){
           <p>${p.descricao||""}</p>
 
           <div class="badges">
-            <div class="badge">Tipo: ${p.tipo||"-"}</div>
-            <div class="badge">Status: ${p.ativo?"Ativo":"Inativo"}</div>
-            <div class="badge">Código: ${p.codigo_varejo||"-"}</div>
+            <div class="badge">${p.tipo||"-"}</div>
+            <div class="badge">${p.ativo?"Ativo":"Inativo"}</div>
           </div>
         </div>
       </div>
 
       <div class="metrics">
-        <div class="metric"><b>Preço Venda</b>R$ ${preco.toFixed(2)}</div>
-        <div class="metric"><b>Custo Final</b>R$ ${custoFinal.toFixed(2)}</div>
-        <div class="metric"><b>CMV</b>${cmvPerc.toFixed(1)}%</div>
-        <div class="metric"><b>Margem</b>${margem.toFixed(1)}%</div>
-        <div class="metric"><b>Lucro</b>R$ ${lucro.toFixed(2)}</div>
+        <div class="metric blue">
+          <small>Venda</small>
+          <span>R$ ${preco.toFixed(2)}</span>
+        </div>
+
+        <div class="metric">
+          <small>Custo</small>
+          <span>R$ ${custoFinal.toFixed(2)}</span>
+        </div>
+
+        <div class="metric ${cmvPerc>60?'red':'green'}">
+          <small>CMV</small>
+          <span>${cmvPerc.toFixed(1)}%</span>
+        </div>
+
+        <div class="metric ${margem>60?'green':'red'}">
+          <small>Margem</small>
+          <span>${margem.toFixed(1)}%</span>
+        </div>
+
+        <div class="metric ${lucro>=0?'green':'red'}">
+          <small>Lucro</small>
+          <span>R$ ${lucro.toFixed(2)}</span>
+        </div>
       </div>
 
       <div class="section-title">Ingredientes</div>
+
       ${itens.map(i=>{
         const qtd=Number(i.quantidade||0);
-        const custoUnit=Number(i.custo_unitario||0);
-        const total=qtd*custoUnit;
+        const total=qtd*Number(i.custo_unitario||0);
         return `
           <div class="ingrediente">
             <strong>${i.nome}</strong><br>
-            Qtd: ${qtd.toFixed(3)} ${i.unidade_uso}<br>
-            Custo: R$ ${total.toFixed(2)}
+            ${qtd.toFixed(3)} ${i.unidade_uso} • R$ ${total.toFixed(2)}
           </div>
         `;
       }).join("")}
