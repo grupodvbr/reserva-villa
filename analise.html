@@ -894,7 +894,7 @@ function abrirDetalheDesperdicio(nomePrato){
   const totalDesperdicioPeriodo = info.totalDesperdicio;
 
   let linhas = Object.entries(diasObj)
-    .filter(([_,d]) => d.desperdicio > 0)
+.filter(([_,d]) => d.produzido > 0 || d.desperdicio > 0)
     .sort((a,b)=> a[0].localeCompare(b[0]))
     .map(([dia,d])=>`
       <tr>
