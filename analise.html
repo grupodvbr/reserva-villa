@@ -596,25 +596,32 @@ async function abrirResumoTotalRetirada(){
 
   const pia = { total: 0, itens: {} };
   const porDestino = {};
+  let existePIA = false;
+
+  // 🔎 Primeiro verifica se existe destino PIA
+  (data || []).forEach(r=>{
+    if(r.tipo === "RETIRADA" && r.consumo_para_nome === "PIA"){
+      existePIA = true;
+    }
+  });
 
   (data || []).forEach(r => {
 
     const qtd = Number(r.quantidade || 0);
 
-    // 🟢 PIA = MONTAGEM + REPOSICAO
+    // 🟢 CALCULO DA PIA = MONTAGEM + REPOSICAO
     if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
-
-      pia.total += qtd;
 
       if(!pia.itens[r.produto_nome]){
         pia.itens[r.produto_nome] = 0;
       }
 
       pia.itens[r.produto_nome] += qtd;
+      pia.total += qtd;
     }
 
-    // 🔵 RETIRADAS NORMAIS
-    if(r.tipo === "RETIRADA"){
+    // 🔵 RETIRADAS NORMAIS (exceto PIA)
+    if(r.tipo === "RETIRADA" && r.consumo_para_nome !== "PIA"){
 
       const destino = r.consumo_para_nome || "SEM DESTINO";
 
@@ -633,49 +640,51 @@ async function abrirResumoTotalRetirada(){
 
   });
 
-  // ===== HTML =====
   let html = "";
 
-  // 🟢 CARD PIA (Produção Total)
-  html += `
-    <div style="
-      border:2px solid #16a34a;
-      background:#ecfdf5;
-      border-radius:14px;
-      padding:14px;
-      margin-bottom:14px
-    ">
+  // 🟢 MOSTRA PIA SOMENTE SE EXISTIR DESTINO PIA
+  if(existePIA && pia.total > 0){
+
+    html += `
       <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        font-weight:900;
-        margin-bottom:8px
+        border:2px solid #16a34a;
+        background:#ecfdf5;
+        border-radius:14px;
+        padding:14px;
+        margin-bottom:14px
       ">
-        <span>🟢 PIA (Produção Total)</span>
-        <span>${pia.total.toFixed(3)} KG</span>
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          font-weight:900;
+          margin-bottom:8px
+        ">
+          <span>🟢 PIA (Montagem + Reposição)</span>
+          <span>${pia.total.toFixed(3)} KG</span>
+        </div>
+
+        ${
+          Object.entries(pia.itens)
+            .sort((a,b)=> b[1] - a[1])
+            .map(([prato,kg])=>`
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:12px;
+                padding:4px 0;
+                border-bottom:1px dashed #bbf7d0
+              ">
+                <span>${prato}</span>
+                <span>${kg.toFixed(3)} KG</span>
+              </div>
+            `).join("")
+        }
       </div>
+    `;
+  }
 
-      ${
-        Object.entries(pia.itens)
-          .sort((a,b)=> b[1] - a[1])
-          .map(([prato,kg])=>`
-            <div style="
-              display:flex;
-              justify-content:space-between;
-              font-size:12px;
-              padding:4px 0;
-              border-bottom:1px dashed #bbf7d0
-            ">
-              <span>${prato}</span>
-              <span>${kg.toFixed(3)} KG</span>
-            </div>
-          `).join("")
-      }
-    </div>
-  `;
-
-  // 🔵 DESTINOS DE RETIRADA
+  // 🔵 OUTROS DESTINOS
   html += Object.entries(porDestino)
     .sort((a,b)=> b[1].total - a[1].total)
     .map(([destino,info])=>`
@@ -717,7 +726,7 @@ async function abrirResumoTotalRetirada(){
     `).join("");
 
   document.getElementById("tituloResumoTotalRetirada").innerText =
-    "📦 Produção (PIA) + Retiradas";
+    "📦 Destinos + PIA";
 
   document.getElementById("listaResumoTotalRetirada").innerHTML =
     html || "<small>Nenhum movimento no período.</small>";
