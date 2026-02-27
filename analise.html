@@ -594,24 +594,27 @@ async function abrirResumoTotalRetirada(){
 
   const { data } = await query;
 
+  const pratosQueForamPIA = new Set();
   const pia = { total: 0, itens: {} };
   const porDestino = {};
-  let existePIA = false;
 
-  // 🔎 Primeiro verifica se existe destino PIA
+  // 🔎 1️⃣ Descobre quais pratos tiveram retirada para PIA
   (data || []).forEach(r=>{
     if(r.tipo === "RETIRADA" && r.consumo_para_nome === "PIA"){
-      existePIA = true;
+      pratosQueForamPIA.add(r.produto_nome);
     }
   });
 
+  // 🔎 2️⃣ Soma MONTAGEM + REPOSIÇÃO APENAS desses pratos
   (data || []).forEach(r => {
 
     const qtd = Number(r.quantidade || 0);
 
-    // 🟢 CALCULO DA PIA = MONTAGEM + REPOSICAO
-    if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
-
+    // 🟢 PIA = Montagem + Reposição dos pratos que foram para PIA
+    if(
+      (r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO") &&
+      pratosQueForamPIA.has(r.produto_nome)
+    ){
       if(!pia.itens[r.produto_nome]){
         pia.itens[r.produto_nome] = 0;
       }
@@ -620,7 +623,7 @@ async function abrirResumoTotalRetirada(){
       pia.total += qtd;
     }
 
-    // 🔵 RETIRADAS NORMAIS (exceto PIA)
+    // 🔵 OUTRAS RETIRADAS (exceto PIA)
     if(r.tipo === "RETIRADA" && r.consumo_para_nome !== "PIA"){
 
       const destino = r.consumo_para_nome || "SEM DESTINO";
@@ -642,8 +645,8 @@ async function abrirResumoTotalRetirada(){
 
   let html = "";
 
-  // 🟢 MOSTRA PIA SOMENTE SE EXISTIR DESTINO PIA
-  if(existePIA && pia.total > 0){
+  // 🟢 MOSTRA PIA apenas se realmente existiu
+  if(pratosQueForamPIA.size > 0 && pia.total > 0){
 
     html += `
       <div style="
@@ -734,7 +737,6 @@ async function abrirResumoTotalRetirada(){
   document.getElementById("modalResumoTotalRetirada").style.display = "flex";
   document.body.style.overflow = "hidden";
 }
-
 function fecharResumoTotalRetirada(){
   document.getElementById("modalResumoTotalRetirada").style.display = "none";
   document.body.style.overflow = "auto";
