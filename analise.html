@@ -835,7 +835,7 @@ let html = recorrentes.map(([nome,info])=>{
       background:#fff;
       cursor:pointer
     "
-    onclick="abrirDetalheDesperdicio('${nome}')"
+    onclick='abrirDetalheDesperdicio(${JSON.stringify(nome)})'
     >
       <div style="
         display:flex;
