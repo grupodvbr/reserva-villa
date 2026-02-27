@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>CMV Executivo Total</title>
 
-<!-- 🔒 BLOQUEIA ZOOM -->
 <meta name="viewport"
 content="width=device-width,
 initial-scale=1,
@@ -19,32 +18,33 @@ viewport-fit=cover">
 :root{
   --bg:#f4f6fb;
   --card:#ffffff;
-  --primary:#111827;
-  --accent:#2563eb;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --success:#16a34a;
-  --danger:#dc2626;
+  --primary:#111827;
 }
 
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
   font-family:Inter,sans-serif;
   background:var(--bg);
+  overflow-x:hidden; /* 🔥 garante que nunca role lateral */
 }
 
-/* HEADER MOBILE */
+/* HEADER */
 .header{
   position:sticky;
   top:0;
-  z-index:50;
   background:#fff;
   padding:12px;
   display:flex;
   flex-direction:column;
   gap:10px;
   border-bottom:1px solid var(--border);
+  z-index:50;
 }
 
 .header input,
@@ -55,40 +55,40 @@ body{
   border:1px solid var(--border);
   font-weight:700;
   font-size:15px;
-  background:#fff;
 }
 
+/* CONTAINER */
 .container{
-  padding:14px;
+  padding:12px;
 }
 
 /* CARD */
 .card{
   background:var(--card);
   border-radius:20px;
-  padding:16px;
-  margin-bottom:20px;
-  box-shadow:0 10px 35px rgba(0,0,0,.06);
+  padding:14px;
+  margin-bottom:18px;
+  box-shadow:0 8px 30px rgba(0,0,0,.05);
 }
 
 /* HEADER CARD */
 .card-header{
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:12px;
 }
 
 .card img{
   width:100%;
-  height:200px;
+  height:180px;
   object-fit:cover;
-  border-radius:16px;
+  border-radius:14px;
   background:#000;
 }
 
 .card h2{
   margin:0;
-  font-size:20px;
+  font-size:18px;
   font-weight:900;
 }
 
@@ -98,11 +98,12 @@ body{
   color:var(--muted);
 }
 
+/* BADGES */
 .badges{
   display:flex;
   flex-wrap:wrap;
   gap:6px;
-  margin-top:10px;
+  margin-top:8px;
 }
 
 .badge{
@@ -113,76 +114,48 @@ body{
   font-weight:800;
 }
 
-/* GRID INDICADORES */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
+/* INDICADORES */
+.metrics{
   margin-top:14px;
 }
 
-.box{
+.metric{
   background:#f9fafb;
-  padding:12px;
-  border-radius:14px;
-  font-size:12px;
+  padding:10px;
+  border-radius:12px;
+  font-size:13px;
+  margin-bottom:8px;
 }
 
-.box b{
+.metric b{
   display:block;
   font-size:11px;
   color:var(--muted);
-  margin-bottom:3px;
+  margin-bottom:2px;
 }
 
-/* TABELAS */
-.table-wrapper{
-  overflow-x:auto;
-  margin-top:12px;
-}
-
-table{
-  width:100%;
-  min-width:520px;
-  border-collapse:collapse;
-  font-size:12px;
-}
-
-th,td{
-  padding:8px;
-  border-bottom:1px solid var(--border);
-  text-align:left;
-}
-
-th{
-  font-size:11px;
-  text-transform:uppercase;
-  color:var(--muted);
-}
-
-.total-row{
-  background:#f3f4f6;
-  font-weight:900;
-}
-
+/* SEÇÕES */
 .section-title{
   margin-top:18px;
   font-weight:900;
   font-size:13px;
 }
 
-/* DESKTOP MELHORA */
-@media(min-width:768px){
-  .card-header{
-    flex-direction:row;
-  }
-  .card img{
-    width:220px;
-    height:160px;
-  }
-  .grid{
-    grid-template-columns:repeat(4,1fr);
-  }
+/* INGREDIENTES VERTICAL */
+.ingrediente{
+  background:#f9fafb;
+  padding:10px;
+  border-radius:12px;
+  margin-bottom:8px;
+  font-size:12px;
+}
+
+.total-box{
+  background:#e5e7eb;
+  padding:10px;
+  border-radius:12px;
+  font-weight:900;
+  margin-top:8px;
 }
 </style>
 </head>
@@ -283,6 +256,7 @@ function render(lista){
         <div>
           <h2>${p.nome}</h2>
           <p>${p.descricao||""}</p>
+
           <div class="badges">
             <div class="badge">Tipo: ${p.tipo||"-"}</div>
             <div class="badge">Status: ${p.ativo?"Ativo":"Inativo"}</div>
@@ -291,39 +265,30 @@ function render(lista){
         </div>
       </div>
 
-      <div class="grid">
-        <div class="box"><b>Preço Venda</b>R$ ${preco.toFixed(2)}</div>
-        <div class="box"><b>Custo Final</b>R$ ${custoFinal.toFixed(2)}</div>
-        <div class="box"><b>CMV</b>${cmvPerc.toFixed(1)}%</div>
-        <div class="box"><b>Margem</b>${margem.toFixed(1)}%</div>
+      <div class="metrics">
+        <div class="metric"><b>Preço Venda</b>R$ ${preco.toFixed(2)}</div>
+        <div class="metric"><b>Custo Final</b>R$ ${custoFinal.toFixed(2)}</div>
+        <div class="metric"><b>CMV</b>${cmvPerc.toFixed(1)}%</div>
+        <div class="metric"><b>Margem</b>${margem.toFixed(1)}%</div>
+        <div class="metric"><b>Lucro</b>R$ ${lucro.toFixed(2)}</div>
       </div>
 
       <div class="section-title">Ingredientes</div>
-      <div class="table-wrapper">
-      <table>
-        <tr>
-          <th>Nome</th>
-          <th>Qtd</th>
-          <th>Un</th>
-          <th>Custo</th>
-        </tr>
-        ${itens.map(i=>{
-          const qtd=Number(i.quantidade||0);
-          const total=qtd*Number(i.custo_unitario||0);
-          return `
-            <tr>
-              <td>${i.nome}</td>
-              <td>${qtd.toFixed(3)}</td>
-              <td>${i.unidade_uso}</td>
-              <td>R$ ${total.toFixed(2)}</td>
-            </tr>
-          `;
-        }).join("")}
-        <tr class="total-row">
-          <td colspan="3">Total</td>
-          <td>R$ ${cmvBase.toFixed(2)}</td>
-        </tr>
-      </table>
+      ${itens.map(i=>{
+        const qtd=Number(i.quantidade||0);
+        const custoUnit=Number(i.custo_unitario||0);
+        const total=qtd*custoUnit;
+        return `
+          <div class="ingrediente">
+            <strong>${i.nome}</strong><br>
+            Qtd: ${qtd.toFixed(3)} ${i.unidade_uso}<br>
+            Custo: R$ ${total.toFixed(2)}
+          </div>
+        `;
+      }).join("")}
+
+      <div class="total-box">
+        Total Ingredientes: R$ ${cmvBase.toFixed(2)}
       </div>
     `;
 
