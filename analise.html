@@ -328,7 +328,7 @@ flatpickr("#rangeDatas", {
   }
 });
 let chart;
-
+let cacheDesperdicio = {};
 function formatBR(iso){
   const [y,m,d]=iso.split("-");
   return `${d}/${m}/${y}`;
@@ -740,7 +740,7 @@ async function abrirResumoTotalRetirada(){
 }
 
 
-  async function abrirResumoTotalDesperdicio(){
+async function abrirResumoTotalDesperdicio(){
 
   if(modalAberto) return;
   modalAberto = true;
@@ -749,7 +749,7 @@ async function abrirResumoTotalRetirada(){
 
   let query = sb
     .from("buffet_lancamentos")
-    .select("produto_nome, quantidade, tipo, unidade")
+    .select("produto_nome, quantidade, tipo, data, unidade")
     .eq("empresa", empresa);
 
   if(rangeSelecionado.length === 2){
@@ -765,37 +765,80 @@ async function abrirResumoTotalRetirada(){
 
     const nome = r.produto_nome;
     const qtd = Number(r.quantidade || 0);
+    const dia = r.data;
 
     if(!porPrato[nome]){
       porPrato[nome] = {
-        totalProduzido: 0,
-        totalDesperdicio: 0,
-        unidade: r.unidade || "KG"
+        unidade: r.unidade || "KG",
+        dias: {}
+      };
+    }
+
+    if(!porPrato[nome].dias[dia]){
+      porPrato[nome].dias[dia] = {
+        produzido: 0,
+        desperdicio: 0
       };
     }
 
     if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
-      porPrato[nome].totalProduzido += qtd;
+      porPrato[nome].dias[dia].produzido += qtd;
     }
 
     if(r.tipo === "DEVOLUCAO"){
-      porPrato[nome].totalDesperdicio += qtd;
+      porPrato[nome].dias[dia].desperdicio += qtd;
     }
 
   });
 
-  const pratosComDesperdicio = Object.entries(porPrato)
-    .filter(([_,v]) => v.totalDesperdicio > 0)
-    .sort((a,b)=> b[1].totalDesperdicio - a[1].totalDesperdicio);
+  // 🔎 filtra apenas pratos com desperdício em MAIS DE 1 DIA
+  const recorrentes = Object.entries(porPrato)
+    .filter(([_,info]) => {
 
-  let html = pratosComDesperdicio.map(([nome,info])=>`
+      const diasComDesperdicio =
+        Object.values(info.dias)
+          .filter(d => d.desperdicio > 0).length;
+
+      return diasComDesperdicio > 1;
+    })
+    .sort((a,b)=>{
+
+      const totalA = Object.values(a[1].dias)
+        .reduce((s,d)=>s+d.desperdicio,0);
+
+      const totalB = Object.values(b[1].dias)
+        .reduce((s,d)=>s+d.desperdicio,0);
+
+      return totalB - totalA;
+    });
+
+let html = recorrentes.map(([nome,info])=>{
+
+  // 🔥 COLE EXATAMENTE AQUI (dentro do map)
+  cacheDesperdicio[nome] = {
+    dias: info.dias,
+    unidade: info.unidade
+  };
+
+  const totalDesperdicio =
+    Object.values(info.dias)
+      .reduce((s,d)=>s+d.desperdicio,0);
+
+  const diasComDesperdicio =
+    Object.values(info.dias)
+      .filter(d=>d.desperdicio>0).length;
+
+  return `
     <div style="
       border:1px solid #e5e7eb;
       border-radius:12px;
       padding:12px;
       margin-bottom:12px;
-      background:#fff
-    ">
+      background:#fff;
+      cursor:pointer
+    "
+    onclick="abrirDetalheDesperdicio('${nome}')"
+    >
       <div style="
         display:flex;
         justify-content:space-between;
@@ -804,25 +847,105 @@ async function abrirResumoTotalRetirada(){
       ">
         <span>${nome}</span>
         <span style="color:#dc2626">
-          ${info.totalDesperdicio.toFixed(3)} ${info.unidade}
+          ${totalDesperdicio.toFixed(3)} ${info.unidade}
         </span>
       </div>
 
       <div style="font-size:12px;color:#64748b">
-        Produzido: ${info.totalProduzido.toFixed(3)} ${info.unidade}
+        ${diasComDesperdicio} dias com desperdício
       </div>
     </div>
-  `).join("");
+  `;
+}).join("");
+    const totalDesperdicio =
+      Object.values(info.dias)
+        .reduce((s,d)=>s+d.desperdicio,0);
+
+    const diasComDesperdicio =
+      Object.values(info.dias)
+        .filter(d=>d.desperdicio>0).length;
+
+    return `
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:12px;
+        margin-bottom:12px;
+        background:#fff;
+        cursor:pointer
+      "
+      onclick='abrirDetalheDesperdicio(${JSON.stringify(info.dias)}, "${nome}", "${info.unidade}")'
+      >
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          font-weight:900;
+          margin-bottom:6px
+        ">
+          <span>${nome}</span>
+          <span style="color:#dc2626">
+            ${totalDesperdicio.toFixed(3)} ${info.unidade}
+          </span>
+        </div>
+
+        <div style="font-size:12px;color:#64748b">
+          ${diasComDesperdicio} dias com desperdício
+        </div>
+      </div>
+    `;
+  }).join("");
 
   document.getElementById("tituloResumoTotalDesperdicio").innerText =
-    "♻️ Desperdício por Item";
+    "♻️ Desperdício Recorrente";
 
   document.getElementById("listaResumoTotalDesperdicio").innerHTML =
-    html || "<small>Nenhum desperdício no período.</small>";
+    html || "<small>Nenhum desperdício recorrente no período.</small>";
 
   document.getElementById("modalResumoTotalDesperdicio").style.display = "flex";
   document.body.style.overflow = "hidden";
-}function fecharResumoTotalDesperdicio(){
+}function abrirDetalheDesperdicio(nomePrato){
+
+  const info = cacheDesperdicio[nomePrato];
+  if(!info) return;
+
+  const diasObj = info.dias;
+  const unidade = info.unidade;
+
+  let linhas = Object.entries(diasObj)
+    .filter(([_,d]) => d.desperdicio > 0)
+    .sort((a,b)=> a[0].localeCompare(b[0]))
+    .map(([dia,d])=>`
+      <tr>
+        <td>${formatBR(dia)}</td>
+        <td>${d.produzido.toFixed(3)} ${unidade}</td>
+        <td style="color:#dc2626;font-weight:800">
+          ${d.desperdicio.toFixed(3)} ${unidade}
+        </td>
+      </tr>
+    `).join("");
+
+  document.getElementById("tituloResumoTotalDesperdicio").innerText =
+    `♻️ ${nomePrato}`;
+
+  document.getElementById("listaResumoTotalDesperdicio").innerHTML = `
+    <div style="overflow:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:6px;border-bottom:1px solid #e5e7eb">Dia</th>
+            <th style="padding:6px;border-bottom:1px solid #e5e7eb">Produzido</th>
+            <th style="padding:6px;border-bottom:1px solid #e5e7eb">Desperdício</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${linhas}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+  
+  function fecharResumoTotalDesperdicio(){
   document.getElementById("modalResumoTotalDesperdicio").style.display = "none";
   document.body.style.overflow = "auto";
   modalAberto = false;
