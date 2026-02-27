@@ -576,22 +576,29 @@ async function abrirResumoRetirada(nomePrato){
 }
 
 async function abrirResumoTotalRetirada(){
+
   if(modalAberto) return;
   modalAberto = true;
 
   const empresa = empresaSelect.value;
 
-  let q = sb.from("buffet_lancamentos")
-    .select("produto_nome, consumo_para_nome, quantidade, tipo")
+  let query = sb
+    .from("buffet_lancamentos")
+    .select("produto_nome, consumo_para_nome, quantidade")
     .eq("empresa", empresa)
-    .eq("tipo", "RETIRADA"); // 🔥 só retiradas
+    .eq("tipo", "RETIRADA"); // 🔥 somente retiradas
 
+  // 🔎 aplica filtro de datas
   if(rangeSelecionado.length === 2){
-    q = q.gte("data", rangeSelecionado[0]);
-    q = q.lte("data", rangeSelecionado[1]);
+    query = query.gte("data", rangeSelecionado[0]);
+    query = query.lte("data", rangeSelecionado[1]);
   }
 
-  const { data } = await q;
+  const { data, error } = await query;
+
+  if(error){
+    console.error("Erro ao buscar retiradas:", error);
+  }
 
   const porDestino = {};
 
@@ -600,37 +607,70 @@ async function abrirResumoTotalRetirada(){
     const destino = r.consumo_para_nome || "SEM DESTINO";
     const quantidade = Number(r.quantidade || 0);
 
-    porDestino[destino] ||= { total:0, itens:{} };
+    if(!porDestino[destino]){
+      porDestino[destino] = {
+        total: 0,
+        itens: {}
+      };
+    }
 
     porDestino[destino].total += quantidade;
 
-    porDestino[destino].itens[r.produto_nome] =
-      (porDestino[destino].itens[r.produto_nome] || 0) + quantidade;
+    if(!porDestino[destino].itens[r.produto_nome]){
+      porDestino[destino].itens[r.produto_nome] = 0;
+    }
 
+    porDestino[destino].itens[r.produto_nome] += quantidade;
   });
 
   const html = Object.entries(porDestino)
-    .sort((a,b)=>b[1].total - a[1].total)
+    .sort((a,b)=> b[1].total - a[1].total)
     .map(([destino,info])=>`
-      <div style="border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin-bottom:10px">
-        <b style="display:flex;justify-content:space-between;align-items:center">
+
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:12px;
+        margin-bottom:12px;
+        background:#fff
+      ">
+
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          font-weight:900;
+          margin-bottom:6px
+        ">
           <span>📍 ${destino}</span>
           <span>${info.total.toFixed(3)} KG</span>
-        </b>
+        </div>
+
         <div style="margin-top:6px">
           ${
             Object.entries(info.itens)
-              .sort((a,b)=>b[1]-a[1])
+              .sort((a,b)=> b[1] - a[1])
               .map(([prato,kg])=>`
-                <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0">
+                <div style="
+                  display:flex;
+                  justify-content:space-between;
+                  font-size:12px;
+                  padding:4px 0;
+                  border-bottom:1px dashed #f1f5f9
+                ">
                   <span>${prato}</span>
                   <span>${kg.toFixed(3)} KG</span>
                 </div>
               `).join("")
           }
         </div>
+
       </div>
+
     `).join("");
+
+  document.getElementById("tituloResumoTotalRetirada").innerText =
+    "📦 Total Retirado por Destino";
 
   document.getElementById("listaResumoTotalRetirada").innerHTML =
     html || "<small>Nenhuma retirada no período.</small>";
