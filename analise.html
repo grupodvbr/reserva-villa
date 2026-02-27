@@ -303,7 +303,6 @@ const sb = window.supabase.createClient(
 
 const empresaSelect = document.getElementById("empresaSelect");
 
-const btnFiltrar = document.getElementById("btnFiltrar");
 const searchPrato = document.getElementById("searchPrato");
 const hoje = new Date();
 const seteDiasAtras = new Date(hoje.getTime() - 6*24*60*60*1000);
@@ -814,7 +813,6 @@ async function abrirResumoTotalDesperdicio(){
 
 let html = recorrentes.map(([nome,info])=>{
 
-  // 🔥 COLE EXATAMENTE AQUI (dentro do map)
   cacheDesperdicio[nome] = {
     dias: info.dias,
     unidade: info.unidade
@@ -856,16 +854,20 @@ let html = recorrentes.map(([nome,info])=>{
       </div>
     </div>
   `;
+}).join("");
 
-  document.getElementById("tituloResumoTotalDesperdicio").innerText =
-    "♻️ Desperdício Recorrente";
+document.getElementById("tituloResumoTotalDesperdicio").innerText =
+  "♻️ Desperdício Recorrente";
 
-  document.getElementById("listaResumoTotalDesperdicio").innerHTML =
-    html || "<small>Nenhum desperdício recorrente no período.</small>";
+document.getElementById("listaResumoTotalDesperdicio").innerHTML =
+  html || "<small>Nenhum desperdício recorrente no período.</small>";
 
-  document.getElementById("modalResumoTotalDesperdicio").style.display = "flex";
-  document.body.style.overflow = "hidden";
-}function abrirDetalheDesperdicio(nomePrato){
+document.getElementById("modalResumoTotalDesperdicio").style.display = "flex";
+document.body.style.overflow = "hidden";
+}
+                           
+                           
+  function abrirDetalheDesperdicio(nomePrato){
 
   const info = cacheDesperdicio[nomePrato];
   if(!info) return;
