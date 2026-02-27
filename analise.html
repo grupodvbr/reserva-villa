@@ -960,16 +960,19 @@ function voltarListaDesperdicio(){
   abrirResumoTotalDesperdicio();
 }
 
-/* 🔥 ADICIONE AQUI */
-document.getElementById("modalResumoTotalDesperdicio")
-  .addEventListener("click", function(e){
-    if(e.target === this){
-      fecharResumoTotalDesperdicio();
-    }
+window.addEventListener("DOMContentLoaded", function(){
+
+  const backdrop = document.getElementById("modalResumoTotalDesperdicio");
+
+  if(backdrop){
+    backdrop.addEventListener("click", function(e){
+      if(e.target === this){
+        fecharResumoTotalDesperdicio();
+      }
+    });
+  }
+
 });
-
-
-
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalResumoConsumo" onclick="if(event.target===this) fecharResumoConsumo()">  <div class="modal">
