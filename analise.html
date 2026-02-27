@@ -582,9 +582,8 @@ async function abrirResumoTotalRetirada(){
   const empresa = empresaSelect.value;
 
   let q = sb.from("buffet_lancamentos")
-    .select("produto_nome, consumo_para_nome, quantidade")
-    .eq("empresa", empresa)
-    .eq("tipo", "RETIRADA");
+    .select("produto_nome, consumo_para_nome, quantidade, tipo")
+    .eq("empresa", empresa);
 
   if(rangeSelecionado.length === 2){
     q = q.gte("data", rangeSelecionado[0]);
@@ -598,13 +597,37 @@ async function abrirResumoTotalRetirada(){
 
   const porDestino = {};
 
-  (data || []).forEach(r=>{
-    const destino = r.consumo_para_nome || "SEM DESTINO";
-    porDestino[destino] ||= { total: 0, itens: {} };
+  (data || []).forEach(r => {
 
-    porDestino[destino].total += Number(r.quantidade || 0);
-    porDestino[destino].itens[r.produto_nome] =
-      (porDestino[destino].itens[r.produto_nome] || 0) + Number(r.quantidade || 0);
+    // 🔥 REGRA ESPECIAL PARA PIA
+    if(r.consumo_para_nome === "PIA"){
+      if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
+
+        porDestino["PIA"] ||= { total:0, itens:{} };
+
+        porDestino["PIA"].total += Number(r.quantidade || 0);
+
+        porDestino["PIA"].itens[r.produto_nome] =
+          (porDestino["PIA"].itens[r.produto_nome] || 0)
+          + Number(r.quantidade || 0);
+      }
+
+      return; // ignora regra normal
+    }
+
+    // 🔥 REGRA NORMAL (RETIRADAS)
+    if(r.tipo === "RETIRADA"){
+      const destino = r.consumo_para_nome || "SEM DESTINO";
+
+      porDestino[destino] ||= { total:0, itens:{} };
+
+      porDestino[destino].total += Number(r.quantidade || 0);
+
+      porDestino[destino].itens[r.produto_nome] =
+        (porDestino[destino].itens[r.produto_nome] || 0)
+        + Number(r.quantidade || 0);
+    }
+
   });
 
   const html = Object.entries(porDestino)
@@ -634,7 +657,7 @@ async function abrirResumoTotalRetirada(){
     "📦 Total Retirado por Destino";
 
   document.getElementById("listaResumoTotalRetirada").innerHTML =
-    html || "<small>Nenhuma retirada no período.</small>";
+    html || "<small>Nenhum movimento no período.</small>";
 
   document.getElementById("modalResumoTotalRetirada").style.display = "flex";
   document.body.style.overflow = "hidden";
