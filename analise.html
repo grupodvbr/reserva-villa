@@ -758,15 +758,26 @@ async function abrirResumoTotalDesperdicio(){
     query = query.lte("data", rangeSelecionado[1]);
   }
 
-  const { data } = await query;
+const { data } = await query;
 
-  const porPrato = {};
+const porPrato = {};
 
-  (data || []).forEach(r => {
+// 🔎 pega o termo digitado na busca
+const termoBusca = (searchPrato.value || "").toLowerCase();
 
-    const nome = r.produto_nome;
-    const qtd = Number(r.quantidade || 0);
-    const dia = r.data;
+(data || []).forEach(r => {
+
+  // 🔎 FILTRO POR PRATO (AGORA RESPEITA O CAMPO BUSCAR)
+  if(
+    termoBusca &&
+    !(r.produto_nome || "").toLowerCase().includes(termoBusca)
+  ){
+    return;
+  }
+
+  const nome = r.produto_nome;
+  const qtd = Number(r.quantidade || 0);
+  const dia = r.data;
 
     if(!porPrato[nome]){
       porPrato[nome] = {
