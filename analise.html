@@ -744,6 +744,8 @@ async function abrirResumoTotalDesperdicio(){
   if(modalAberto) return;
   modalAberto = true;
 
+  cacheDesperdicio = {};   // 🔥 ADICIONE AQUI
+
   const empresa = empresaSelect.value;
 
   let query = sb
@@ -813,18 +815,26 @@ return diasComDesperdicio > 0;
 
 let html = recorrentes.map(([nome,info])=>{
 
-  cacheDesperdicio[nome] = {
-    dias: info.dias,
-    unidade: info.unidade
-  };
+  const totalProduzido =
+    Object.values(info.dias)
+      .reduce((s,d)=>s+d.produzido,0);
 
-  const totalDesperdicio =
+  const totalDesperdicioPrato =
     Object.values(info.dias)
       .reduce((s,d)=>s+d.desperdicio,0);
 
-  const diasComDesperdicio =
-    Object.values(info.dias)
-      .filter(d=>d.desperdicio>0).length;
+  const percentual =
+    totalProduzido > 0
+      ? (totalDesperdicioPrato / totalProduzido * 100)
+      : 0;
+
+  // 🔥 RESTAURA O CACHE CORRETO
+  cacheDesperdicio[nome] = {
+    dias: info.dias,
+    unidade: info.unidade,
+    totalProduzido,
+    totalDesperdicio: totalDesperdicioPrato
+  };
 
   return `
     <div style="
@@ -837,6 +847,7 @@ let html = recorrentes.map(([nome,info])=>{
     "
     onclick='abrirDetalheDesperdicio(${JSON.stringify(nome)})'
     >
+
       <div style="
         display:flex;
         justify-content:space-between;
@@ -845,13 +856,18 @@ let html = recorrentes.map(([nome,info])=>{
       ">
         <span>${nome}</span>
         <span style="color:#dc2626">
-          ${totalDesperdicio.toFixed(3)} ${info.unidade}
+          ${totalDesperdicioPrato.toFixed(3)} ${info.unidade}
         </span>
       </div>
 
       <div style="font-size:12px;color:#64748b">
-        ${diasComDesperdicio} dias com desperdício
+        Produzido: <b>${totalProduzido.toFixed(3)} ${info.unidade}</b>
       </div>
+
+      <div style="font-size:12px;color:#64748b">
+        ${percentual.toFixed(1)}% do total produzido
+      </div>
+
     </div>
   `;
 }).join("");
@@ -866,14 +882,16 @@ document.getElementById("modalResumoTotalDesperdicio").style.display = "flex";
 document.body.style.overflow = "hidden";
 }
                            
-                           
-  function abrirDetalheDesperdicio(nomePrato){
+function abrirDetalheDesperdicio(nomePrato){
 
   const info = cacheDesperdicio[nomePrato];
   if(!info) return;
 
   const diasObj = info.dias;
   const unidade = info.unidade;
+
+  const totalProduzidoPeriodo = info.totalProduzido;
+  const totalDesperdicioPeriodo = info.totalDesperdicio;
 
   let linhas = Object.entries(diasObj)
     .filter(([_,d]) => d.desperdicio > 0)
@@ -891,9 +909,17 @@ document.body.style.overflow = "hidden";
   document.getElementById("tituloResumoTotalDesperdicio").innerText =
     `♻️ ${nomePrato}`;
 
-  document.getElementById("listaResumoTotalDesperdicio").innerHTML = `
-    <div style="overflow:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
+document.getElementById("listaResumoTotalDesperdicio").innerHTML = `
+
+  <div style="margin-bottom:12px;padding:10px;background:#f8fafc;border-radius:10px">
+    <div><b>Total Produzido:</b> ${totalProduzidoPeriodo.toFixed(3)} ${unidade}</div>
+    <div style="color:#dc2626">
+      <b>Total Descartado:</b> ${totalDesperdicioPeriodo.toFixed(3)} ${unidade}
+    </div>
+  </div>
+
+  <div style="overflow:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
         <thead>
           <tr style="background:#f8fafc">
             <th style="padding:6px;border-bottom:1px solid #e5e7eb">Dia</th>
