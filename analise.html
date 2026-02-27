@@ -257,10 +257,11 @@ html, body {
   <small>Total Retirado</small>
   <h3 id="totalRetirado">0</h3>
 </div>
-    <div class="card" style="padding:10px">
-      <small>Total Desperdício</small>
-      <h3 id="totalDesperdicio">0</h3>
-    </div>
+<div class="card" style="padding:10px;cursor:pointer"
+     onclick="abrirResumoTotalDesperdicio()">
+  <small>Total Desperdício</small>
+  <h3 id="totalDesperdicio">0</h3>
+</div>
     <div class="card" style="padding:10px;background:#ecfeff">
       <small>Total Vendido</small>
       <h3 id="totalVendido">0</h3>
@@ -737,6 +738,95 @@ async function abrirResumoTotalRetirada(){
   document.getElementById("modalResumoTotalRetirada").style.display = "flex";
   document.body.style.overflow = "hidden";
 }
+
+
+  async function abrirResumoTotalDesperdicio(){
+
+  if(modalAberto) return;
+  modalAberto = true;
+
+  const empresa = empresaSelect.value;
+
+  let query = sb
+    .from("buffet_lancamentos")
+    .select("produto_nome, quantidade, tipo, unidade")
+    .eq("empresa", empresa);
+
+  if(rangeSelecionado.length === 2){
+    query = query.gte("data", rangeSelecionado[0]);
+    query = query.lte("data", rangeSelecionado[1]);
+  }
+
+  const { data } = await query;
+
+  const porPrato = {};
+
+  (data || []).forEach(r => {
+
+    const nome = r.produto_nome;
+    const qtd = Number(r.quantidade || 0);
+
+    if(!porPrato[nome]){
+      porPrato[nome] = {
+        totalProduzido: 0,
+        totalDesperdicio: 0,
+        unidade: r.unidade || "KG"
+      };
+    }
+
+    if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
+      porPrato[nome].totalProduzido += qtd;
+    }
+
+    if(r.tipo === "DEVOLUCAO"){
+      porPrato[nome].totalDesperdicio += qtd;
+    }
+
+  });
+
+  const pratosComDesperdicio = Object.entries(porPrato)
+    .filter(([_,v]) => v.totalDesperdicio > 0)
+    .sort((a,b)=> b[1].totalDesperdicio - a[1].totalDesperdicio);
+
+  let html = pratosComDesperdicio.map(([nome,info])=>`
+    <div style="
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:12px;
+      background:#fff
+    ">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        font-weight:900;
+        margin-bottom:6px
+      ">
+        <span>${nome}</span>
+        <span style="color:#dc2626">
+          ${info.totalDesperdicio.toFixed(3)} ${info.unidade}
+        </span>
+      </div>
+
+      <div style="font-size:12px;color:#64748b">
+        Produzido: ${info.totalProduzido.toFixed(3)} ${info.unidade}
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("tituloResumoTotalDesperdicio").innerText =
+    "♻️ Desperdício por Item";
+
+  document.getElementById("listaResumoTotalDesperdicio").innerHTML =
+    html || "<small>Nenhum desperdício no período.</small>";
+
+  document.getElementById("modalResumoTotalDesperdicio").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}function fecharResumoTotalDesperdicio(){
+  document.getElementById("modalResumoTotalDesperdicio").style.display = "none";
+  document.body.style.overflow = "auto";
+  modalAberto = false;
+}
 function fecharResumoTotalRetirada(){
   document.getElementById("modalResumoTotalRetirada").style.display = "none";
   document.body.style.overflow = "auto";
@@ -801,6 +891,28 @@ function fecharResumoRetirada(){
 
     <div class="actions">
       <button class="ghost" onclick="fecharResumoTotalRetirada()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- MODAL RESUMO TOTAL DESPERDÍCIO -->
+<div class="modal-backdrop"
+     id="modalResumoTotalDesperdicio"
+     onclick="if(event.target===this) fecharResumoTotalDesperdicio()">
+
+  <div class="modal">
+    <h3 id="tituloResumoTotalDesperdicio">
+      ♻️ Desperdício por Item
+    </h3>
+
+    <div id="listaResumoTotalDesperdicio"
+         style="max-height:60vh;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost"
+              onclick="fecharResumoTotalDesperdicio()">
         Fechar
       </button>
     </div>
