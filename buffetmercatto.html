@@ -614,7 +614,9 @@ lista.innerHTML += `
       ${
         l.consumo_autorizado
           ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
-          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">${l.tipo}</span>`
+          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">
+  ${l.tipo === "DEVOLUCAO" ? "DESPERDÍCIO" : l.tipo}
+</span>`
       }
     </div>
 
