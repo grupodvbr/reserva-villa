@@ -798,7 +798,7 @@ async function abrirResumoTotalDesperdicio(){
         Object.values(info.dias)
           .filter(d => d.desperdicio > 0).length;
 
-      return diasComDesperdicio > 1;
+return diasComDesperdicio > 0;
     })
     .sort((a,b)=>{
 
