@@ -856,44 +856,6 @@ let html = recorrentes.map(([nome,info])=>{
       </div>
     </div>
   `;
-}).join("");
-    const totalDesperdicio =
-      Object.values(info.dias)
-        .reduce((s,d)=>s+d.desperdicio,0);
-
-    const diasComDesperdicio =
-      Object.values(info.dias)
-        .filter(d=>d.desperdicio>0).length;
-
-    return `
-      <div style="
-        border:1px solid #e5e7eb;
-        border-radius:12px;
-        padding:12px;
-        margin-bottom:12px;
-        background:#fff;
-        cursor:pointer
-      "
-      onclick='abrirDetalheDesperdicio(${JSON.stringify(info.dias)}, "${nome}", "${info.unidade}")'
-      >
-        <div style="
-          display:flex;
-          justify-content:space-between;
-          font-weight:900;
-          margin-bottom:6px
-        ">
-          <span>${nome}</span>
-          <span style="color:#dc2626">
-            ${totalDesperdicio.toFixed(3)} ${info.unidade}
-          </span>
-        </div>
-
-        <div style="font-size:12px;color:#64748b">
-          ${diasComDesperdicio} dias com desperdício
-        </div>
-      </div>
-    `;
-  }).join("");
 
   document.getElementById("tituloResumoTotalDesperdicio").innerText =
     "♻️ Desperdício Recorrente";
