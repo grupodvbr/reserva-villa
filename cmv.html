@@ -3,126 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <title>CMV Executivo Total</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- 🔒 BLOQUEIA ZOOM -->
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
+:root{
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --primary:#111827;
+  --accent:#2563eb;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
+}
+
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Inter,sans-serif;
-  background:#f4f6fb;
+  background:var(--bg);
 }
 
+/* HEADER MOBILE */
 .header{
-  background:#fff;
-  padding:16px;
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  border-bottom:1px solid #e5e7eb;
   position:sticky;
   top:0;
-  z-index:10;
+  z-index:50;
+  background:#fff;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  border-bottom:1px solid var(--border);
 }
 
-input,select{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid #e5e7eb;
+.header input,
+.header select{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
   font-weight:700;
-}
-
-button{
-  background:#111827;
-  color:#fff;
-  padding:10px 16px;
-  border:none;
-  border-radius:8px;
-  font-weight:800;
-  cursor:pointer;
+  font-size:15px;
+  background:#fff;
 }
 
 .container{
-  padding:20px;
+  padding:14px;
 }
 
+/* CARD */
 .card{
-  background:#fff;
-  border-radius:18px;
-  padding:24px;
-  margin-bottom:28px;
-  box-shadow:0 15px 50px rgba(0,0,0,.08);
+  background:var(--card);
+  border-radius:20px;
+  padding:16px;
+  margin-bottom:20px;
+  box-shadow:0 10px 35px rgba(0,0,0,.06);
 }
 
+/* HEADER CARD */
 .card-header{
-  display:grid;
-  grid-template-columns:180px 1fr;
-  gap:20px;
-  align-items:center;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 
 .card img{
   width:100%;
-  height:160px;
+  height:200px;
   object-fit:cover;
-  border-radius:14px;
+  border-radius:16px;
   background:#000;
 }
 
 .card h2{
-  margin:0 0 6px;
-  font-size:24px;
+  margin:0;
+  font-size:20px;
   font-weight:900;
+}
+
+.card p{
+  margin:4px 0 0;
+  font-size:13px;
+  color:var(--muted);
 }
 
 .badges{
   display:flex;
   flex-wrap:wrap;
-  gap:8px;
-  margin-top:8px;
+  gap:6px;
+  margin-top:10px;
 }
 
 .badge{
   background:#eef2ff;
   padding:6px 10px;
   border-radius:999px;
-  font-size:12px;
+  font-size:11px;
   font-weight:800;
 }
 
+/* GRID INDICADORES */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:12px;
-  margin-top:16px;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:14px;
 }
 
 .box{
   background:#f9fafb;
   padding:12px;
-  border-radius:10px;
-  font-size:13px;
+  border-radius:14px;
+  font-size:12px;
+}
+
+.box b{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin-bottom:3px;
+}
+
+/* TABELAS */
+.table-wrapper{
+  overflow-x:auto;
+  margin-top:12px;
 }
 
 table{
   width:100%;
+  min-width:520px;
   border-collapse:collapse;
-  margin-top:14px;
-  font-size:13px;
+  font-size:12px;
 }
 
 th,td{
-  border-bottom:1px solid #e5e7eb;
   padding:8px;
+  border-bottom:1px solid var(--border);
   text-align:left;
 }
 
-.section-title{
-  margin-top:20px;
-  font-weight:900;
-  font-size:14px;
+th{
+  font-size:11px;
+  text-transform:uppercase;
+  color:var(--muted);
 }
 
 .total-row{
@@ -130,18 +165,24 @@ th,td{
   font-weight:900;
 }
 
-@media(max-width:700px){
-  .card-header{
-    grid-template-columns:1fr;
-  }
-  .card img{
-    height:200px;
-  }
+.section-title{
+  margin-top:18px;
+  font-weight:900;
+  font-size:13px;
 }
 
-@media print{
-  .header{display:none}
-  .card{page-break-after:always}
+/* DESKTOP MELHORA */
+@media(min-width:768px){
+  .card-header{
+    flex-direction:row;
+  }
+  .card img{
+    width:220px;
+    height:160px;
+  }
+  .grid{
+    grid-template-columns:repeat(4,1fr);
+  }
 }
 </style>
 </head>
@@ -149,11 +190,10 @@ th,td{
 <body>
 
 <div class="header">
-  <input id="search" placeholder="Buscar prato">
+  <input id="search" placeholder="Buscar prato pelo nome">
   <select id="tipoFilter">
     <option value="">Todos os tipos</option>
   </select>
-  <button onclick="window.print()">Exportar PDF</button>
 </div>
 
 <div class="container" id="conteudo"></div>
@@ -164,9 +204,9 @@ const sb = supabase.createClient(
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-let pratos = [];
-let itensMap = {};
-let impostosMap = {};
+let pratos=[];
+let itensMap={};
+let impostosMap={};
 
 async function carregarDados(){
 
@@ -176,13 +216,13 @@ async function carregarDados(){
 
   pratos = buffet || [];
 
-  itensMap = {};
+  itensMap={};
   (itens||[]).forEach(i=>{
     if(!itensMap[i.buffet_id]) itensMap[i.buffet_id]=[];
     itensMap[i.buffet_id].push(i);
   });
 
-  impostosMap = {};
+  impostosMap={};
   (impostos||[]).forEach(i=>{
     if(!impostosMap[i.buffet_id]) impostosMap[i.buffet_id]=[];
     impostosMap[i.buffet_id].push(i);
@@ -203,7 +243,7 @@ function aplicarFiltros(){
   const tipo=tipoFilter.value;
 
   const filtrados=pratos.filter(p=>{
-    const nomeOk=!nome||p.nome.toUpperCase().includes(nome);
+    const nomeOk=!nome||p.nome?.toUpperCase().includes(nome);
     const tipoOk=!tipo||p.tipo===tipo;
     return nomeOk&&tipoOk;
   });
@@ -242,8 +282,7 @@ function render(lista){
         <img src="${p.foto_url||'https://placehold.co/600x400?text=Sem+Foto'}">
         <div>
           <h2>${p.nome}</h2>
-          <div>${p.descricao||""}</div>
-
+          <p>${p.descricao||""}</p>
           <div class="badges">
             <div class="badge">Tipo: ${p.tipo||"-"}</div>
             <div class="badge">Status: ${p.ativo?"Ativo":"Inativo"}</div>
@@ -253,59 +292,39 @@ function render(lista){
       </div>
 
       <div class="grid">
-        <div class="box"><b>Preço Venda</b><br>R$ ${preco.toFixed(2)}</div>
-        <div class="box"><b>Preço Ideal</b><br>R$ ${Number(p.preco_ideal||0).toFixed(2)}</div>
-        <div class="box"><b>Custo Base</b><br>R$ ${cmvBase.toFixed(2)}</div>
-        <div class="box"><b>Custo Final</b><br>R$ ${custoFinal.toFixed(2)}</div>
-        <div class="box"><b>CMV</b><br>${cmvPerc.toFixed(1)}%</div>
-        <div class="box"><b>Lucro</b><br>R$ ${lucro.toFixed(2)}</div>
-        <div class="box"><b>Margem</b><br>${margem.toFixed(1)}%</div>
+        <div class="box"><b>Preço Venda</b>R$ ${preco.toFixed(2)}</div>
+        <div class="box"><b>Custo Final</b>R$ ${custoFinal.toFixed(2)}</div>
+        <div class="box"><b>CMV</b>${cmvPerc.toFixed(1)}%</div>
+        <div class="box"><b>Margem</b>${margem.toFixed(1)}%</div>
       </div>
 
       <div class="section-title">Ingredientes</div>
+      <div class="table-wrapper">
       <table>
         <tr>
           <th>Nome</th>
           <th>Qtd</th>
-          <th>Un.</th>
-          <th>Custo Unit.</th>
-          <th>Custo Total</th>
+          <th>Un</th>
+          <th>Custo</th>
         </tr>
         ${itens.map(i=>{
           const qtd=Number(i.quantidade||0);
-          const custoUnit=Number(i.custo_unitario||0);
-          const total=qtd*custoUnit;
+          const total=qtd*Number(i.custo_unitario||0);
           return `
             <tr>
               <td>${i.nome}</td>
-<td>${qtd.toFixed(4)}</td>
-<td>${i.unidade_uso}</td>
-              <td>R$ ${custoUnit.toFixed(2)}</td>
-              <td><b>R$ ${total.toFixed(2)}</b></td>
+              <td>${qtd.toFixed(3)}</td>
+              <td>${i.unidade_uso}</td>
+              <td>R$ ${total.toFixed(2)}</td>
             </tr>
           `;
         }).join("")}
         <tr class="total-row">
-          <td colspan="4">Total Ingredientes</td>
+          <td colspan="3">Total</td>
           <td>R$ ${cmvBase.toFixed(2)}</td>
         </tr>
       </table>
-
-      <div class="section-title">Impostos / Custos</div>
-      <table>
-        <tr><th>Descrição</th><th>Tipo</th><th>Modalidade</th><th>Valor</th></tr>
-        ${impostos.map(i=>`
-          <tr>
-            <td>${i.descricao}</td>
-            <td>${i.tipo}</td>
-            <td>${i.modalidade}</td>
-            <td>${i.modalidade==="PERCENTUAL"?i.valor+"%":"R$ "+Number(i.valor).toFixed(2)}</td>
-          </tr>
-        `).join("")}
-      </table>
-
-      <div class="section-title">Modo de Preparo</div>
-      <div>${p.modo_preparo||"-"}</div>
+      </div>
     `;
 
     conteudo.appendChild(div);
