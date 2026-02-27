@@ -968,22 +968,56 @@ function fecharResumoRetirada(){
 }
 
 function voltarListaDesperdicio(){
-  abrirResumoTotalDesperdicio();
+
+  const htmlLista = Object.entries(cacheDesperdicio)
+    .sort((a,b)=> b[1].totalDesperdicio - a[1].totalDesperdicio)
+    .map(([nome,info])=>{
+
+      const percentual =
+        info.totalProduzido > 0
+          ? (info.totalDesperdicio / info.totalProduzido * 100)
+          : 0;
+
+      return `
+        <div style="
+          border:1px solid #e5e7eb;
+          border-radius:12px;
+          padding:12px;
+          margin-bottom:12px;
+          background:#fff;
+          cursor:pointer
+        "
+        onclick='abrirDetalheDesperdicio(${JSON.stringify(nome)})'
+        >
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            font-weight:900;
+            margin-bottom:6px
+          ">
+            <span>${nome}</span>
+            <span style="color:#dc2626">
+              ${info.totalDesperdicio.toFixed(3)} ${info.unidade}
+            </span>
+          </div>
+
+          <div style="font-size:12px;color:#64748b">
+            Produzido: <b>${info.totalProduzido.toFixed(3)} ${info.unidade}</b>
+          </div>
+
+          <div style="font-size:12px;color:#64748b">
+            ${percentual.toFixed(1)}% do total produzido
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  document.getElementById("tituloResumoTotalDesperdicio").innerText =
+    "♻️ Desperdício no Período";
+
+  document.getElementById("listaResumoTotalDesperdicio").innerHTML =
+    htmlLista;
 }
-
-window.addEventListener("DOMContentLoaded", function(){
-
-  const backdrop = document.getElementById("modalResumoTotalDesperdicio");
-
-  if(backdrop){
-    backdrop.addEventListener("click", function(e){
-      if(e.target === this){
-        fecharResumoTotalDesperdicio();
-      }
-    });
-  }
-
-});
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalResumoConsumo" onclick="if(event.target===this) fecharResumoConsumo()">  <div class="modal">
