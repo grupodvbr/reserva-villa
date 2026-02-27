@@ -1,404 +1,322 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Resumo de Vendas • Analítico Operacional</title>
+<meta charset="UTF-8">
+<title>CMV Executivo Total</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root{
-  --primary:#ff6a00;
-  --primary-dark:#ea580c;
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --muted:#6b7280;
-  --success:#16a34a;
-  --danger:#dc2626;
-  --radius:18px;
-  --shadow:0 16px 40px rgba(0,0,0,.12);
-}
-*{box-sizing:border-box;font-family:Inter}
-html, body{
-  width:100%;
-  height:100%;
+body{
   margin:0;
-  background:linear-gradient(180deg,#fff, var(--bg));
-  overflow:hidden;
+  font-family:Inter,sans-serif;
+  background:#f4f6fb;
 }
-.app{
-  max-width:1400px;
-  margin:0 auto;
-  padding:14px 14px 22px;
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
+
 .header{
+  background:#fff;
+  padding:16px;
   display:flex;
-  align-items:center;
-  justify-content:space-between;
   gap:12px;
-  margin-bottom:12px;
+  flex-wrap:wrap;
+  border-bottom:1px solid #e5e7eb;
+  position:sticky;
+  top:0;
+  z-index:10;
 }
-.title{font-size:22px;font-weight:900}
-.badge{
-  background:#111827;color:#fff;
-  padding:6px 10px;border-radius:999px;
-  font-size:12px;white-space:nowrap
+
+input,select{
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid #e5e7eb;
+  font-weight:700;
 }
+
+button{
+  background:#111827;
+  color:#fff;
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.container{
+  padding:20px;
+}
+
 .card{
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:14px;
-  margin-bottom:12px;
+  background:#fff;
+  border-radius:18px;
+  padding:24px;
+  margin-bottom:28px;
+  box-shadow:0 15px 50px rgba(0,0,0,.08);
 }
-.form-grid{
+
+.card-header{
   display:grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap:12px;
-  align-items:end;
+  grid-template-columns:180px 1fr;
+  gap:20px;
+  align-items:center;
 }
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:12px;font-weight:700;color:#374151}
-input, select, button{
-  padding:14px 14px;
+
+.card img{
+  width:100%;
+  height:160px;
+  object-fit:cover;
   border-radius:14px;
-  border:1px solid var(--border);
-  font-size:16px;
-  outline:none;
-  height:48px;
+  background:#000;
 }
-input:focus, select:focus{
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(255,106,0,.15);
-}
-button.primary{
-  background:var(--primary);
-  color:#fff;border:none;font-weight:800;
-}
-button.primary:active{transform:scale(.98)}
-small{color:var(--muted)}
 
-.grupo h3{font-size:12px;color:var(--muted);margin:10px 0 6px}
-.bloco{
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:10px;
+.card h2{
+  margin:0 0 6px;
+  font-size:24px;
+  font-weight:900;
 }
-.top{
-  display:flex;justify-content:space-between;align-items:center;font-weight:900
+
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
 }
-.badge2{
-  padding:4px 10px;border-radius:999px;font-size:12px;font-weight:900
-}
-.badge2.up{background:#dcfce7;color:#166534}
-.badge2.down{background:#fee2e2;color:#991b1b}
-.item{
-  display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border)
-}
-.item:last-child{border-bottom:none}
-.valores{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px
-}
-.box{
-  border:1px dashed var(--border);
-  border-radius:12px;
-  padding:8px;
+
+.badge{
+  background:#eef2ff;
+  padding:6px 10px;
+  border-radius:999px;
   font-size:12px;
-}
-.box b{display:block;font-size:14px}
-.muted{color:var(--muted)}
-
-.list-wrap{
-  overflow:auto;
-  padding-right:4px;
-  max-height:calc(100dvh - 320px);
+  font-weight:800;
 }
 
-@media (max-width: 720px){
-  .form-grid{grid-template-columns:1fr}
-  .title{font-size:20px}
-  .list-wrap{max-height:calc(100dvh - 380px)}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+  margin-top:16px;
 }
 
-/* Overlay */
-#loadingOverlay{
-  position:fixed; inset:0; z-index:9999;
-  background:rgba(15,23,42,.55);
-  display:none; align-items:center; justify-content:center;
-  backdrop-filter: blur(2px);
+.box{
+  background:#f9fafb;
+  padding:12px;
+  border-radius:10px;
+  font-size:13px;
 }
-@keyframes spin{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:14px;
+  font-size:13px;
+}
+
+th,td{
+  border-bottom:1px solid #e5e7eb;
+  padding:8px;
+  text-align:left;
+}
+
+.section-title{
+  margin-top:20px;
+  font-weight:900;
+  font-size:14px;
+}
+
+.total-row{
+  background:#f3f4f6;
+  font-weight:900;
+}
+
+@media(max-width:700px){
+  .card-header{
+    grid-template-columns:1fr;
+  }
+  .card img{
+    height:200px;
+  }
+}
+
+@media print{
+  .header{display:none}
+  .card{page-break-after:always}
 }
 </style>
 </head>
 
 <body>
-<div class="app">
 
-  <div class="header">
-    <div class="title">Resumo de Vendas</div>
-    <span class="badge">Filtro operacional</span>
-  </div>
-
-  <!-- FILTRO IGUAL AO DO BUFFET -->
-  <div class="card">
-    <div class="form-grid">
-      <div class="field">
-        <label>Empresa</label>
-        <select id="filtroEmpresa">
-          <option value="todas">Todas empresas</option>
-          <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-          <option value="DELÍCIA GOURMET">Delícia Gourmet</option>
-          <option value="VILLA GOURMET">Villa Gourmet</option>
-          <option value="M.KIDS">M.Kids</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Dia</label>
-        <input type="date" id="filtroDia">
-      </div>
-
-      <div class="field">
-        <label>Mês (comparativo)</label>
-        <input type="month" id="filtroMes">
-      </div>
-
-      <div class="field">
-        <label>&nbsp;</label>
-        <button class="primary" id="btnFiltrar">
-          <i class="ri-filter-3-line"></i> Atualizar
-        </button>
-      </div>
-    </div>
-    <small>Dia padrão = ontem • Mês = mesmo mês para comparação anual</small>
-  </div>
-
-  <div class="list-wrap">
-    <div class="card grupo">
-      <h3>EMPÓRIO</h3>
-      <div id="emporio"></div>
-    </div>
-
-    <div class="card grupo">
-      <h3>RESTAURANTE</h3>
-      <div id="restaurante"></div>
-    </div>
-
-    <div class="card grupo" id="grupo-outros" style="display:none">
-      <h3>OUTRAS EMPRESAS</h3>
-      <div id="outros"></div>
-    </div>
-
-    <div class="card grupo">
-      <h3>COMPARATIVO MENSAL (MESMO MÊS DO ANO ANTERIOR)</h3>
-      <div id="comparativo"></div>
-    </div>
-  </div>
-
+<div class="header">
+  <input id="search" placeholder="Buscar prato">
+  <select id="tipoFilter">
+    <option value="">Todos os tipos</option>
+  </select>
+  <button onclick="window.print()">Exportar PDF</button>
 </div>
 
-<!-- OVERLAY LOADING -->
-<div id="loadingOverlay">
-  <div style="
-    background:#fff; padding:22px 26px; border-radius:16px;
-    display:flex; align-items:center; gap:12px;
-    box-shadow:0 12px 30px rgba(0,0,0,.25)
-  ">
-    <i class="ri-loader-4-line" style="font-size:26px; color:#ff6a00; animation:spin 1s linear infinite"></i>
-    <b>Carregando...</b>
-  </div>
-</div>
+<div class="container" id="conteudo"></div>
 
 <script>
-const { createClient } = supabase;
-const sb = createClient(
+const sb = supabase.createClient(
   "https://dxkszikemntfusfyrzos.supabase.co",
   "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
 );
 
-const categoriasAgrupadas = {
-  "crédito": ["credito","cartao credito","credito pos","pgto online credito","credito delivery","cart credito","crédito à vista"],
-  "débito": ["debito","pgto online debito","cartao debito","totem debito","debito pos","debito delivery","cart debito"],
-  "pix": ["pix","pgto online pix","qrcode","pix tef","pix cnpj","pix offline","pix itau","pix pos"],
-  "online": ["pagamento online","pagamentos online","refeicao","cart alimentacao"],
-  "consumo interno": ["funcionario","convenio empresa","consumo funcionarios","consumo musicos"],
-  "boleto": ["boleto"],
-  "crediário": ["crediario","crediario clientes"],
-  "voucher": ["voucher","cartao voucher","voucher pos","voucher delicia","voucher villa"],
-  "dinheiro": ["dinheiro","pgto online dinheiro"],
-  "bonificação": ["bonificacao"],
-  "catálogo delivery": ["catalogo delivery","catálogo delivery"],
-  "consumo sócio": ["socio","consumo sócio","consumo socio"],
-  "marketing": ["marketing"],
-  "transferência bancária": ["transferencia bancar","transferencia bancaria"],
-  "erros garçom": ["erros garcons"],
-  "sem faturamento": ["sem faturamento"],
-  "outros": []
-};
+let pratos = [];
+let itensMap = {};
+let impostosMap = {};
 
-const BRL = v => Number(v||0).toLocaleString("pt-BR",{minimumFractionDigits:2});
+async function carregarDados(){
 
-function normalizarCategoria(mod){
-  if(!mod || typeof mod !== "string") return "outros";
-  const m = mod.toLowerCase().trim();
-  for(const [cat,keys] of Object.entries(categoriasAgrupadas)){
-    if(keys.some(k => m.includes(k))) return cat;
-  }
-  return "outros";
-}
-function classificarEmpresa(nome){
-  const n = (nome||"").toLowerCase();
-  if(n.includes("emp")) return "emporio";
-  if(n.includes("rest")) return "restaurante";
-  return "outros";
-}
+  const { data: buffet } = await sb.from("buffet").select("*");
+  const { data: itens } = await sb.from("buffet_itens").select("*");
+  const { data: impostos } = await sb.from("impostos").select("*");
 
-function showLoading(){ document.getElementById("loadingOverlay").style.display = "flex"; }
-function hideLoading(){ document.getElementById("loadingOverlay").style.display = "none"; }
+  pratos = buffet || [];
 
-(function setDefaults(){
-  const d = new Date();
-  d.setDate(d.getDate()-1);
-  filtroDia.value = d.toISOString().slice(0,10);
-  filtroMes.value = d.toISOString().slice(0,7);
-})();
-
-async function buscarTodos(){
-  let todos=[], from=0, step=1000;
-  while(true){
-    let q = sb.from("resumo_entradas")
-      .select("data_lancamento, modalidade, valor, empresa")
-      .order("data_lancamento",{ascending:true})
-      .range(from, from+step-1);
-
-    if(filtroEmpresa.value!=="todas") q=q.eq("empresa", filtroEmpresa.value);
-    if(filtroDia.value) q=q.eq("data_lancamento", filtroDia.value);
-
-    const { data, error } = await q;
-    if(error || !data.length) break;
-    todos.push(...data); from+=step;
-  }
-  return todos;
-}
-
-async function buscarMes(empresa, inicio, fim){
-  let total=0, from=0, step=1000;
-  while(true){
-    let q = sb.from("resumo_entradas")
-      .select("valor, empresa, data_lancamento")
-      .gte("data_lancamento", inicio)
-      .lte("data_lancamento", fim);
-    if(empresa!=="todas") q=q.eq("empresa", empresa);
-
-    const { data } = await q.range(from, from+step-1);
-    if(!data || !data.length) break;
-    data.forEach(r=> total+=Number(r.valor||0));
-    from+=step;
-  }
-  return total;
-}
-
-async function atualizar(){
-  showLoading();
-
-  const lista = await buscarTodos();
-  montarResumo(lista);
-  await montarComparativo();
-
-  hideLoading();
-}
-
-function montarResumo(lista){
-  const porEmpresa={};
-  lista.forEach(l=>{
-    const v=Number(l.valor)||0;
-    porEmpresa[l.empresa] ||= {total:0,cats:{}};
-    porEmpresa[l.empresa].total+=v;
-    const cat=normalizarCategoria(l.modalidade);
-    porEmpresa[l.empresa].cats[cat]=(porEmpresa[l.empresa].cats[cat]||0)+v;
+  itensMap = {};
+  (itens||[]).forEach(i=>{
+    if(!itensMap[i.buffet_id]) itensMap[i.buffet_id]=[];
+    itensMap[i.buffet_id].push(i);
   });
 
-  emporio.innerHTML=""; restaurante.innerHTML=""; outros.innerHTML="";
-  document.getElementById("grupo-outros").style.display="none";
+  impostosMap = {};
+  (impostos||[]).forEach(i=>{
+    if(!impostosMap[i.buffet_id]) impostosMap[i.buffet_id]=[];
+    impostosMap[i.buffet_id].push(i);
+  });
 
-  Object.entries(porEmpresa).forEach(([empresa,info])=>{
-    const bloco=`
-      <div class="bloco">
-        <div class="top">
-          <span>${empresa}</span>
-          <span>R$ ${BRL(info.total)}</span>
+  popularTipos();
+  aplicarFiltros();
+}
+
+function popularTipos(){
+  const tipos=[...new Set(pratos.map(p=>p.tipo).filter(Boolean))];
+  tipoFilter.innerHTML="<option value=''>Todos</option>"+
+    tipos.map(t=>`<option value="${t}">${t}</option>`).join("");
+}
+
+function aplicarFiltros(){
+  const nome=search.value.toUpperCase();
+  const tipo=tipoFilter.value;
+
+  const filtrados=pratos.filter(p=>{
+    const nomeOk=!nome||p.nome.toUpperCase().includes(nome);
+    const tipoOk=!tipo||p.tipo===tipo;
+    return nomeOk&&tipoOk;
+  });
+
+  render(filtrados);
+}
+
+function render(lista){
+  conteudo.innerHTML="";
+
+  lista.forEach(p=>{
+
+    const itens=itensMap[p.id]||[];
+    const impostos=impostosMap[p.id]||[];
+
+    const cmvBase=itens.reduce((s,i)=>s+Number(i.custo_calculado||0),0);
+
+    let totalImp=0;
+    impostos.forEach(i=>{
+      if(i.modalidade==="FIXO") totalImp+=Number(i.valor);
+      if(i.modalidade==="PERCENTUAL")
+        totalImp+=(cmvBase*Number(i.valor))/100;
+    });
+
+    const custoFinal=cmvBase+totalImp;
+    const preco=Number(p.preco_venda||0);
+    const lucro=preco-custoFinal;
+    const margem=preco?(lucro/preco)*100:0;
+    const cmvPerc=preco?(cmvBase/preco)*100:0;
+
+    const div=document.createElement("div");
+    div.className="card";
+
+    div.innerHTML=`
+      <div class="card-header">
+        <img src="${p.foto_url||'https://placehold.co/600x400?text=Sem+Foto'}">
+        <div>
+          <h2>${p.nome}</h2>
+          <div>${p.descricao||""}</div>
+
+          <div class="badges">
+            <div class="badge">Tipo: ${p.tipo||"-"}</div>
+            <div class="badge">Status: ${p.ativo?"Ativo":"Inativo"}</div>
+            <div class="badge">Código: ${p.codigo_varejo||"-"}</div>
+          </div>
         </div>
-        ${Object.entries(info.cats).map(([c,v])=>`
-          <div class="item"><span>• ${c}</span><span>R$ ${BRL(v)}</span></div>
+      </div>
+
+      <div class="grid">
+        <div class="box"><b>Preço Venda</b><br>R$ ${preco.toFixed(2)}</div>
+        <div class="box"><b>Preço Ideal</b><br>R$ ${Number(p.preco_ideal||0).toFixed(2)}</div>
+        <div class="box"><b>Custo Base</b><br>R$ ${cmvBase.toFixed(2)}</div>
+        <div class="box"><b>Custo Final</b><br>R$ ${custoFinal.toFixed(2)}</div>
+        <div class="box"><b>CMV</b><br>${cmvPerc.toFixed(1)}%</div>
+        <div class="box"><b>Lucro</b><br>R$ ${lucro.toFixed(2)}</div>
+        <div class="box"><b>Margem</b><br>${margem.toFixed(1)}%</div>
+      </div>
+
+      <div class="section-title">Ingredientes</div>
+      <table>
+        <tr>
+          <th>Nome</th>
+          <th>Qtd</th>
+          <th>Un.</th>
+          <th>Custo Unit.</th>
+          <th>Custo Total</th>
+        </tr>
+        ${itens.map(i=>{
+          const qtd=Number(i.quantidade||0);
+          const custoUnit=Number(i.custo_unitario||0);
+          const total=qtd*custoUnit;
+          return `
+            <tr>
+              <td>${i.nome}</td>
+<td>${qtd.toFixed(4)}</td>
+<td>${i.unidade_uso}</td>
+              <td>R$ ${custoUnit.toFixed(2)}</td>
+              <td><b>R$ ${total.toFixed(2)}</b></td>
+            </tr>
+          `;
+        }).join("")}
+        <tr class="total-row">
+          <td colspan="4">Total Ingredientes</td>
+          <td>R$ ${cmvBase.toFixed(2)}</td>
+        </tr>
+      </table>
+
+      <div class="section-title">Impostos / Custos</div>
+      <table>
+        <tr><th>Descrição</th><th>Tipo</th><th>Modalidade</th><th>Valor</th></tr>
+        ${impostos.map(i=>`
+          <tr>
+            <td>${i.descricao}</td>
+            <td>${i.tipo}</td>
+            <td>${i.modalidade}</td>
+            <td>${i.modalidade==="PERCENTUAL"?i.valor+"%":"R$ "+Number(i.valor).toFixed(2)}</td>
+          </tr>
         `).join("")}
-      </div>`;
-    const grupo=classificarEmpresa(empresa);
-    if(grupo==="emporio") emporio.innerHTML+=bloco;
-    else if(grupo==="restaurante") restaurante.innerHTML+=bloco;
-    else{ document.getElementById("grupo-outros").style.display="block"; outros.innerHTML+=bloco; }
+      </table>
+
+      <div class="section-title">Modo de Preparo</div>
+      <div>${p.modo_preparo||"-"}</div>
+    `;
+
+    conteudo.appendChild(div);
   });
-
-  if(!emporio.innerHTML) emporio.innerHTML='<div class="muted">Sem vendas</div>';
-  if(!restaurante.innerHTML) restaurante.innerHTML='<div class="muted">Sem vendas</div>';
 }
 
-async function montarComparativo(){
-  const mes = filtroMes.value; // YYYY-MM
-  const [ano,mesNum]=mes.split("-");
-  const iniAtual=`${ano}-${mesNum}-01`;
-  const fimAtual=new Date(ano,Number(mesNum),0).toISOString().slice(0,10);
+search.oninput=aplicarFiltros;
+tipoFilter.onchange=aplicarFiltros;
 
-  const anoAnt=Number(ano)-1;
-  const iniAnt=`${anoAnt}-${mesNum}-01`;
-  const fimAnt=new Date(anoAnt,Number(mesNum),0).toISOString().slice(0,10);
-
-  const empresas = filtroEmpresa.value==="todas"
-    ? ["MERCATTO DELÍCIA","DELÍCIA GOURMET","VILLA GOURMET","M.KIDS"]
-    : [filtroEmpresa.value];
-
-  comparativo.innerHTML="";
-
-  for(const emp of empresas){
-    const atual = await buscarMes(emp, iniAtual, fimAtual);
-    const anterior = await buscarMes(emp, iniAnt, fimAnt);
-    const perc = anterior>0 ? (atual/anterior)*100 : 0;
-    const diff = atual-anterior;
-
-    comparativo.innerHTML += `
-      <div class="bloco">
-        <div class="top">
-          <span>${emp}</span>
-          <span class="badge2 ${diff>=0?'up':'down'}">
-            ${diff>=0?'+':''}${perc.toFixed(1)}%
-          </span>
-        </div>
-        <div class="valores">
-          <div class="box"><span class="muted">Ano anterior</span><b>R$ ${BRL(anterior)}</b></div>
-          <div class="box"><span class="muted">Atual</span><b>R$ ${BRL(atual)}</b></div>
-          <div class="box"><span class="muted">Atingido</span><b>${perc.toFixed(1)}%</b></div>
-        </div>
-      </div>`;
-  }
-}
-
-btnFiltrar.onclick = atualizar;
-filtroEmpresa.onchange = atualizar;
-filtroDia.onchange = atualizar;
-filtroMes.onchange = atualizar;
-
-atualizar();
+carregarDados();
 </script>
+
 </body>
 </html>
