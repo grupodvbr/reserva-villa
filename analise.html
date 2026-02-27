@@ -585,7 +585,8 @@ async function abrirResumoTotalRetirada(){
   let query = sb
     .from("buffet_lancamentos")
     .select("produto_nome, consumo_para_nome, quantidade, tipo")
-    .eq("empresa", empresa);
+    .eq("empresa", empresa)
+    .eq("tipo", "RETIRADA"); // 🔥 apenas retiradas reais
 
   if(rangeSelecionado.length === 2){
     query = query.gte("data", rangeSelecionado[0]);
@@ -595,93 +596,78 @@ async function abrirResumoTotalRetirada(){
   const { data } = await query;
 
   const porDestino = {};
-  const pia = { total: 0, itens: {} };
 
   (data || []).forEach(r => {
 
+    const destino = r.consumo_para_nome || "SEM DESTINO";
     const qtd = Number(r.quantidade || 0);
 
-    // 🟢 PIA = MONTAGEM + REPOSICAO (vendido)
-    if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
-
-      pia.total += qtd;
-
-      if(!pia.itens[r.produto_nome]){
-        pia.itens[r.produto_nome] = 0;
-      }
-
-      pia.itens[r.produto_nome] += qtd;
-
-      return;
+    if(!porDestino[destino]){
+      porDestino[destino] = { total: 0, itens: {} };
     }
 
-    // 🔵 RETIRADAS NORMAIS
-    if(r.tipo === "RETIRADA" && r.consumo_para_nome !== "PIA"){
+    porDestino[destino].total += qtd;
 
-      const destino = r.consumo_para_nome || "SEM DESTINO";
-
-      if(!porDestino[destino]){
-        porDestino[destino] = { total: 0, itens: {} };
-      }
-
-      porDestino[destino].total += qtd;
-
-      if(!porDestino[destino].itens[r.produto_nome]){
-        porDestino[destino].itens[r.produto_nome] = 0;
-      }
-
-      porDestino[destino].itens[r.produto_nome] += qtd;
+    if(!porDestino[destino].itens[r.produto_nome]){
+      porDestino[destino].itens[r.produto_nome] = 0;
     }
+
+    porDestino[destino].itens[r.produto_nome] += qtd;
 
   });
 
-  // ===== HTML =====
   let html = "";
 
-  // 🟢 CARD PIA (COM ITENS)
-  html += `
-    <div style="
-      border:2px solid #16a34a;
-      background:#ecfdf5;
-      border-radius:14px;
-      padding:14px;
-      margin-bottom:14px
-    ">
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        font-weight:900;
-        margin-bottom:8px
-      ">
-        <span>Pratos vendidos totalmente</span>
-        <span>${pia.total.toFixed(3)} KG</span>
-      </div>
+  // 🔥 PIA aparece apenas se realmente existir
+  if(porDestino["PIA"]){
 
-      ${
-        Object.entries(pia.itens)
-          .sort((a,b)=> b[1] - a[1])
-          .map(([prato,kg])=>`
-            <div style="
-              display:flex;
-              justify-content:space-between;
-              font-size:12px;
-              padding:4px 0;
-              border-bottom:1px dashed #bbf7d0
-            ">
-              <span>${prato}</span>
-              <span>${kg.toFixed(3)} KG</span>
-            </div>
-          `).join("")
-      }
-    </div>
-  `;
+    const pia = porDestino["PIA"];
+
+    html += `
+      <div style="
+        border:2px solid #16a34a;
+        background:#ecfdf5;
+        border-radius:14px;
+        padding:14px;
+        margin-bottom:14px
+      ">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          font-weight:900;
+          margin-bottom:8px
+        ">
+          <span>🟢 PIA</span>
+          <span>${pia.total.toFixed(3)} KG</span>
+        </div>
+
+        ${
+          Object.entries(pia.itens)
+            .sort((a,b)=> b[1] - a[1])
+            .map(([prato,kg])=>`
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:12px;
+                padding:4px 0;
+                border-bottom:1px dashed #bbf7d0
+              ">
+                <span>${prato}</span>
+                <span>${kg.toFixed(3)} KG</span>
+              </div>
+            `).join("")
+        }
+      </div>
+    `;
+
+    delete porDestino["PIA"]; // remove para não duplicar abaixo
+  }
 
   // 🔵 OUTROS DESTINOS
   html += Object.entries(porDestino)
     .sort((a,b)=> b[1].total - a[1].total)
     .map(([destino,info])=>`
-
       <div style="
         border:1px solid #e5e7eb;
         border-radius:12px;
@@ -689,7 +675,6 @@ async function abrirResumoTotalRetirada(){
         margin-bottom:12px;
         background:#fff
       ">
-
         <div style="
           display:flex;
           justify-content:space-between;
@@ -717,16 +702,14 @@ async function abrirResumoTotalRetirada(){
               </div>
             `).join("")
         }
-
       </div>
-
     `).join("");
 
   document.getElementById("tituloResumoTotalRetirada").innerText =
-    "📦 Destinos + PIA";
+    "📦 Retiradas por Destino";
 
   document.getElementById("listaResumoTotalRetirada").innerHTML =
-    html || "<small>Nenhum movimento no período.</small>";
+    html || "<small>Nenhuma retirada no período.</small>";
 
   document.getElementById("modalResumoTotalRetirada").style.display = "flex";
   document.body.style.overflow = "hidden";
