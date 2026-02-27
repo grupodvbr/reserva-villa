@@ -959,6 +959,17 @@ function fecharResumoRetirada(){
 function voltarListaDesperdicio(){
   abrirResumoTotalDesperdicio();
 }
+
+/* 🔥 ADICIONE AQUI */
+document.getElementById("modalResumoTotalDesperdicio")
+  .addEventListener("click", function(e){
+    if(e.target === this){
+      fecharResumoTotalDesperdicio();
+    }
+});
+
+
+
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
 <div class="modal-backdrop" id="modalResumoConsumo" onclick="if(event.target===this) fecharResumoConsumo()">  <div class="modal">
@@ -1011,10 +1022,10 @@ function voltarListaDesperdicio(){
 
   <!-- MODAL RESUMO TOTAL DESPERDÍCIO -->
 <div class="modal-backdrop"
-     id="modalResumoTotalDesperdicio"
-     onclick="if(event.target===this) fecharResumoTotalDesperdicio()">
+     id="modalResumoTotalDesperdicio">
 
-  <div class="modal">
+  <div class="modal"
+       onclick="event.stopPropagation()">
     <h3 id="tituloResumoTotalDesperdicio">
       ♻️ Desperdício por Item
     </h3>
