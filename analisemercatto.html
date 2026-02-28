@@ -87,12 +87,13 @@ th,td{
 
 /* Ajustes finos só no mobile */
 @media(max-width: 899px){
-  th:nth-child(1), td:nth-child(1){ width:34% } /* Prato */
-  th:nth-child(2), td:nth-child(2){ width:11% } /* Montado */
-  th:nth-child(3), td:nth-child(3){ width:11% } /* Reposto */
+  th:nth-child(1), td:nth-child(1){ width:30% } /* Prato */
+  th:nth-child(2), td:nth-child(2){ width:10% } /* Montado */
+  th:nth-child(3), td:nth-child(3){ width:10% } /* Reposto */
   th:nth-child(4), td:nth-child(4){ width:12% } /* Total */
-  th:nth-child(5), td:nth-child(5){ width:11% } /* Retirado */
-  th:nth-child(6), td:nth-child(6){ width:11% } /* Desperdício */
+  th:nth-child(5), td:nth-child(5){ width:10% } /* Retirado */
+  th:nth-child(6), td:nth-child(6){ width:8% }  /* % Ret */
+  th:nth-child(7), td:nth-child(7){ width:10% } /* Desperdício */
 }
 
 th{
@@ -181,6 +182,35 @@ html, body {
     display:none;
   }
 }
+
+/* ===== CORREÇÃO CARDS RESUMO ===== */
+
+.card h3{
+  margin:6px 0 0;
+  font-weight:900;
+
+  /* tamanho fluido automático */
+  font-size:clamp(16px, 3vw, 22px);
+
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width: 899px){
+  .card h3{
+    font-size:18px;
+  }
+}
+
+/* 🔥 Permite o grid encolher corretamente */
+.card > div[style*="grid"] > .card{
+  min-width:0;
+}
+
+/* 🔥 Garante que o grid nunca estoure */
+.card > div[style*="grid"]{
+  overflow:hidden;
+}
 </style>
 </head>
 
@@ -194,11 +224,10 @@ html, body {
 
   <div class="card">
 <div class="filters">
-  <select id="empresaSelect">
-    <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-  </select>
-
-  <input type="text" id="rangeDatas" placeholder="Selecione o período">
+<select id="empresaSelect">
+  <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+</select>
+    <input type="text" id="rangeDatas" placeholder="Selecione o período">
 
   <!-- 🔎 NOVO -->
   <input
@@ -220,19 +249,20 @@ html, body {
   <b>Resumo do período selecionado</b>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
     <div class="card" style="padding:10px">
-      <small>Total Produzido</small>
+      <small>Produz.</small>
       <h3 id="totalProduzido">0</h3>
     </div>
-    <div class="card" style="padding:10px">
-      <small>Total Retirado</small>
-      <h3 id="totalRetirado">0</h3>
-    </div>
-    <div class="card" style="padding:10px">
-      <small>Total Desperdício</small>
-      <h3 id="totalDesperdicio">0</h3>
-    </div>
+<div class="card" style="padding:10px;cursor:pointer" onclick="abrirResumoTotalRetirada()">
+  <small>Retirado</small>
+  <h3 id="totalRetirado">0</h3>
+</div>
+<div class="card" style="padding:10px;cursor:pointer"
+     onclick="abrirResumoTotalDesperdicio()">
+  <small>Descart.</small>
+  <h3 id="totalDesperdicio">0</h3>
+</div>
     <div class="card" style="padding:10px;background:#ecfeff">
-      <small>Total Vendido</small>
+      <small>Vendido</small>
       <h3 id="totalVendido">0</h3>
     </div>
   </div>
@@ -253,8 +283,9 @@ html, body {
           <th>Montado</th>
           <th>Reposto</th>
           <th>Total</th>
-          <th>Retirado</th>
-          <th>Desperdício</th>
+<th>Retirado</th>
+<th>% Ret.</th>
+<th>Desperdício</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -272,7 +303,6 @@ const sb = window.supabase.createClient(
 
 const empresaSelect = document.getElementById("empresaSelect");
 
-const btnFiltrar = document.getElementById("btnFiltrar");
 const searchPrato = document.getElementById("searchPrato");
 const hoje = new Date();
 const seteDiasAtras = new Date(hoje.getTime() - 6*24*60*60*1000);
@@ -284,19 +314,20 @@ let rangeSelecionado = [
 
 flatpickr("#rangeDatas", {
   mode: "range",
-  dateFormat: "Y-m-d",     // formato interno (para o Supabase)
-  altInput: true,         // cria um input visual alternativo
-  altFormat: "d/m/Y",     // formato exibido (dia/mês/ano)
+  dateFormat: "Y-m-d",
+  altInput: true,
+  altFormat: "d/m/Y",
   locale: "pt",
   defaultDate: rangeSelecionado,
   onChange: (datas) => {
     if (datas.length === 2) {
       rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
+      carregar(); // 🔥 atualiza aqui
     }
   }
 });
 let chart;
-
+let cacheDesperdicio = {};
 function formatBR(iso){
   const [y,m,d]=iso.split("-");
   return `${d}/${m}/${y}`;
@@ -362,21 +393,60 @@ list.innerHTML = pratosFiltrados.map(([nome,v])=>{
 }).join("");
 
 tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
+
   const total = v.MONTAGEM + v.REPOSICAO;
+
+  // 🔥 cálculo percentual retirada
+  const percentualRetirada =
+    total > 0
+      ? (v.RETIRADA / total * 100)
+      : 0;
+
+  // 🎨 cor dinâmica
+  const corPercentual =
+    percentualRetirada >= 50
+      ? "#dc2626"     // vermelho crítico
+      : percentualRetirada >= 30
+      ? "#f59e0b"     // amarelo alerta
+      : "#16a34a";    // verde saudável
+
   return `
     <tr>
       <td>
         ${
           nome === "CONSUMO AUTORIZADO"
-            ? `<b style="cursor:pointer;color:#ff6a00;text-decoration:underline" onclick="abrirResumoConsumo('${nome}')">${nome}</b>`
+            ? `<b style="cursor:pointer;color:#ff6a00;text-decoration:underline"
+                 onclick="abrirResumoConsumo('${nome}')">
+                 ${nome}
+               </b>`
             : `<b>${nome}</b>`
         }
       </td>
+
       <td>${v.MONTAGEM.toFixed(2)} ${v.UNIDADE}</td>
+
       <td>${v.REPOSICAO.toFixed(2)} ${v.UNIDADE}</td>
+
       <td><b>${total.toFixed(2)} ${v.UNIDADE}</b></td>
-      <td>${v.RETIRADA.toFixed(2)} ${v.UNIDADE}</td>
+
+      <td>
+        ${
+          v.RETIRADA > 0
+            ? `<b style="cursor:pointer;color:#ef4444;text-decoration:underline"
+                 onclick="abrirResumoRetirada('${nome}')">
+                 ${v.RETIRADA.toFixed(2)} ${v.UNIDADE}
+               </b>`
+            : `0`
+        }
+      </td>
+
+      <!-- 🔥 NOVA COLUNA -->
+      <td style="font-weight:900;color:${corPercentual}">
+        ${percentualRetirada.toFixed(1)}%
+      </td>
+
       <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
+
     </tr>
   `;
 }).join("");
@@ -447,21 +517,6 @@ empresaSelect.onchange = () => {
 // 🔎 Atualiza enquanto digita o prato
 searchPrato.oninput = carregar;
 
-// 📅 Atualiza quando mudar o período (flatpickr)
-flatpickr("#rangeDatas", {
-  mode: "range",
-  dateFormat: "Y-m-d",
-  altInput: true,
-  altFormat: "d/m/Y",
-  locale: "pt",
-  defaultDate: rangeSelecionado,
-  onChange: (datas) => {
-    if (datas.length === 2) {
-      rangeSelecionado = datas.map(d => d.toISOString().slice(0,10));
-      carregar(); // ✅ atualiza automaticamente ao mudar data
-    }
-  }
-});
 
 carregar();
 let modalAberto = false;
@@ -505,10 +560,494 @@ async function abrirResumoConsumo(nome){
 document.getElementById("modalResumoConsumo").style.display = "flex";
 document.body.style.overflow = "hidden";}
 
+
+async function abrirResumoRetirada(nomePrato){
+  if(modalAberto) return;
+  modalAberto = true;
+
+  const empresa = empresaSelect.value;
+
+  let q = sb.from("buffet_lancamentos")
+    .select("consumo_para_nome, quantidade")
+    .eq("empresa", empresa)
+    .eq("produto_nome", nomePrato)
+    .eq("tipo", "RETIRADA");
+
+  if(rangeSelecionado.length === 2){
+    q = q.gte("data", rangeSelecionado[0]);
+    q = q.lte("data", rangeSelecionado[1]);
+  }
+
+  const { data } = await q;
+
+  const porDestino = {};
+
+  data?.forEach(r=>{
+    const destino = r.consumo_para_nome || "SEM DESTINO";
+    porDestino[destino] = (porDestino[destino] || 0) + Number(r.quantidade || 0);
+  });
+
+  const html = Object.entries(porDestino)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([destino,kg])=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee">
+        <b>${destino}</b>
+        <span>${kg.toFixed(3)} KG</span>
+      </div>
+    `).join("");
+
+  document.getElementById("tituloResumoRetirada").innerText =
+    `📦 Retirada • ${nomePrato}`;
+
+  document.getElementById("listaResumoRetirada").innerHTML =
+    html || "<small>Nenhuma retirada no período.</small>";
+
+  document.getElementById("modalResumoRetirada").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+async function abrirResumoTotalRetirada(){
+
+  if(modalAberto) return;
+  modalAberto = true;
+
+  const empresa = empresaSelect.value;
+
+  let query = sb
+    .from("buffet_lancamentos")
+    .select("produto_nome, consumo_para_nome, quantidade, tipo")
+    .eq("empresa", empresa);
+
+  if(rangeSelecionado.length === 2){
+    query = query.gte("data", rangeSelecionado[0]);
+    query = query.lte("data", rangeSelecionado[1]);
+  }
+
+  const { data } = await query;
+
+  const pratosQueForamPIA = new Set();
+  const pia = { total: 0, itens: {} };
+  const porDestino = {};
+
+  // 🔎 1️⃣ Descobre quais pratos tiveram retirada para PIA
+  (data || []).forEach(r=>{
+    if(r.tipo === "RETIRADA" && r.consumo_para_nome === "PIA"){
+      pratosQueForamPIA.add(r.produto_nome);
+    }
+  });
+
+  // 🔎 2️⃣ Soma MONTAGEM + REPOSIÇÃO APENAS desses pratos
+  (data || []).forEach(r => {
+
+    const qtd = Number(r.quantidade || 0);
+
+    // 🟢 PIA = Montagem + Reposição dos pratos que foram para PIA
+    if(
+      (r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO") &&
+      pratosQueForamPIA.has(r.produto_nome)
+    ){
+      if(!pia.itens[r.produto_nome]){
+        pia.itens[r.produto_nome] = 0;
+      }
+
+      pia.itens[r.produto_nome] += qtd;
+      pia.total += qtd;
+    }
+
+    // 🔵 OUTRAS RETIRADAS (exceto PIA)
+    if(r.tipo === "RETIRADA" && r.consumo_para_nome !== "PIA"){
+
+      const destino = r.consumo_para_nome || "SEM DESTINO";
+
+      if(!porDestino[destino]){
+        porDestino[destino] = { total: 0, itens: {} };
+      }
+
+      porDestino[destino].total += qtd;
+
+      if(!porDestino[destino].itens[r.produto_nome]){
+        porDestino[destino].itens[r.produto_nome] = 0;
+      }
+
+      porDestino[destino].itens[r.produto_nome] += qtd;
+    }
+
+  });
+
+  let html = "";
+
+  // 🟢 MOSTRA PIA apenas se realmente existiu
+  if(pratosQueForamPIA.size > 0 && pia.total > 0){
+
+    html += `
+      <div style="
+        border:2px solid #16a34a;
+        background:#ecfdf5;
+        border-radius:14px;
+        padding:14px;
+        margin-bottom:14px
+      ">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          font-weight:900;
+          margin-bottom:8px
+        ">
+          <span>(VENDIDOS INTEGRALMENTE)</span>
+          <span>${pia.total.toFixed(3)} KG</span>
+        </div>
+
+        ${
+          Object.entries(pia.itens)
+            .sort((a,b)=> b[1] - a[1])
+            .map(([prato,kg])=>`
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:12px;
+                padding:4px 0;
+                border-bottom:1px dashed #bbf7d0
+              ">
+                <span>${prato}</span>
+                <span>${kg.toFixed(3)} KG</span>
+              </div>
+            `).join("")
+        }
+      </div>
+    `;
+  }
+
+  // 🔵 OUTROS DESTINOS
+  html += Object.entries(porDestino)
+    .sort((a,b)=> b[1].total - a[1].total)
+    .map(([destino,info])=>`
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:12px;
+        margin-bottom:12px;
+        background:#fff
+      ">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          font-weight:900;
+          margin-bottom:6px
+        ">
+          <span>📍 ${destino}</span>
+          <span>${info.total.toFixed(3)} KG</span>
+        </div>
+
+        ${
+          Object.entries(info.itens)
+            .sort((a,b)=> b[1] - a[1])
+            .map(([prato,kg])=>`
+              <div style="
+                display:flex;
+                justify-content:space-between;
+                font-size:12px;
+                padding:4px 0;
+                border-bottom:1px dashed #f1f5f9
+              ">
+                <span>${prato}</span>
+                <span>${kg.toFixed(3)} KG</span>
+              </div>
+            `).join("")
+        }
+      </div>
+    `).join("");
+
+  document.getElementById("tituloResumoTotalRetirada").innerText =
+    "Resumo do período selecionado";
+
+  document.getElementById("listaResumoTotalRetirada").innerHTML =
+    html || "<small>Nenhum movimento no período.</small>";
+
+  document.getElementById("modalResumoTotalRetirada").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+
+async function abrirResumoTotalDesperdicio(){
+
+  if(modalAberto) return;
+  modalAberto = true;
+
+  cacheDesperdicio = {};   // limpa cache sempre
+
+  const empresa = empresaSelect.value;
+
+  let query = sb
+    .from("buffet_lancamentos")
+    .select("produto_nome, quantidade, tipo, data, unidade")
+    .eq("empresa", empresa);
+
+  if(rangeSelecionado.length === 2){
+    query = query.gte("data", rangeSelecionado[0]);
+    query = query.lte("data", rangeSelecionado[1]);
+  }
+
+const { data } = await query;
+
+const porPrato = {};
+
+// 🔎 pega o termo digitado na busca
+const termoBusca = (searchPrato.value || "").toLowerCase();
+
+(data || []).forEach(r => {
+
+  // 🔎 FILTRO POR PRATO (AGORA RESPEITA O CAMPO BUSCAR)
+  if(
+    termoBusca &&
+    !(r.produto_nome || "").toLowerCase().includes(termoBusca)
+  ){
+    return;
+  }
+
+  const nome = r.produto_nome;
+  const qtd = Number(r.quantidade || 0);
+  const dia = r.data;
+
+    if(!porPrato[nome]){
+      porPrato[nome] = {
+        unidade: r.unidade || "KG",
+        dias: {}
+      };
+    }
+
+    if(!porPrato[nome].dias[dia]){
+      porPrato[nome].dias[dia] = {
+        produzido: 0,
+        desperdicio: 0
+      };
+    }
+
+    if(r.tipo === "MONTAGEM" || r.tipo === "REPOSICAO"){
+      porPrato[nome].dias[dia].produzido += qtd;
+    }
+
+    if(r.tipo === "DEVOLUCAO"){
+      porPrato[nome].dias[dia].desperdicio += qtd;
+    }
+
+  });
+
+  const recorrentes = Object.entries(porPrato)
+    .filter(([_,info]) =>
+      Object.values(info.dias)
+        .some(d => d.desperdicio > 0)
+    )
+    .sort((a,b)=>{
+      const totalA = Object.values(a[1].dias)
+        .reduce((s,d)=>s+d.desperdicio,0);
+      const totalB = Object.values(b[1].dias)
+        .reduce((s,d)=>s+d.desperdicio,0);
+      return totalB - totalA;
+    });
+
+  let html = recorrentes.map(([nome,info])=>{
+
+    const totalProduzido =
+      Object.values(info.dias)
+        .reduce((s,d)=>s+d.produzido,0);
+
+    const totalDesperdicioPrato =
+      Object.values(info.dias)
+        .reduce((s,d)=>s+d.desperdicio,0);
+
+    const percentual =
+      totalProduzido > 0
+        ? (totalDesperdicioPrato / totalProduzido * 100)
+        : 0;
+
+    cacheDesperdicio[nome] = {
+      dias: info.dias,
+      unidade: info.unidade,
+      totalProduzido,
+      totalDesperdicio: totalDesperdicioPrato
+    };
+
+    return `
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:12px;
+        margin-bottom:12px;
+        background:#fff;
+        cursor:pointer
+      "
+      onclick='abrirDetalheDesperdicio(${JSON.stringify(nome)})'
+      >
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          font-weight:900;
+          margin-bottom:6px
+        ">
+          <span>${nome}</span>
+          <span style="color:#dc2626">
+            ${totalDesperdicioPrato.toFixed(3)} ${info.unidade}
+          </span>
+        </div>
+
+        <div style="font-size:12px;color:#64748b">
+          Produzido: <b>${totalProduzido.toFixed(3)} ${info.unidade}</b>
+        </div>
+
+        <div style="font-size:12px;color:#64748b">
+          ${percentual.toFixed(1)}% do total produzido
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("tituloResumoTotalDesperdicio").innerText =
+    "♻️ Desperdício no Período";
+
+  document.getElementById("listaResumoTotalDesperdicio").innerHTML =
+    html || "<small>Nenhum desperdício no período.</small>";
+
+  document.getElementById("modalResumoTotalDesperdicio").style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+                           
+function abrirDetalheDesperdicio(nomePrato){
+
+  const info = cacheDesperdicio[nomePrato];
+  if(!info) return;
+
+  const diasObj = info.dias;
+  const unidade = info.unidade;
+
+  const totalProduzidoPeriodo = info.totalProduzido;
+  const totalDesperdicioPeriodo = info.totalDesperdicio;
+
+  let linhas = Object.entries(diasObj)
+.filter(([_,d]) => d.produzido > 0 || d.desperdicio > 0)
+    .sort((a,b)=> a[0].localeCompare(b[0]))
+    .map(([dia,d])=>`
+      <tr>
+        <td>${formatBR(dia)}</td>
+        <td>${d.produzido.toFixed(3)} ${unidade}</td>
+        <td style="color:#dc2626;font-weight:800">
+          ${d.desperdicio.toFixed(3)} ${unidade}
+        </td>
+      </tr>
+    `).join("");
+
+  document.getElementById("tituloResumoTotalDesperdicio").innerHTML =
+    `
+    <span style="cursor:pointer;margin-right:8px;color:#2563eb;font-weight:900"
+          onclick="voltarListaDesperdicio()">
+      ← Voltar
+    </span>
+    ${nomePrato}
+    `;
+
+  document.getElementById("listaResumoTotalDesperdicio").innerHTML = `
+
+    <div style="margin-bottom:12px;padding:10px;background:#f8fafc;border-radius:10px">
+      <div><b>Total Produzido:</b> ${totalProduzidoPeriodo.toFixed(3)} ${unidade}</div>
+      <div style="color:#dc2626">
+        <b>Total Descartado:</b> ${totalDesperdicioPeriodo.toFixed(3)} ${unidade}
+      </div>
+    </div>
+
+    <div style="overflow:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:6px;border-bottom:1px solid #e5e7eb">Dia</th>
+            <th style="padding:6px;border-bottom:1px solid #e5e7eb">Produzido</th>
+            <th style="padding:6px;border-bottom:1px solid #e5e7eb">Desperdício</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${linhas}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+  
+  function fecharResumoTotalDesperdicio(){
+  document.getElementById("modalResumoTotalDesperdicio").style.display = "none";
+  document.body.style.overflow = "auto";
+  modalAberto = false;
+}
+function fecharResumoTotalRetirada(){
+  document.getElementById("modalResumoTotalRetirada").style.display = "none";
+  document.body.style.overflow = "auto";
+  modalAberto = false;
+}
+
+
+
+  
 function fecharResumoConsumo(){
   document.getElementById("modalResumoConsumo").style.display = "none";
   document.body.style.overflow = "auto";
   modalAberto = false;
+}
+
+function fecharResumoRetirada(){
+  document.getElementById("modalResumoRetirada").style.display = "none";
+  document.body.style.overflow = "auto";
+  modalAberto = false;
+}
+
+function voltarListaDesperdicio(){
+
+  const htmlLista = Object.entries(cacheDesperdicio)
+    .sort((a,b)=> b[1].totalDesperdicio - a[1].totalDesperdicio)
+    .map(([nome,info])=>{
+
+      const percentual =
+        info.totalProduzido > 0
+          ? (info.totalDesperdicio / info.totalProduzido * 100)
+          : 0;
+
+      return `
+        <div style="
+          border:1px solid #e5e7eb;
+          border-radius:12px;
+          padding:12px;
+          margin-bottom:12px;
+          background:#fff;
+          cursor:pointer
+        "
+        onclick='abrirDetalheDesperdicio(${JSON.stringify(nome)})'
+        >
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            font-weight:900;
+            margin-bottom:6px
+          ">
+            <span>${nome}</span>
+            <span style="color:#dc2626">
+              ${info.totalDesperdicio.toFixed(3)} ${info.unidade}
+            </span>
+          </div>
+
+          <div style="font-size:12px;color:#64748b">
+            Produzido: <b>${info.totalProduzido.toFixed(3)} ${info.unidade}</b>
+          </div>
+
+          <div style="font-size:12px;color:#64748b">
+            ${percentual.toFixed(1)}% do total produzido
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  document.getElementById("tituloResumoTotalDesperdicio").innerText =
+    "♻️ Desperdício no Período";
+
+  document.getElementById("listaResumoTotalDesperdicio").innerHTML =
+    htmlLista;
 }
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
@@ -517,6 +1056,67 @@ function fecharResumoConsumo(){
     <div id="listaResumoConsumo" style="max-height:60vh;overflow:auto"></div>
     <div class="actions">
       <button class="ghost" onclick="fecharResumoConsumo()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+
+  <!-- MODAL RESUMO RETIRADA -->
+<div class="modal-backdrop"
+     id="modalResumoRetirada"
+     onclick="if(event.target===this) fecharResumoRetirada()">
+
+  <div class="modal">
+    <h3 id="tituloResumoRetirada">📦 Retirada</h3>
+
+    <div id="listaResumoRetirada"
+         style="max-height:60vh;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharResumoRetirada()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESUMO TOTAL RETIRADO -->
+<div class="modal-backdrop"
+     id="modalResumoTotalRetirada"
+     onclick="if(event.target===this) fecharResumoTotalRetirada()">
+
+  <div class="modal">
+    <h3 id="tituloResumoTotalRetirada">📦 Total Retirado por Destino</h3>
+
+    <div id="listaResumoTotalRetirada"
+         style="max-height:60vh;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharResumoTotalRetirada()">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- MODAL RESUMO TOTAL DESPERDÍCIO -->
+<div class="modal-backdrop"
+     id="modalResumoTotalDesperdicio">
+
+  <div class="modal"
+       onclick="event.stopPropagation()">
+    <h3 id="tituloResumoTotalDesperdicio">
+      ♻️ Desperdício por Item
+    </h3>
+
+    <div id="listaResumoTotalDesperdicio"
+         style="max-height:60vh;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost"
+              onclick="fecharResumoTotalDesperdicio()">
+        Fechar
+      </button>
     </div>
   </div>
 </div>
