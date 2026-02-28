@@ -9,8 +9,6 @@
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- NOVO -->
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
@@ -226,22 +224,17 @@ html, body {
 
   <div class="card">
 <div class="filters">
-
 <select id="empresaSelect">
   <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
 </select>
+    <input type="text" id="rangeDatas" placeholder="Selecione o período">
 
-<input type="text" id="rangeDatas" placeholder="Selecione o período">
-
-<input
-  type="text"
-  id="searchPrato"
-  placeholder="Buscar prato..."
->
-
-<button type="button" onclick="exportarExcel()">
-  <i class="ri-file-excel-2-line"></i> Excel
-</button>
+  <!-- 🔎 NOVO -->
+  <input
+    type="text"
+    id="searchPrato"
+    placeholder="Buscar prato..."
+  >
 
 </div>
   </div>
@@ -528,81 +521,6 @@ searchPrato.oninput = carregar;
 carregar();
 let modalAberto = false;
 
-
-async function exportarExcel(){
-
-  const empresa = empresaSelect.value;
-  const termo = (searchPrato.value || "").toLowerCase();
-
-  let q = sb.from("buffet_lancamentos")
-    .select("*")
-    .eq("empresa", empresa);
-
-  if(rangeSelecionado.length === 2){
-    q = q.gte("data", rangeSelecionado[0]);
-    q = q.lte("data", rangeSelecionado[1]);
-  }
-
-  const { data } = await q;
-
-  const porPrato = {};
-
-  (data || []).forEach(r=>{
-    porPrato[r.produto_nome] ||= {
-      MONTAGEM:0,
-      REPOSICAO:0,
-      RETIRADA:0,
-      DEVOLUCAO:0,
-      UNIDADE:r.unidade
-    };
-
-    porPrato[r.produto_nome][r.tipo] += Number(r.quantidade || 0);
-  });
-
-  const linhas = Object.entries(porPrato)
-    .filter(([nome]) => (nome || "").toLowerCase().includes(termo))
-    .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
-    .map(([nome,v])=>{
-
-      const total = v.MONTAGEM + v.REPOSICAO;
-
-      const percentualRetirada =
-        total > 0
-          ? (v.RETIRADA / total * 100)
-          : 0;
-
-      return {
-        Empresa: empresa,
-        "Data Inicial": rangeSelecionado[0],
-        "Data Final": rangeSelecionado[1],
-        Prato: nome,
-        Montado: v.MONTAGEM,
-        Reposto: v.REPOSICAO,
-        Total: total,
-        Retirado: v.RETIRADA,
-        "% Retirada": Number(percentualRetirada.toFixed(1)),
-        Desperdicio: v.DEVOLUCAO,
-        Unidade: v.UNIDADE
-      };
-    });
-
-  if(!linhas.length){
-    alert("Nenhum dado para exportar.");
-    return;
-  }
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(linhas);
-
-  XLSX.utils.book_append_sheet(wb, ws, "Relatorio Buffet");
-
-  const nomeArquivo =
-    `Buffet_${empresa}_${rangeSelecionado[0]}_${rangeSelecionado[1]}.xlsx`;
-
-  XLSX.writeFile(wb, nomeArquivo);
-}
-
-  
 async function abrirResumoConsumo(nome){
   if(nome !== "CONSUMO AUTORIZADO" || modalAberto) return;
   modalAberto = true;
