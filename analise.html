@@ -9,8 +9,8 @@
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- NOVO -->
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
@@ -270,6 +270,10 @@ html, body {
 
 <button type="button" onclick="exportarExcel()">
   <i class="ri-file-excel-2-line"></i> Excel
+</button>
+
+<button type="button" onclick="baixarImagem()">
+  <i class="ri-image-line"></i> Imagem
 </button>
 
 <button type="button" id="btnRetirada40">
@@ -1300,6 +1304,30 @@ async function salvarVendaVarejo(){
   alert("Venda registrada com sucesso!");
 
   carregar(); // atualiza tudo
+}
+
+async function baixarImagem(){
+
+  const empresa = empresaSelect.value;
+  const periodo = `${rangeSelecionado[0]}_${rangeSelecionado[1]}`;
+
+  const elemento = document.querySelector(".app");
+
+  // scroll topo para capturar tudo alinhado
+  window.scrollTo(0,0);
+
+  const canvas = await html2canvas(elemento, {
+    scale: 2,               // alta resolução
+    useCORS: true,
+    backgroundColor: "#f6f7fb",
+    windowWidth: elemento.scrollWidth,
+    windowHeight: elemento.scrollHeight
+  });
+
+  const link = document.createElement("a");
+  link.download = `Relatorio_${empresa}_${periodo}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
 }
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
