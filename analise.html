@@ -194,16 +194,19 @@ html, body {
 
 @media(max-width:899px){
 
+  /* 3 colunas no mobile */
   .filters{
-    grid-template-columns:repeat(2, 1fr);
+    grid-template-columns:repeat(3, 1fr);
     gap:8px;
   }
 
+  /* Inputs ocupam linha inteira */
   .filters select,
   .filters input{
-    grid-column:span 2;
+    grid-column:1 / -1;
   }
 
+  /* Botões ocupam 1 coluna cada */
   .filters button{
     grid-column:span 1;
     font-size:12px;
