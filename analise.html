@@ -46,8 +46,42 @@ html,body{margin:0;background:var(--bg)}
   margin-bottom:10px;
 }
 
+/* ===== FILTROS RESPONSIVOS PROFISSIONAIS ===== */
+
 .filters{
-  display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;
+  display:grid;
+  grid-template-columns:repeat(6, minmax(0,1fr));
+  gap:8px;
+  align-items:stretch;
+}
+
+.filters input,
+.filters select{
+  grid-column:span 2;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+
+.filters button{
+  grid-column:span 1;
+  padding:10px 12px;
+  border-radius:12px;
+  border:none;
+  font-size:13px;
+  font-weight:800;
+  background:var(--primary);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transition:.2s;
+}
+
+.filters button:active{
+  transform:scale(.97);
 }
 .filters input,.filters select,.filters button{
   padding:10px 12px;border-radius:12px;border:1px solid var(--border);font-size:14px
@@ -105,14 +139,7 @@ th{
   z-index:1;
 }
 
-/* Ajustes finos no mobile */
-@media(max-width: 899px){
-  .filters{
-    grid-template-columns:1fr 1fr; /* 2 por linha no celular */
-  }
-  .filters button{
-    grid-column:1 / -1; /* botão ocupa a linha inteira */
-  }
+
   .title{font-size:18px}
   .sub{font-size:12px}
   .chart-wrap{height:200px}
@@ -171,18 +198,26 @@ html, body {
   max-width: 100%;
 }
 
-/* 📱 Inputs e selects 100% no mobile */
-@media(max-width: 899px){
-  .filters input,
-  .filters select,
-  .filters button{
-    width: 100%;
+/* ===== MOBILE LIMPO E PROFISSIONAL ===== */
+
+@media(max-width:899px){
+
+  .filters{
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px;
   }
 
-  /* 🔽 Esconde o botão Atualizar no mobile (já é automático) */
-  #btnFiltrar{
-    display:none;
+  .filters select,
+  .filters input{
+    grid-column:span 2;
   }
+
+  .filters button{
+    grid-column:span 1;
+    font-size:12px;
+    padding:9px;
+  }
+
 }
 
 /* ===== CORREÇÃO CARDS RESUMO ===== */
