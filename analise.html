@@ -213,6 +213,33 @@ html, body {
 .card > div[style*="grid"]{
   overflow:hidden;
 }
+
+/* ===== BLOCO COMPARAÇÃO GRANDE ===== */
+
+.comparacao-box{
+  margin-top:12px;
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#f8fafc,#eef2ff);
+  border:1px solid #e5e7eb;
+  font-weight:800;
+  font-size:18px;
+  line-height:1.5;
+  box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+.comparacao-box b{
+  font-size:20px;
+}
+
+@media(max-width:899px){
+  .comparacao-box{
+    font-size:16px;
+  }
+  .comparacao-box b{
+    font-size:18px;
+  }
+}
 </style>
 </head>
 
@@ -280,8 +307,7 @@ html, body {
 
 </div>
 
-<small id="infoComparacao"
-       style="display:block;margin-top:8px;color:#64748b"></small>
+<div id="infoComparacao" class="comparacao-box"></div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
     <div class="card" style="padding:10px">
       <small>Produz.</small>
@@ -545,12 +571,29 @@ document.getElementById("totalVendido").innerText =
 const diferenca = totalVendido - totalVarejo;
 
 document.getElementById("infoComparacao").innerHTML = `
-Sistema: <b>${totalVendido.toFixed(2)} KG</b> |
-Varejo: <b>${totalVarejo.toFixed(2)} KG</b> |
-Diferença: 
-<b style="color:${diferenca === 0 ? '#16a34a' : '#dc2626'}">
-${diferenca.toFixed(2)} KG
-</b>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+
+  <div>
+    Sistema:
+    <b>${totalVendido.toFixed(2)} KG</b>
+  </div>
+
+  <div>
+    Varejo:
+    <b>${totalVarejo.toFixed(2)} KG</b>
+  </div>
+
+  <div>
+    Diferença:
+    <b style="
+      color:${diferenca === 0 ? '#16a34a' : '#dc2626'};
+      font-size:22px;
+    ">
+      ${diferenca.toFixed(2)} KG
+    </b>
+  </div>
+
+</div>
 `;
 // nunca deixa negativo
 if (totalVendido < 0) totalVendido = 0;
