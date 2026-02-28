@@ -313,12 +313,12 @@ html, body {
 </div>
   </div>
 
-  <div class="card">
-    <b>Total produzido por dia (Montagem + Reposição)</b>
-    <div class="chart-wrap">
-      <canvas id="chart"></canvas>
-    </div>
+<div class="card" id="cardGrafico">
+  <b>Total produzido por dia (Montagem + Reposição)</b>
+  <div class="chart-wrap">
+    <canvas id="chart"></canvas>
   </div>
+</div>
 <div class="card">
   <b>Resumo do período selecionado</b>
   <hr style="margin:14px 0">
@@ -1342,17 +1342,21 @@ async function baixarImagem(){
   const periodo = `${rangeSelecionado[0]}_${rangeSelecionado[1]}`;
 
   const elemento = document.querySelector(".app");
+  const grafico = document.getElementById("cardGrafico");
 
-  // scroll topo para capturar tudo alinhado
+  // 🔒 Esconde gráfico temporariamente
+  grafico.style.display = "none";
+
   window.scrollTo(0,0);
 
   const canvas = await html2canvas(elemento, {
-    scale: 2,               // alta resolução
+    scale: 2,
     useCORS: true,
-    backgroundColor: "#f6f7fb",
-    windowWidth: elemento.scrollWidth,
-    windowHeight: elemento.scrollHeight
+    backgroundColor: "#f6f7fb"
   });
+
+  // 🔓 Mostra gráfico novamente
+  grafico.style.display = "";
 
   const link = document.createElement("a");
   link.download = `Relatorio_${empresa}_${periodo}.png`;
