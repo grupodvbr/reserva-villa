@@ -256,6 +256,28 @@ html, body {
   </div>
 <div class="card">
   <b>Resumo do período selecionado</b>
+  <hr style="margin:14px 0">
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+
+  <input type="date" id="dataVarejo"
+         style="padding:10px;border-radius:10px;border:1px solid #e5e7eb">
+
+  <input type="number"
+         id="kgVarejo"
+         step="0.001"
+         placeholder="KG vendido no Varejo"
+         style="padding:10px;border-radius:10px;border:1px solid #e5e7eb;flex:1">
+
+  <button onclick="salvarVendaVarejo()"
+          style="background:#16a34a;color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:800">
+    Salvar
+  </button>
+
+</div>
+
+<small id="infoComparacao"
+       style="display:block;margin-top:8px;color:#64748b"></small>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
     <div class="card" style="padding:10px">
       <small>Produz.</small>
@@ -469,7 +491,41 @@ const totalProduzido = totalMontado + totalReposto;
 
 // Vendido real do buffet
 let totalVendido = totalProduzido - totalRetirado - totalDesperdicio;
+// 🔥 Buscar vendas do varejo no período
+let totalVarejo = 0;
 
+let queryVarejo = sb
+  .from("vendas_varejo")
+  .select("quantidade")
+  .eq("empresa", empresa);
+
+if(rangeSelecionado.length === 2){
+  queryVarejo = queryVarejo
+    .gte("data", rangeSelecionado[0])
+    .lte("data", rangeSelecionado[1]);
+}
+
+const { data: vendasVarejo } = await queryVarejo;
+
+(vendasVarejo || []).forEach(v=>{
+  totalVarejo += Number(v.quantidade || 0);
+});
+
+// Atualiza card Vendido com comparação
+document.getElementById("totalVendido").innerText =
+  totalVendido.toFixed(2);
+
+// Mostra diferença
+const diferenca = totalVendido - totalVarejo;
+
+document.getElementById("infoComparacao").innerHTML = `
+Sistema: <b>${totalVendido.toFixed(2)} KG</b> |
+Varejo: <b>${totalVarejo.toFixed(2)} KG</b> |
+Diferença: 
+<b style="color:${diferenca === 0 ? '#16a34a' : '#dc2626'}">
+${diferenca.toFixed(2)} KG
+</b>
+`;
 // nunca deixa negativo
 if (totalVendido < 0) totalVendido = 0;
 
@@ -1132,6 +1188,38 @@ function voltarListaDesperdicio(){
 
   document.getElementById("listaResumoTotalDesperdicio").innerHTML =
     htmlLista;
+}
+
+async function salvarVendaVarejo(){
+
+  const empresa = empresaSelect.value;
+  const data = document.getElementById("dataVarejo").value;
+  const kg = parseFloat(document.getElementById("kgVarejo").value || 0);
+
+  if(!data || !kg){
+    alert("Informe data e quantidade.");
+    return;
+  }
+
+  const { error } = await sb
+    .from("vendas_varejo")
+    .upsert({
+      empresa,
+      data,
+      quantidade: kg
+    }, { onConflict: "empresa,data" });
+
+  if(error){
+    alert("Erro ao salvar.");
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("kgVarejo").value = "";
+
+  alert("Venda registrada com sucesso!");
+
+  carregar(); // atualiza tudo
 }
 </script>
 <!-- MODAL RESUMO CONSUMO AUTORIZADO -->
