@@ -245,6 +245,10 @@ html, body {
   <i class="ri-file-excel-2-line"></i> Excel
 </button>
 
+<button type="button" id="btnRetirada40">
+  🔥 > 40% Ret.
+</button>
+
 </div>
   </div>
 
@@ -358,6 +362,7 @@ flatpickr("#rangeDatas", {
   }
 });
 let chart;
+let filtroRetirada40 = false;
 let cacheDesperdicio = {};
 function formatBR(iso){
   const [y,m,d]=iso.split("-");
@@ -406,7 +411,28 @@ let totalDesperdicio = 0;
 const termo = (searchPrato.value || "").toLowerCase();
 
 const pratosFiltrados = Object.entries(porPrato)
-  .filter(([nome]) => (nome || "").toLowerCase().includes(termo))
+  .filter(([nome,v]) => {
+
+    // filtro por busca
+    if(!(nome || "").toLowerCase().includes(termo)){
+      return false;
+    }
+
+    // filtro retirada > 40%
+    if(filtroRetirada40){
+
+      const total = v.MONTAGEM + v.REPOSICAO;
+
+      const percentual =
+        total > 0
+          ? (v.RETIRADA / total * 100)
+          : 0;
+
+      return percentual > 40;
+    }
+
+    return true;
+  })
   .sort((a,b)=> (a[0] || "").localeCompare(b[0] || "", 'pt-BR'));
 
 list.innerHTML = pratosFiltrados.map(([nome,v])=>{
@@ -582,6 +608,17 @@ empresaSelect.onchange = () => {
 // 🔎 Atualiza enquanto digita o prato
 searchPrato.oninput = carregar;
 
+// 🔥 BOTÃO FILTRO > 40%
+document.getElementById("btnRetirada40").onclick = function(){
+
+  filtroRetirada40 = !filtroRetirada40;
+
+  this.style.background = filtroRetirada40
+    ? "#dc2626"
+    : "var(--primary)";
+
+  carregar();
+};
 
 carregar();
 let modalAberto = false;
