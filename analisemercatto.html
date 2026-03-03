@@ -445,8 +445,29 @@ tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
         ${percentualRetirada.toFixed(1)}%
       </td>
 
-      <td>${v.DEVOLUCAO.toFixed(2)} ${v.UNIDADE}</td>
+<td>
+  ${
+    (() => {
 
+      const desperdicio = v.DEVOLUCAO;
+      
+      const percentualSistema =
+        totalSistemaProduzido > 0
+          ? (desperdicio / totalSistemaProduzido * 100)
+          : 0;
+
+      return `
+        <div style="display:flex;flex-direction:column">
+          <span>${desperdicio.toFixed(2)} ${v.UNIDADE}</span>
+          <small style="color:#dc2626;font-weight:800">
+            ${percentualSistema.toFixed(1)}% do sistema
+          </small>
+        </div>
+      `;
+
+    })()
+  }
+</td>
     </tr>
   `;
 }).join("");
@@ -457,6 +478,7 @@ tbody.innerHTML = pratosFiltrados.map(([nome,v])=>{
   if(chart) chart.destroy();
 // ===== RESUMO DO PERÍODO (REGRA CORRETA) =====
 const totalProduzido = totalMontado + totalReposto;
+const totalSistemaProduzido = totalProduzido;
 
 // Vendido real do buffet
 let totalVendido = totalProduzido - totalRetirado - totalDesperdicio;
