@@ -43,7 +43,7 @@ body{
 
 /* Container principal ocupa a tela */
 .app{
-  max-width:7400px;             /* usa melhor telas grandes */
+  max-width:1400px;             /* usa melhor telas grandes */
   margin:0 auto;
   padding:14px 14px 22px;
   min-height:100dvh;            /* altura real da viewport (mobile safe) */
@@ -250,100 +250,6 @@ body, .app{
   background:#ede9fe;
   color:#5b21b6;
 }
-
-/* ===== LAYOUT LADO A LADO ===== */
-/* ===== LAYOUT PROFISSIONAL ===== */
-.main-layout{
-  display:grid;
-  grid-template-columns: 40% 60%;
-  gap:24px;
-  flex:1;
-  overflow:hidden;
-  margin-top:10px;
-}
-
-/* mais respiro */
-.card{
-  padding:22px;
-}
-
-/* formulário mais equilibrado */
-.form-grid{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:16px;
-}
-
-/* botão ocupa largura total */
-.form-grid .field:first-child{
-  grid-column:1 / -1;
-}
-
-/* coluna direita */
-.right-column .card{
-  display:flex;
-  flex-direction:column;
-  height:100%;
-}
-
-.right-column .list{
-  flex:1;
-  overflow:auto;
-  max-height:none;
-}
-
-/* linha divisória elegante */
-.left-column{
-  border-right:1px solid #e5e7eb;
-  padding-right:12px;
-}
-
-/* MOBILE */
-@media (max-width: 1100px){
-  .main-layout{
-    grid-template-columns: 1fr;
-  }
-
-  .left-column{
-    border-right:none;
-    padding-right:0;
-  }
-}
-
-.left-column,
-.right-column{
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-.right-column .card{
-  display:flex;
-  flex-direction:column;
-  height:100%;
-}
-
-.right-column .list{
-  flex:1;
-  max-height:none;
-  overflow:auto;
-}
-
-.left-column .card{
-  overflow:auto;
-}
-
-/* MOBILE */
-@media (max-width: 900px){
-  .main-layout{
-    grid-template-columns: 1fr;
-  }
-
-  .right-column .card,
-  .left-column .card{
-    height:auto;
-  }
-}
 </style>
 </head>
 
@@ -363,68 +269,62 @@ body, .app{
     </select>
   </div>
 
-<div class="main-layout">
-
-  <!-- COLUNA ESQUERDA -->
-  <div class="left-column">
-    <div class="card">
-
-      <div class="form-grid">
-        <div class="field">
-          <label>Prato</label>
-          <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
-        </div>
-
-        <div class="field">
-          <label>Peso bruto (kg)</label>
-          <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
-        </div>
-
-        <div class="field">
-          <label>Tara (kg)</label>
-          <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
-          <div class="net-preview" id="pesoLiquidoPreview">Líquido: <b>0,000 kg</b></div>
-        </div>
-
-        <div class="field">
-          <label>Unidade</label>
-          <select id="unidade">
-            <option value="KG">KG</option>
-            <option value="UN">UN</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Tipo</label>
-          <select id="tipo">
-            <option value="MONTAGEM">Montagem</option>
-            <option value="REPOSICAO">Reposição</option>
-            <option value="RETIRADA">Retirada</option>
-            <option value="DEVOLUCAO">Desperdício</option>
-            <option value="MONTAGEM">Consumo Funcionários</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-        <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
-        <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
-      </div>
-
-      <small>Data é travada no dia atual e hora é automática.</small>
-
-    </div>
+  <div class="card">
+<div class="form-grid">
+  <div class="field">
+    <label>Prato</label>
+    <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
   </div>
 
-  <!-- COLUNA DIREITA -->
-  <div class="right-column">
-    <div class="card">
-      <b>📋 Lançamentos de Hoje</b>
-      <div class="list" id="lista"></div>
-    </div>
+  <div class="field">
+    <label>Peso bruto (kg)</label>
+    <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
   </div>
 
+  <div class="field">
+    <label>Tara (kg)</label>
+    <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
+    <div class="net-preview" id="pesoLiquidoPreview">Líquido: <b>0,000 kg</b></div>
+  </div>
+
+  <div class="field">
+    <label>Unidade</label>
+    <select id="unidade">
+      <option value="KG">KG</option>
+      <option value="UN">UN</option>
+    </select>
+  </div>
+
+ <div class="field">
+  <label>Tipo</label>
+  <select id="tipo">
+    <option value="MONTAGEM">Montagem</option>
+    <option value="REPOSICAO">Reposição</option>
+    <option value="RETIRADA">Retirada</option>
+    <option value="DEVOLUCAO">Desperdício</option>
+    <option value="MONTAGEM">Consumo Funcionários</option>
+
+  </select>
 </div>
+
+<div class="field" style="display:none">
+  <label style="display:flex;gap:8px;align-items:center">
+    <input type="checkbox" id="consumoAutorizado" hidden>
+    Consumo autorizado
+  </label>
+</div>
+</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
+      <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
+    </div>
+    <small>Data é travada no dia atual e hora é automática.</small>
+  </div>
+
+  <div class="card">
+    <b>📋 Lançamentos de Hoje</b>
+    <div class="list" id="lista"></div>
+  </div>
 
 </div>
 
