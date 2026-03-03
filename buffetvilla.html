@@ -43,7 +43,7 @@ body{
 
 /* Container principal ocupa a tela */
 .app{
-  max-width:1400px;             /* usa melhor telas grandes */
+  max-width:7400px;             /* usa melhor telas grandes */
   margin:0 auto;
   padding:14px 14px 22px;
   min-height:100dvh;            /* altura real da viewport (mobile safe) */
@@ -252,12 +252,62 @@ body, .app{
 }
 
 /* ===== LAYOUT LADO A LADO ===== */
+/* ===== LAYOUT PROFISSIONAL ===== */
 .main-layout{
+  display:grid;
+  grid-template-columns: 40% 60%;
+  gap:24px;
+  flex:1;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+/* mais respiro */
+.card{
+  padding:22px;
+}
+
+/* formulário mais equilibrado */
+.form-grid{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap:16px;
+}
+
+/* botão ocupa largura total */
+.form-grid .field:first-child{
+  grid-column:1 / -1;
+}
+
+/* coluna direita */
+.right-column .card{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+
+.right-column .list{
   flex:1;
-  overflow:hidden;
+  overflow:auto;
+  max-height:none;
+}
+
+/* linha divisória elegante */
+.left-column{
+  border-right:1px solid #e5e7eb;
+  padding-right:12px;
+}
+
+/* MOBILE */
+@media (max-width: 1100px){
+  .main-layout{
+    grid-template-columns: 1fr;
+  }
+
+  .left-column{
+    border-right:none;
+    padding-right:0;
+  }
 }
 
 .left-column,
