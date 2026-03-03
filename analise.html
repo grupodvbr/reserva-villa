@@ -604,8 +604,13 @@ document.getElementById("totalVendido").innerText =
 // Mostra diferença
 const diferenca = totalVendido - totalVarejo;
 
+const percentualDiferenca =
+  totalVendido > 0
+    ? (diferenca / totalVendido * 100)
+    : 0;
+
 document.getElementById("infoComparacao").innerHTML = `
-<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">
 
   <div>
     Sistema:
@@ -619,12 +624,23 @@ document.getElementById("infoComparacao").innerHTML = `
 
   <div>
     Diferença:
-    <b style="
-      color:${diferenca === 0 ? '#16a34a' : '#dc2626'};
-      font-size:22px;
-    ">
-      ${diferenca.toFixed(2)} KG
-    </b>
+    <div style="display:flex;flex-direction:column">
+
+      <b style="
+        color:${diferenca === 0 ? '#16a34a' : '#dc2626'};
+        font-size:22px;
+      ">
+        ${diferenca.toFixed(2)} KG
+      </b>
+
+      <small style="
+        font-weight:900;
+        color:${diferenca === 0 ? '#16a34a' : '#dc2626'};
+      ">
+        ${percentualDiferenca.toFixed(1)}% do sistema
+      </small>
+
+    </div>
   </div>
 
 </div>
