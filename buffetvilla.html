@@ -277,12 +277,12 @@ body, .app{
   </div>
 
   <div class="field">
-    <label>Peso bruto (kg)</label>
+<label id="labelPeso">Peso bruto (kg)</label>
     <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
   </div>
 
   <div class="field">
-    <label>Tara (kg)</label>
+<label id="labelTara">Tara (kg)</label>
     <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
     <div class="net-preview" id="pesoLiquidoPreview">Líquido: <b>0,000 kg</b></div>
   </div>
@@ -379,6 +379,34 @@ body, .app{
   const quantidadeInput = document.getElementById("quantidade");
   const taraInput = document.getElementById("tara");
   const unidadeSelect = document.getElementById("unidade");
+  /* ================= AJUSTE VISUAL POR UNIDADE ================= */
+
+unidadeSelect.addEventListener("change", () => {
+
+  const unidade = unidadeSelect.value;
+
+  const labelPeso = document.getElementById("labelPeso");
+  const labelTara = document.getElementById("labelTara");
+
+  if(unidade === "UN"){
+
+    labelPeso.innerText = "Quantidade (un)";
+    labelTara.innerText = "Tara (un)";
+
+    quantidadeInput.value = "";
+    taraInput.value = "";
+
+  } else {
+
+    labelPeso.innerText = "Peso bruto (kg)";
+    labelTara.innerText = "Tara (kg)";
+
+    quantidadeInput.value = "";
+    taraInput.value = "";
+  }
+
+  atualizarLiquidoPreview();
+});
   const tipoSelect = document.getElementById("tipo");
   const lista = document.getElementById("lista");
   const btnSalvar = document.getElementById("btnSalvar");
@@ -639,8 +667,12 @@ async function salvar(consumoPara){
 
     const empresa = empresaSelect.value;
     const produtoNome = produtoInput.value.trim().toUpperCase();
-    const pesoBruto = parsePeso(quantidadeInput.value);
-    const tara = parsePeso(taraInput.value || 0);
+const pesoBruto = unidadeSelect.value === "UN"
+  ? parseInt(quantidadeInput.value || 0)
+  : parsePeso(quantidadeInput.value);
+const tara = unidadeSelect.value === "UN"
+  ? parseInt(taraInput.value || 0)
+  : parsePeso(taraInput.value || 0);
     const unidade = unidadeSelect.value;
 let tipo = tipoSelect.value;
 
@@ -849,11 +881,25 @@ function formatPeso(v){
 }
 
 function atualizarLiquidoPreview(){
-  const bruto = parsePeso(quantidadeInput.value);
-const tara = parsePeso(taraInput.value);
-  const liquido = Math.max(0, bruto - tara);
-  document.getElementById("pesoLiquidoPreview").innerHTML =
-    `Líquido: <b>${formatPeso(liquido)} kg</b>`;
+
+  const unidade = unidadeSelect.value;
+
+  if(unidade === "UN"){
+    const bruto = parseInt(quantidadeInput.value || 0);
+    const tara = parseInt(taraInput.value || 0);
+    const liquido = Math.max(0, bruto - tara);
+
+    document.getElementById("pesoLiquidoPreview").innerHTML =
+      `Líquido: <b>${liquido} un</b>`;
+  }
+  else{
+    const bruto = parsePeso(quantidadeInput.value);
+    const tara = parsePeso(taraInput.value);
+    const liquido = Math.max(0, bruto - tara);
+
+    document.getElementById("pesoLiquidoPreview").innerHTML =
+      `Líquido: <b>${formatPeso(liquido)} kg</b>`;
+  }
 }
 
 function aplicarMascaraKg(input){
@@ -874,12 +920,20 @@ function aplicarMascaraKg(input){
 }
 
 quantidadeInput.addEventListener("input", () => {
-  aplicarMascaraKg(quantidadeInput);
+
+  if(unidadeSelect.value === "KG"){
+    aplicarMascaraKg(quantidadeInput);
+  }
+
   atualizarLiquidoPreview();
 });
 
 taraInput.addEventListener("input", () => {
-  aplicarMascaraKg(taraInput);
+
+  if(unidadeSelect.value === "KG"){
+    aplicarMascaraKg(taraInput);
+  }
+
   atualizarLiquidoPreview();
 });
 
