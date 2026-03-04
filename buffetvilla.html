@@ -271,6 +271,55 @@ button.ghost{
   }
 
 }
+
+/* ================= TABLET INLINE LAYOUT ================= */
+
+.tablet-row{
+  grid-template-columns: 2.5fr 2fr 1.5fr 1.5fr;
+}
+
+.inline-group .inline-input{
+  display:flex;
+  gap:8px;
+}
+
+.inline-group input{
+  flex:1;
+}
+
+.inline-group select{
+  width:90px;
+  flex-shrink:0;
+}
+
+/* deixa tara alinhada com quantidade */
+#tara{
+  width:100%;
+}
+
+/* preview menor e compacto */
+.net-preview{
+  font-size:11px;
+  margin-top:3px;
+}
+
+/* ajuste visual tablet */
+@media (min-width:900px){
+
+  .form-grid{
+    align-items:end;
+  }
+
+  .field label{
+    font-size:10px;
+  }
+
+  input, select{
+    height:40px;
+    font-size:13px;
+  }
+
+}
 </style>
 </head>
 
@@ -291,32 +340,35 @@ button.ghost{
   </div>
 
   <div class="card">
-<div class="form-grid">
+<div class="form-grid tablet-row">
   <div class="field">
     <label>Prato</label>
     <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
   </div>
 
-  <div class="field">
-<label id="labelPeso">Peso bruto (kg)</label>
+<!-- QUANTIDADE + UNIDADE JUNTOS -->
+<div class="field inline-group">
+  <label id="labelPeso">Peso bruto (kg)</label>
+  <div class="inline-input">
     <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
-  </div>
-
-  <div class="field">
-<label id="labelTara">Tara (kg)</label>
-    <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
-    <div class="net-preview" id="pesoLiquidoPreview">Líquido: <b>0,000 kg</b></div>
-  </div>
-
-  <div class="field">
-    <label>Unidade</label>
     <select id="unidade">
       <option value="KG">KG</option>
       <option value="UN">UN</option>
     </select>
   </div>
+</div>
 
- <div class="field">
+<!-- TARA -->
+<div class="field">
+  <label id="labelTara">Tara (kg)</label>
+  <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
+  <div class="net-preview" id="pesoLiquidoPreview">
+    Líquido: <b>0,000 kg</b>
+  </div>
+</div>
+
+<!-- TIPO -->
+<div class="field">
   <label>Tipo</label>
   <select id="tipo">
     <option value="MONTAGEM">Montagem</option>
@@ -324,7 +376,6 @@ button.ghost{
     <option value="RETIRADA">Retirada</option>
     <option value="DEVOLUCAO">Desperdício</option>
     <option value="MONTAGEM">Consumo Funcionários</option>
-
   </select>
 </div>
 
