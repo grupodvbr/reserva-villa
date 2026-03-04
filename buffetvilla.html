@@ -13,79 +13,88 @@
 :root{
   --primary:#ff6a00;
   --primary-dark:#ea580c;
-  --bg:#f4f6fb;
+  --bg:#f3f4f6;
   --card:#ffffff;
   --border:#e5e7eb;
   --muted:#6b7280;
-  --success:#16a34a;
-  --danger:#dc2626;
-  --radius:18px;
-  --shadow:0 16px 40px rgba(0,0,0,.12);
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
 }
 
-/* Reset e base */
 *{
   box-sizing:border-box;
   font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  -webkit-tap-highlight-color: transparent;
-}
-html, body{
-  width:100%;
-  height:100%;
-  margin:0;
-  padding:0;
-  background:linear-gradient(180deg,#fff, var(--bg));
-  overscroll-behavior: none;
-}
-body{
-  overflow:hidden;              /* tela cheia sem scroll da página */
+  -webkit-tap-highlight-color:transparent;
 }
 
-/* Container principal ocupa a tela */
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  background:var(--bg);
+  overflow:hidden;
+}
+
+/* ================= APP ================= */
+
 .app{
-  max-width:1400px;             /* usa melhor telas grandes */
+  max-width:1500px;
   margin:0 auto;
-  padding:14px 14px 22px;
-  min-height:100dvh;            /* altura real da viewport (mobile safe) */
+  padding:18px;
+  height:100dvh;
   display:flex;
   flex-direction:column;
 }
 
-/* Header fixo no topo */
+/* ================= HEADER ================= */
+
 .header{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
-.title{font-size:22px;font-weight:900}
-.badge{
-  background:#111827;color:#fff;
-  padding:6px 10px;border-radius:999px;
-  font-size:12px;white-space:nowrap
+  margin-bottom:14px;
 }
 
-/* Cards */
+.title{
+  font-size:24px;
+  font-weight:900;
+}
+
+.badge{
+  background:#111827;
+  color:#fff;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+}
+
+/* ================= CARD ================= */
+
 .card{
   background:var(--card);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:14px;
-  margin-bottom:12px;
+  margin-bottom:14px;
 }
 
-/* Linha empresa */
+/* ================= EMPRESA ================= */
+
 .company-row{
   display:flex;
-  gap:10px;
   align-items:center;
+  gap:12px;
 }
-.company-row select{flex:1}
+
+.company-row select{
+  width:300px;
+}
+
+/* ================= FORM TABLET ================= */
 
 .form-grid{
   display:grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap:12px;
   align-items:end;
 }
@@ -93,162 +102,174 @@ body{
 .field{
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:4px;
 }
 
 .field label{
-  font-size:12px;
+  font-size:11px;
   font-weight:700;
   color:#374151;
+  text-transform:uppercase;
+  letter-spacing:.5px;
 }
 
-input, select, button{
-  padding:14px 14px;
-  border-radius:14px;
+/* ================= INPUTS COMPACTOS ================= */
+
+input, select{
+  height:42px;
+  padding:8px 12px;
+  border-radius:10px;
   border:1px solid var(--border);
-  font-size:16px;
-  outline:none;
-  height:48px;
+  font-size:14px;
+  background:#fff;
 }
 
-.input-weight{
-  font-weight:900;
-  letter-spacing:.02em;
-}
-
-.input-tara{
-  background:#fff7ed;
-  border-color:#fed7aa;
-}
-
-.net-preview{
-  font-size:12px;
-  color:#374151;
-  margin-top:4px;
-}
-
-.net-preview b{
-  color:#16a34a;
-}
 input:focus, select:focus{
   border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(255,106,0,.15);
+  box-shadow:0 0 0 3px rgba(255,106,0,.12);
+  outline:none;
+}
+
+/* ================= BOTÕES EM LINHA ================= */
+
+.action-row{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
+
+button{
+  height:42px;
+  padding:0 18px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
 }
 
 button.primary{
   background:var(--primary);
-  color:#fff;border:none;
-  font-weight:800;
+  color:#fff;
+  border:none;
 }
-button.primary:active{transform:scale(.98)}
-button.ghost{
-  background:#fff;border:1px dashed var(--border)
-}
-small{color:var(--muted)}
 
-/* Lista com scroll interno (tela cheia) */
+button.primary:hover{
+  background:var(--primary-dark);
+}
+
+button.ghost{
+  background:#fff;
+  border:1px solid var(--border);
+}
+
+/* ================= LISTA EXPANDIDA ================= */
+
 .list{
+  flex:1;
+  overflow:auto;
   display:grid;
   gap:10px;
-  margin-top:8px;
-  overflow:auto;
-  max-height:calc(100dvh - 360px); /* ajusta conforme header + cards */
   padding-right:4px;
 }
+
 .item{
   display:grid;
-  grid-template-columns:1fr auto;
-  gap:10px;
-  padding:12px;
-  border-radius:14px;
+  grid-template-columns: 1fr auto;
+  gap:14px;
+  padding:12px 16px;
+  border-radius:12px;
   border:1px solid var(--border);
   background:#fff;
+  align-items:center;
 }
-.item .name{font-weight:800}
-.meta{font-size:13px;color:var(--muted)}
+
+.item .name{
+  font-weight:800;
+  font-size:15px;
+}
+
+.meta{
+  font-size:13px;
+  color:var(--muted);
+}
+
 .tag{
-  padding:6px 10px;border-radius:999px;
-  font-size:12px;font-weight:800
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
 }
+
+/* ================= TAG CORES ================= */
+
 .MONTAGEM{background:#dcfce7;color:#166534}
 .REPOSICAO{background:#e0f2fe;color:#075985}
 .RETIRADA{background:#fee2e2;color:#991b1b}
 .DEVOLUCAO{background:#fef3c7;color:#92400e}
+.CONSUMO{background:#ede9fe;color:#5b21b6}
+
+/* ================= ICON BUTTON ================= */
+
 .icon-btn{
   border:1px solid var(--border);
-  background:#fff;border-radius:10px;padding:8px
+  background:#fff;
+  border-radius:8px;
+  padding:6px 8px;
 }
-.icon-btn.danger{border-color:#fecaca;color:#b91c1c}
 
-/* Modal fullscreen no mobile */
+.icon-btn.danger{
+  border-color:#fecaca;
+  color:#b91c1c;
+}
+
+/* ================= MODAL ================= */
+
 .modal-backdrop{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.45);
   display:none;
-  align-items:flex-end;
+  align-items:center;
   justify-content:center;
   z-index:999;
 }
+
 .modal{
-  width:100%;
-  max-width:560px;
+  width:480px;
   background:#fff;
-  border-radius:22px 22px 0 0;
-  padding:16px;
-  box-shadow:0 -20px 40px rgba(0,0,0,.25);
-  animation:slideUp .18s ease-out;
-}
-@keyframes slideUp{
-  from{transform:translateY(24px);opacity:.6}
-  to{transform:none;opacity:1}
-}
-.modal h3{margin:0 0 8px 0}
-.modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.modal .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-
-/* Desktop: modal centralizado */
-@media (min-width: 900px){
-  .modal-backdrop{align-items:center}
-  .modal{border-radius:22px}
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
 }
 
-/* Mobile: tudo em coluna, sem zoom */
-@media (max-width: 720px){
-  .form-grid{grid-template-columns:1fr}
-  .title{font-size:20px}
-  .badge{font-size:11px}
-  .list{
-    max-height:calc(100dvh - 400px); /* mais espaço pro teclado */
+.modal .grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.modal .actions{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
+
+/* ================= RESPONSIVO CELULAR ================= */
+
+@media(max-width:768px){
+
+  .form-grid{
+    grid-template-columns:1fr;
   }
-}
 
-/* Evita rolagem lateral */
-body, .app{
-  overflow-x:hidden;
-}
+  .action-row{
+    flex-direction:column;
+  }
 
-@keyframes spin{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
-}
+  .company-row select{
+    width:100%;
+  }
 
-
-/* cole no <style> */
-.meta b{
-  color:#0f172a;
-  font-weight:800;
-}
-
-/* 🔒 trava visual da flag para nunca aparecer */
-#consumoAutorizado,
-#consumoAutorizado * {
-  display: none !important;
-}
-
-.CONSUMO{
-  background:#ede9fe;
-  color:#5b21b6;
 }
 </style>
 </head>
