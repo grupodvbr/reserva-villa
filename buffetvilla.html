@@ -30,9 +30,10 @@
 html,body{
   margin:0;
   padding:0;
-  height:100%;
+  min-height:100%;
   background:var(--bg);
-  overflow:hidden;
+  overflow-y:auto;
+  overflow-x:hidden;
 }
 
 /* ================= APP ================= */
@@ -40,8 +41,8 @@ html,body{
 .app{
   max-width:1500px;
   margin:0 auto;
-  padding:18px;
-  height:100dvh;
+  padding:20px;
+  min-height:100dvh;
   display:flex;
   flex-direction:column;
 }
@@ -52,20 +53,22 @@ html,body{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-bottom:14px;
+  margin-bottom:18px;
 }
 
 .title{
   font-size:24px;
   font-weight:900;
+  letter-spacing:-0.5px;
 }
 
 .badge{
   background:#111827;
   color:#fff;
-  padding:6px 12px;
+  padding:7px 14px;
   border-radius:999px;
   font-size:13px;
+  font-weight:700;
 }
 
 /* ================= CARD ================= */
@@ -74,8 +77,8 @@ html,body{
   background:var(--card);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:14px;
-  margin-bottom:14px;
+  padding:18px;
+  margin-bottom:16px;
 }
 
 /* ================= EMPRESA ================= */
@@ -90,38 +93,41 @@ html,body{
   width:300px;
 }
 
-/* ================= FORM TABLET ================= */
+/* ================= FORM GRID ================= */
 
 .form-grid{
   display:grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap:12px;
+  grid-template-columns: 2.8fr 1.8fr 1.4fr 1.4fr;
+  gap:16px;
   align-items:end;
 }
+
+/* ================= FIELD ================= */
 
 .field{
   display:flex;
   flex-direction:column;
-  gap:4px;
+  gap:6px;
 }
 
 .field label{
   font-size:11px;
-  font-weight:700;
+  font-weight:800;
   color:#374151;
   text-transform:uppercase;
-  letter-spacing:.5px;
+  letter-spacing:.6px;
 }
 
-/* ================= INPUTS COMPACTOS ================= */
+/* ================= INPUTS ================= */
 
 input, select{
-  height:42px;
+  height:44px;
   padding:8px 12px;
   border-radius:10px;
   border:1px solid var(--border);
   font-size:14px;
   background:#fff;
+  transition:all .2s ease;
 }
 
 input:focus, select:focus{
@@ -130,21 +136,46 @@ input:focus, select:focus{
   outline:none;
 }
 
-/* ================= BOTÕES EM LINHA ================= */
+/* ================= INLINE QUANTIDADE + UNIDADE ================= */
 
-.action-row{
+.inline-group .inline-input{
   display:flex;
-  gap:10px;
-  margin-top:12px;
+  width:100%;
 }
 
+.inline-group input{
+  flex:1;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+}
+
+.inline-group select{
+  width:85px;
+  border-left:none;
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+  background:#f9fafb;
+  font-weight:700;
+}
+
+/* ================= PREVIEW LIQUIDO ================= */
+
+.net-preview{
+  font-size:12px;
+  margin-top:4px;
+  color:#6b7280;
+}
+
+/* ================= BOTÕES ================= */
+
 button{
-  height:42px;
+  height:44px;
   padding:0 18px;
   border-radius:10px;
-  font-weight:700;
+  font-weight:800;
   font-size:14px;
   cursor:pointer;
+  transition:.2s;
 }
 
 button.primary{
@@ -162,13 +193,13 @@ button.ghost{
   border:1px solid var(--border);
 }
 
-/* ================= LISTA EXPANDIDA ================= */
+/* ================= LISTA ================= */
 
 .list{
   flex:1;
   overflow:auto;
   display:grid;
-  gap:10px;
+  gap:12px;
   padding-right:4px;
 }
 
@@ -176,15 +207,20 @@ button.ghost{
   display:grid;
   grid-template-columns: 1fr auto;
   gap:14px;
-  padding:12px 16px;
-  border-radius:12px;
+  padding:16px;
+  border-radius:14px;
   border:1px solid var(--border);
   background:#fff;
   align-items:center;
+  transition:.15s;
+}
+
+.item:hover{
+  box-shadow:0 6px 18px rgba(0,0,0,.05);
 }
 
 .item .name{
-  font-weight:800;
+  font-weight:900;
   font-size:15px;
 }
 
@@ -194,10 +230,10 @@ button.ghost{
 }
 
 .tag{
-  padding:6px 12px;
+  padding:7px 14px;
   border-radius:999px;
   font-size:12px;
-  font-weight:800;
+  font-weight:900;
 }
 
 /* ================= TAG CORES ================= */
@@ -213,8 +249,13 @@ button.ghost{
 .icon-btn{
   border:1px solid var(--border);
   background:#fff;
-  border-radius:8px;
-  padding:6px 8px;
+  border-radius:10px;
+  padding:6px 9px;
+  transition:.2s;
+}
+
+.icon-btn:hover{
+  background:#f9fafb;
 }
 
 .icon-btn.danger{
@@ -237,21 +278,29 @@ button.ghost{
 .modal{
   width:480px;
   background:#fff;
-  border-radius:16px;
-  padding:18px;
-  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
 }
 
 .modal .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:12px;
 }
 
 .modal .actions{
   display:flex;
   gap:10px;
-  margin-top:12px;
+  margin-top:14px;
+}
+
+/* ================= RESPONSIVO TABLET ================= */
+
+@media(max-width:1200px){
+  .form-grid{
+    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+  }
 }
 
 /* ================= RESPONSIVO CELULAR ================= */
@@ -262,61 +311,21 @@ button.ghost{
     grid-template-columns:1fr;
   }
 
-  .action-row{
+  .company-row{
     flex-direction:column;
+    align-items:flex-start;
   }
 
   .company-row select{
     width:100%;
   }
 
-}
-
-/* ================= TABLET INLINE LAYOUT ================= */
-
-.tablet-row{
-  grid-template-columns: 2.5fr 2fr 1.5fr 1.5fr;
-}
-
-.inline-group .inline-input{
-  display:flex;
-  gap:8px;
-}
-
-.inline-group input{
-  flex:1;
-}
-
-.inline-group select{
-  width:90px;
-  flex-shrink:0;
-}
-
-/* deixa tara alinhada com quantidade */
-#tara{
-  width:100%;
-}
-
-/* preview menor e compacto */
-.net-preview{
-  font-size:11px;
-  margin-top:3px;
-}
-
-/* ajuste visual tablet */
-@media (min-width:900px){
-
-  .form-grid{
-    align-items:end;
+  button{
+    width:100%;
   }
 
-  .field label{
-    font-size:10px;
-  }
-
-  input, select{
-    height:40px;
-    font-size:13px;
+  .item{
+    grid-template-columns:1fr;
   }
 
 }
