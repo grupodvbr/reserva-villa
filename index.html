@@ -1019,7 +1019,7 @@ to{transform:rotate(360deg)}
         </div>
 
         <label for="datahora">Data e Hora da Reserva <span style="color:var(--danger)">*</span></label>
-        <input type="datetime-local" id="datahora" name="datahora" required />
+<input type="datetime-local" id="datahora" name="datahora" required step="60">
         <div class="hint">Não é permitido escolher data passada.</div>
       </div>
 
@@ -1560,8 +1560,12 @@ moneyInputs.forEach(inp => {
 
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      if(!form.checkValidity()){ toast('Confira os campos obrigatórios.'); return; }
-      if(!validateExtra()) return;
+if(!form.checkValidity()){
+  toast('Confira os campos obrigatórios.');
+  form.reportValidity();
+  return;
+}
+if(!validateExtra()) return;
 showLoading();
 submitBtn.disabled = true;
       const payload = collectPayload();
@@ -1767,12 +1771,32 @@ state.reservas = data.map((r,i)=> {
 
     function refreshAll(){ buildCalendar(); updateSummary(); loadMonth(state.ano, state.mes); }
 
-    // Inicialização
-    window.addEventListener('DOMContentLoaded', ()=>{
-      $('#datahora').min = nowLocalMin();
-      refreshAll();
-    });
+window.addEventListener('DOMContentLoaded', ()=>{
 
+  const campoData = document.getElementById("datahora");
+
+  campoData.min = nowLocalMin();
+
+  // Corrigir data digitada manualmente
+  campoData.addEventListener("blur", function(){
+
+    let v = this.value;
+
+    if(v.includes("/")){
+
+      const p = v.split(" ");
+      const d = p[0].split("/");
+      const h = p[1] || "00:00";
+
+      this.value = `${d[2]}-${d[1]}-${d[0]}T${h}`;
+
+    }
+
+  });
+
+  refreshAll();
+
+});
   const overlay = document.getElementById("loadingOverlay");
 
 function showLoading(){
