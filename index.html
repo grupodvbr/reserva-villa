@@ -1797,21 +1797,33 @@ window.addEventListener('DOMContentLoaded', ()=>{
   refreshAll();
 
 });
-  const overlay = document.getElementById("loadingOverlay");
-
 function showLoading(){
+
+const overlay = document.getElementById("loadingOverlay");
+
+if(overlay){
 overlay.style.display="flex";
 }
 
+}
+
 function hideLoading(){
+
+const overlay = document.getElementById("loadingOverlay");
+
+if(overlay){
 overlay.style.display="none";
 }
-  </script>
-  <div id="loadingOverlay" class="loading-overlay" style="display:none">
+
+}
+
+    <div id="loadingOverlay" class="loading-overlay" style="display:none">
   <div class="loading-box">
     <div class="loading-spinner"></div>
     <div>Processando...</div>
   </div>
 </div>
+    
+</script>
 </body>
 </html>
