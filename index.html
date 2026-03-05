@@ -6,14 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <meta name="color-scheme" content="light dark" />
   <style>
-    /* ============ Design base ============ */
-/* =========================
-   VARIÁVEIS
-========================= */
-/* =========================
-   VARIÁVEIS
-========================= */
-
 :root{
 
 color-scheme:dark;
@@ -890,69 +882,6 @@ gap:8px;
 justify-content:flex-end;
 
 }
-/* =========================
-   OVERLAY LOADING
-========================= */
-
-.loading-overlay{
-
-position:fixed;
-
-inset:0;
-
-background:rgba(0,0,0,.65);
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-z-index:999;
-
-backdrop-filter:blur(4px);
-
-}
-
-.loading-box{
-
-background:#0b1324;
-
-padding:30px 40px;
-
-border-radius:16px;
-
-border:1px solid #1c2a44;
-
-box-shadow:0 20px 60px rgba(0,0,0,.6);
-
-text-align:center;
-
-}
-
-.loading-spinner{
-
-width:40px;
-height:40px;
-
-border:4px solid #1c2a44;
-border-top:4px solid #3b82f6;
-
-border-radius:50%;
-
-animation:spin 1s linear infinite;
-
-margin:auto;
-margin-bottom:12px;
-
-}
-
-@keyframes spin{
-
-to{transform:rotate(360deg)}
-
-}
-    
   </style>
 </head>
 <body>
@@ -1562,8 +1491,8 @@ moneyInputs.forEach(inp => {
       e.preventDefault();
       if(!form.checkValidity()){ toast('Confira os campos obrigatórios.'); return; }
       if(!validateExtra()) return;
-showLoading();
-submitBtn.disabled = true;
+      spinner.classList.add('show'); submitBtn.disabled = true;
+
       const payload = collectPayload();
       const file = inputArquivo.files[0];
       if(file){
@@ -1574,22 +1503,12 @@ submitBtn.disabled = true;
         }catch(e){ console.error(e); toast('Falha ao ler o arquivo.'); }
       }
 
-let resp;
-
-if(state.editingId){
-
-payload.id = state.editingId;
-payload.acao = "atualizar";
-
-resp = await api.atualizar(state.editingId, payload);
-
-}else{
-
-payload.acao = "cadastrar";
-
-resp = await api.cadastrar(payload);
-
-}
+      let resp;
+      if(state.editingId){
+        resp = await api.atualizar(state.editingId, payload);
+      }else{
+        resp = await api.cadastrar(payload);
+      }
 
       if(resp.ok){
         toast('✅ ' + (resp.message||'OK'));
@@ -1600,8 +1519,8 @@ resp = await api.cadastrar(payload);
         toast('⚠️ ' + resp.message);
       }
 
-hideLoading();
-submitBtn.disabled = false;    });
+      spinner.classList.remove('show'); submitBtn.disabled = false;
+    });
 
     function collectPayload(){
       const fd = new FormData(form);
@@ -1772,22 +1691,6 @@ state.reservas = data.map((r,i)=> {
       $('#datahora').min = nowLocalMin();
       refreshAll();
     });
-
-  const overlay = document.getElementById("loadingOverlay");
-
-function showLoading(){
-overlay.style.display="flex";
-}
-
-function hideLoading(){
-overlay.style.display="none";
-}
   </script>
-  <div id="loadingOverlay" class="loading-overlay" style="display:none">
-  <div class="loading-box">
-    <div class="loading-spinner"></div>
-    <div>Processando...</div>
-  </div>
-</div>
 </body>
 </html>
