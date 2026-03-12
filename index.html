@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Painel de Reservas • Villa Gourmet / Churrascada</title>
+  <title>Painel de Reservas • Mercatto Delícia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <meta name="color-scheme" content="light dark" />
   <style>
@@ -296,8 +296,8 @@ cursor:pointer;
 
 .btn{
 font-weight:700;
+white-space:nowrap;
 }
-
 .btn-primary{
 
 background:linear-gradient(90deg,var(--brand),var(--brand-2));
@@ -350,21 +350,70 @@ gap:10px;
 }
 
 .chip{
-
-border:1px solid var(--line);
-
 border-radius:999px;
-
 padding:6px 10px;
-
 font-size:.84rem;
-
-color:var(--muted);
-
-background:#0b1324;
-
+font-weight:700;
 }
 
+.chip.pendente{
+background:#92400e30;
+color:#fcd34d;
+}
+
+.chip.confirmada{
+background:#1e3a8a30;
+color:#93c5fd;
+}
+
+.chip.concluida{
+background:#14532d30;
+color:#86efac;
+}
+
+.chip.cancelada{
+background:#7f1d1d30;
+color:#fca5a5;
+}
+.status-row{
+display:flex;
+gap:6px;
+margin-top:6px;
+flex-wrap:wrap;
+}
+
+.status-mini{
+font-size:.72rem;
+padding:3px 7px;
+border-radius:999px;
+border:1px solid var(--line);
+opacity:.35;
+}
+
+.status-mini.active{
+opacity:1;
+font-weight:700;
+}
+
+.status-mini.pendente{
+background:#92400e30;
+color:#fcd34d;
+}
+
+.status-mini.confirmada{
+background:#1e3a8a30;
+color:#93c5fd;
+}
+
+.status-mini.concluida{
+background:#14532d30;
+color:#86efac;
+}
+
+.status-mini.cancelada{
+background:#7f1d1d30;
+color:#fca5a5;
+}
 .file-box{
 
 display:flex;
@@ -491,11 +540,11 @@ background:#081428;
 
 border:1px solid var(--line);
 
-border-radius:14px;
+border-radius:12px;
 
-padding:12px;
+padding:8px;
 
-min-height:120px;
+min-height:85px;
 
 position:relative;
 
@@ -523,13 +572,13 @@ opacity:.45;
 
 position:absolute;
 
-top:8px;
+top:6px;
 
-right:10px;
+right:8px;
 
-font-weight:900;
+font-weight:800;
 
-font-size:1.05rem;
+font-size:.9rem;
 
 }
 
@@ -537,13 +586,13 @@ font-size:1.05rem;
 
 position:absolute;
 
-bottom:10px;
-left:10px;
-right:10px;
+bottom:6px;
+left:6px;
+right:6px;
 
 display:flex;
 
-gap:6px;
+gap:4px;
 
 flex-wrap:wrap;
 
@@ -552,12 +601,11 @@ flex-wrap:wrap;
 /* =========================
    TAGS
 ========================= */
-
 .tag{
 
-font-size:.78rem;
+font-size:.68rem;
 
-padding:4px 8px;
+padding:2px 6px;
 
 border-radius:999px;
 
@@ -747,13 +795,15 @@ padding:0 16px 16px;
 
 border:1px solid var(--line);
 
-border-radius:12px;
+border-radius:10px;
 
-padding:10px;
+padding:8px;
 
-margin-bottom:10px;
+margin-bottom:6px;
 
 background:#081428;
+
+font-size:.85rem;
 
 }
 
@@ -882,12 +932,88 @@ gap:8px;
 justify-content:flex-end;
 
 }
+
+  /* =========================
+   MOBILE FIX RESERVAS
+========================= */
+
+@media (max-width:600px){
+
+.res-item{
+
+padding:10px 8px;
+
+font-size:.82rem;
+
+}
+
+.res-item .top{
+
+flex-direction:column;
+
+align-items:flex-start;
+
+gap:6px;
+
+}
+
+/* linha de botões */
+
+.res-item .row{
+
+width:100%;
+
+flex-wrap:wrap;
+
+gap:6px;
+
+}
+
+/* botões menores */
+
+.res-item .btn{
+
+padding:6px 8px;
+
+font-size:.75rem;
+
+}
+
+/* select menor */
+
+.res-item select{
+
+padding:6px 8px;
+
+font-size:.75rem;
+
+}
+
+/* textos menores */
+
+.res-item .meta{
+
+font-size:.75rem;
+
+line-height:1.35;
+
+}
+
+.res-item .name{
+
+font-size:.9rem;
+
+}
+
+}
   </style>
 </head>
 <body>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <div class="wrap">
     <header>
-      <div class="title">Reservas • Villa Gourmet / Churrascada</div>
+      <div class="title">Reservas • Mercatto Delícia</div>
       <div class="badge">Cadastro → Calendário → Resumo</div>
     </header>
 
@@ -923,33 +1049,45 @@ justify-content:flex-end;
       </div>
 
       <div class="section">
-        <h3>🪑 Detalhes da Reserva</h3>
-        <div class="inline-grid">
-          <div>
-            <label for="mesa">Local da Reserva <span style="color:var(--danger)">*</span></label>
-            <select id="mesa" name="mesa" required>
-              <option value="">Selecione o local</option>
-              <option>Sala Paulo Augusto</option>
-              <option>Villa Gourmet</option>
-              <option>Villa Churrascada</option>
-            </select>
-          </div>
-          <div>
-            <label for="cardapio">Cardápio</label>
-            <select id="cardapio" name="cardapio">
-              <option value="">Selecione</option>
-              <option>Buffet Ouro</option>
-              <option>Buffet Diamante</option>
-              <option>Buffet Master Gold</option>
+<h3>🪑 Detalhes da Reserva</h3>
 
-              <option>Outro</option>
-            </select>
-          </div>
-        </div>
+<div class="inline-grid">
 
-        <label for="datahora">Data e Hora da Reserva <span style="color:var(--danger)">*</span></label>
-        <input type="datetime-local" id="datahora" name="datahora" required />
-        <div class="hint">Não é permitido escolher data passada.</div>
+  <div>
+    <label for="mesa">Local da Reserva <span style="color:var(--danger)">*</span></label>
+    <select id="mesa" name="mesa" required>
+      <option value="">Selecione o local</option>
+      <option>Villa Churrascada</option>
+      <option>Villa Gourmet</option>
+      <option>Sala VIP</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="cardapio">Cardápio</label>
+    <select id="cardapio" name="cardapio">
+      <option value="">Selecione</option>
+      <option>Buffet Ouro</option>
+      <option>Buffet Diamante</option>
+      <option>Buffet Master Gold</option>
+      <option>Outro</option>
+    </select>
+  </div>
+
+  <div>
+    <label for="comandaIndividual">Comanda Individual?</label>
+    <select id="comandaIndividual" name="comandaIndividual">
+      <option value="">Selecione</option>
+      <option value="Sim">Sim</option>
+      <option value="Não">Não</option>
+    </select>
+  </div>
+
+</div>
+
+<label for="datahora">Data e Hora da Reserva <span style="color:var(--danger)">*</span></label>
+<input type="datetime-local" id="datahora" name="datahora" required />
+<div class="hint">Não é permitido escolher data passada.</div>
       </div>
 
       <div class="section">
@@ -1006,7 +1144,6 @@ justify-content:flex-end;
       <footer>
         <div class="spinner" id="spinner">⬤ Enviando...</div>
         <div class="toolbar" style="margin-left:auto">
-          <button type="button" id="cancelEdit" class="btn btn-ghost" style="display:none">Cancelar edição</button>
           <button type="reset" class="btn btn-ghost">Limpar</button>
           <button type="submit" id="submitBtn" class="btn btn-primary">Salvar Reserva</button>
         </div>
@@ -1057,8 +1194,8 @@ justify-content:flex-end;
   </div>
 
   <!-- ============ MODAIS ============ -->
-  <div class="modal" id="dayModal" aria-hidden="true">
-    <div class="sheet">
+<div class="modal" id="dayModal">
+  <div class="sheet">
       <h3 id="modalTitle">Reservas do dia</h3>
       <div class="list" id="modalList"></div>
     </div>
@@ -1095,32 +1232,45 @@ justify-content:flex-end;
           </div>
         </div>
         <div class="section">
-          <h3>🪑 Reserva</h3>
-          <div class="inline-grid">
-            <div>
-              <label>Local</label>
-              <select id="e_mesa">
-                <option value="">Selecione</option>
-                <option>SALA VIP</option>
-                <option>SALA VIP 2</option>
-                <option>SACADA</option>
-                <option>SALÃO CENTRAL</option>
-              </select>
-            </div>
-            <div>
-              <label>Cardápio</label>
-              <select id="e_cardapio">
-                <option value="">Selecione</option>
-                <option>Buffet Básico</option>
-                <option>Buffet Premium</option>
-                <option>Rodízio</option>
-                <option>À la carte</option>
-                <option>Outro</option>
-              </select>
-            </div>
-          </div>
-          <label>Data e Hora</label>
-          <input id="e_datahora" type="datetime-local" />
+<h3>🪑 Reserva</h3>
+
+<div class="inline-grid">
+
+<div>
+<label>Local</label>
+<select id="e_mesa">
+<option value="">Selecione</option>
+      <option>Villa Churrascada</option>
+      <option>Villa Gourmet</option>
+      <option>Sala VIP</option>
+</select>
+</div>
+
+<div>
+<label>Cardápio</label>
+<select id="e_cardapio">
+<option value="">Selecione</option>
+<option>Buffet Básico</option>
+<option>Buffet Premium</option>
+<option>Rodízio</option>
+<option>À la carte</option>
+<option>Outro</option>
+</select>
+</div>
+
+<div>
+<label>Comanda Individual</label>
+<select id="e_comandaIndividual">
+<option value="">Selecione</option>
+<option value="Sim">Sim</option>
+<option value="Não">Não</option>
+</select>
+</div>
+
+</div>
+
+<label>Data e Hora</label>
+<input id="e_datahora" type="datetime-local" />
         </div>
         <div class="section">
           <h3>💳 Pagamentos</h3>
@@ -1164,15 +1314,40 @@ justify-content:flex-end;
       </div>
     </div>
   </div>
+<div class="modal" id="deleteModal">
+  <div class="sheet" style="max-width:420px;border-radius:16px;">
+    <div style="padding:20px">
 
+      <h3>Excluir reserva</h3>
+
+      <div id="deleteText" class="hint" style="margin-top:10px"></div>
+
+      <div class="toolbar" style="margin-top:18px;justify-content:flex-end">
+
+        <button id="cancelDelete" class="btn btn-ghost" style="width:auto">
+          Cancelar
+        </button>
+
+        <button id="confirmDelete" class="btn btn-danger" style="width:auto">
+          Excluir
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</div>
   <div id="toast" class="toast"></div>
 
   <script>
-    /* ==============================
-       Config
-    ============================== */
-    const endpoint = "https://script.google.com/macros/s/AKfycbyKjGU51keu-pVHL3SgIeMC5398lNW1kqd9DrbLD7pOEK4UtV9BlDS013EG8uwqgkiRGg/exec";
+  
 
+const SUPABASE_URL = "https://dxkszikemntfusfyrzos.supabase.co"
+const SUPABASE_KEY = "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
+const supabaseClient = supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+)
     /* ==============================
        Helpers
     ============================== */
@@ -1213,8 +1388,19 @@ const parseBRL = v => {
 
     const nowLocalMin = ()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
     const ymd = d=>{ const z=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
-    const toBase64 = (file) => new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file); });
 
+    
+const toBase64 = (file) => new Promise((resolve,reject)=>{
+
+const reader = new FileReader();
+
+reader.onload = ()=> resolve(reader.result);
+
+reader.onerror = reject;
+
+reader.readAsDataURL(file);
+
+});
     /* ==============================
        Estado
     ============================== */
@@ -1223,64 +1409,95 @@ const parseBRL = v => {
     /* ==============================
        API
     ============================== */
-    const api = {
-      async listar(ano, mes){
-        const url = `${endpoint}?acao=listar&ano=${ano}&mes=${mes+1}`;
-        const res = await fetch(url, {method:'GET'});
-        if(!res.ok) throw new Error(`Erro ${res.status}`);
-        const data = await res.json();
-        if(!Array.isArray(data)) throw new Error('Resposta inválida da API.');
-        return data;
-      },
-      async cadastrar(payload){
-        try{
-          const res = await fetch(endpoint, { method:'POST', body:new URLSearchParams(payload) });
-          const txt = await res.text();
-          if(!res.ok) return { ok:false, message: txt || 'Falha ao salvar na planilha.' };
-          return { ok:true, message: txt || 'OK' };
-        }catch(e){
-          return { ok:false, message:`Erro ao salvar na planilha: ${e.message}` };
-        }
-      },
-      async atualizar(id, payload){
-        try{
-          const body = new URLSearchParams({ acao:'atualizar', id, ...payload });
-          const res = await fetch(endpoint, { method:'POST', body });
-          const txt = await res.text();
-          if(!res.ok) return { ok:false, message: txt || 'Falha ao atualizar na planilha.' };
-          try{
-            const json = JSON.parse(txt);
-            if (json.ok === false) return { ok:false, message: json.error || 'Falha ao atualizar.' };
-            return { ok:true, message: json.message || 'Atualizado' };
-          }catch{ /* resposta texto simples */ }
-          return { ok:true, message: txt || 'Atualizado' };
-        }catch(e){
-          return { ok:false, message:`Erro ao atualizar: ${e.message}` };
-        }
-      },
-      async concluir(id, valorFinalPago){
-        try{
-          const body = new URLSearchParams({ acao:'concluir', id, valorFinalPago:String(valorFinalPago), status:'Concluída' });
-          const res = await fetch(endpoint, { method:'POST', body });
-          const txt = await res.text();
-          if(!res.ok) return { ok:false, message: txt || 'Falha ao concluir na planilha.' };
-          return { ok:true, message: txt || 'Concluída' };
-        }catch(e){
-          return { ok:false, message:`Erro ao concluir: ${e.message}` };
-        }
-      },
-      async excluir(id){
-        try{
-          const body = new URLSearchParams({ acao:'excluir', id });
-          const res = await fetch(endpoint, { method:'POST', body });
-        const txt = await res.text();
-          if(!res.ok) return { ok:false, message: txt || 'Falha ao excluir na planilha.' };
-          return { ok:true, message: txt || 'Excluída' };
-        }catch(e){
-          return { ok:false, message:`Erro ao excluir: ${e.message}` };
-        }
-      }
-    };
+const api = {
+
+async listar(ano,mes){
+
+const inicio =
+`${ano}-${String(mes+1).padStart(2,'0')}-01`
+
+const fim =
+`${ano}-${String(mes+2).padStart(2,'0')}-01`
+const {data,error} = await supabaseClient
+.from("reservas_villa")
+.select("*")
+.gte("datahora",inicio)
+.lt("datahora",fim)
+.order("datahora",{ascending:true})
+
+if(error) throw error
+
+return data || []
+
+},
+async cadastrar(payload){
+
+delete payload.id
+
+const {error} = await supabaseClient
+.from("reservas_villa")
+.insert(payload)
+
+if(error)
+return {ok:false,message:error.message}
+
+return {ok:true,message:"Reserva salva"}
+
+},
+
+async atualizar(id,payload){
+
+const {error} = await supabaseClient
+.from("reservas_villa")
+.update(payload)
+.eq("id",id)
+
+if(error)
+return {ok:false,message:error.message}
+
+return {ok:true,message:"Atualizado"}
+
+},
+
+async concluir(id,valorFinalPago){
+
+const {error} = await supabaseClient
+.from("reservas_villa")
+.update({
+status:"Concluída",
+valorFinalPago:valorFinalPago
+})
+.eq("id",id)
+
+if(error)
+return {ok:false,message:error.message}
+
+return {ok:true,message:"Concluída"}
+
+},
+
+async excluir(id){
+
+if(!id){
+return {ok:false,message:"ID inválido"}
+}
+
+const {data,error} = await supabaseClient
+.from("reservas_villa")
+.delete()
+.eq("id",String(id))
+.select()
+
+console.log("DELETE RESULT:",data,error)
+
+if(error)
+return {ok:false,message:error.message}
+
+return {ok:true,message:"Excluída"}
+
+}
+
+}
 
     /* ==============================
        Calendário
@@ -1309,8 +1526,10 @@ const parseBRL = v => {
 
 const items = state.reservas.filter(r=>{
   if(!r.datahora) return false;
-  const dt = new Date(r.datahora);
-  return !isNaN(dt) && ymd(dt) === ymd(d);
+
+  const local = new Date(r.datahora)
+
+  return ymd(local) === ymd(d)
 });
         // Agrupar por setor e colorir VIP vs OUTROS
         const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
@@ -1323,19 +1542,35 @@ const items = state.reservas.filter(r=>{
         const isVipKey = k => k === 'SALA VIP' || k === 'SALA VIP 2';
         const sectorTags = Array.from(groups.entries()).map(([key, info]) => {
           const vip = isVipKey(key);
-          const css = vip ? 't-vip' : 't-outros';
-          return `<span class="tag ${css}">${info.count} ${info.label}</span>`;
+let css="t-outros"
+
+if(key.includes("PAULO")) css="t-vip"
+if(key.includes("SACADA")) css="t-pend"
+if(key.includes("SALAO")) css="t-done"
+  return `<span class="tag ${css}">${info.count} ${info.label}</span>`;
         }).join('');
 
-        const pend = items.filter(r=> (r.status||'Pendente')!=='Concluída').length;
-        const done = items.filter(r=> r.status==='Concluída').length;
+const pend = items.filter(r=>{
+const s = (r.status || "").trim()
+  return s === "Pendente"
+}).length
 
+const conf = items.filter(r=>{
+const s = (r.status || "").trim()
+  return s === "Confirmada"
+}).length
+
+const done = items.filter(r=>{
+const s = (r.status || "").trim()
+  return s === "Concluída"
+}).length
         cell.innerHTML = `
           <div class="num">${d.getDate()}</div>
           <div class="tags">
             ${sectorTags}
-            ${pend ? `<span class="tag t-pend">Pend: ${pend}</span>` : ''}
-            ${done ? `<span class="tag t-done">Conc: ${done}</span>` : ''}
+${pend ? `<span class="tag t-pend">Pend: ${pend}</span>` : ''}
+${conf ? `<span class="tag t-vip">Conf: ${conf}</span>` : ''}
+${done ? `<span class="tag t-done">Conc: ${done}</span>` : ''}
           </div>
         `;
         cell.addEventListener('click', ()=> openDayModal(d, items));
@@ -1347,17 +1582,30 @@ const items = state.reservas.filter(r=>{
        Resumo mensal
     ============================== */
     function sumExtrasFromRecord(r){
-      const keys = Object.keys(r||{}).filter(k=>k.toLowerCase().startsWith('pagamentoextra'));
-      return keys.reduce((acc,k)=> acc + parseBRL(r[k]), 0);
+const keys = Object.keys(r||{})
+.filter(k=>k.toLowerCase().startsWith('pagamentoextra') && r[k]);
+return keys.reduce((acc,k)=> acc + parseBRL(r[k]), 0);
     }
     function updateSummary(){
       const {mes, ano} = state;
-      const inMonth = state.reservas.filter(r=>{ const d=new Date(r.datahora); return d.getMonth()===mes && d.getFullYear()===ano; });
-      const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
+const inMonth = state.reservas.filter(r=>{
+
+if(!r.datahora) return false
+
+const local = new Date(r.datahora)
+
+return local.getMonth()===mes && local.getFullYear()===ano
+})
+
+      
+  const sum = (arr,fn)=> arr.reduce((a,b)=>a+fn(b),0);
       const adiantado = sum(inMonth, r=> parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r));
       const finalPago = sum(inMonth, r=> parseBRL(r.valorFinalPago||0));
-      const aReceber = sum(inMonth.filter(r=> (r.status||'Pendente')!=='Concluída'), r=> {
-        const estimado = parseBRL(r.valorEstimado||0);
+const aReceber = sum(inMonth.filter(r=>{
+const s = (r.status || "Pendente").trim()
+return s !== "Concluída"
+}), r=> {
+  const estimado = parseBRL(r.valorEstimado||0);
         const ant = parseBRL(r.pagamentoAntecipado||0) + sumExtrasFromRecord(r);
         const rest = Math.max(estimado - ant, 0);
         return rest;
@@ -1372,6 +1620,9 @@ const items = state.reservas.filter(r=>{
        Modal do dia
     ============================== */
     const dayModal = $('#dayModal');
+    const deleteModal = $('#deleteModal');
+const deleteText = $('#deleteText');
+let deleteId = null;
     function openDayModal(date, items){
       $('#modalTitle').textContent = `Reservas de ${date.toLocaleDateString('pt-BR')}`;
       const list = $('#modalList');
@@ -1379,54 +1630,192 @@ const items = state.reservas.filter(r=>{
       else{
         list.innerHTML = items.map(r=> renderResItem(r)).join('');
         $$('#dayModal .btn-concluir').forEach(btn=> btn.addEventListener('click', onClickConcluir));
-        $$('#dayModal .btn-editar').forEach(btn=> btn.addEventListener('click', onClickEditar));
-        $$('#dayModal .btn-excluir').forEach(btn=> btn.addEventListener('click', onClickExcluir));
+$$('#dayModal .btn-download').forEach(btn=>{
+
+btn.addEventListener("click",e=>{
+
+const url=e.currentTarget.dataset.url;
+
+const nome=e.currentTarget.dataset.name;
+
+baixarArquivo(url,nome);
+
+});
+
+});
+        
+$$('#dayModal .btn-editar')
+.forEach(btn=>btn.addEventListener('click', onClickEditar))
+
+$$('#dayModal .btn-excluir')
+.forEach(btn=>btn.addEventListener('click', onClickExcluir))
+
+$$('#dayModal .status-select')
+.forEach(sel=>sel.addEventListener('change', alterarStatus))
+      
+        $$('#dayModal .btn-whatsapp').forEach(btn=> btn.addEventListener('click', enviarWhatsApp));
       }
       dayModal.classList.add('show');
     }
     dayModal.addEventListener('click', (e)=>{ if(e.target===dayModal) dayModal.classList.remove('show'); });
 
-    function renderResItem(r){
-      const hora = new Date(r.datahora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      const status = r.status||'Pendente';
+function renderResItem(r){
 
-      const anexoKeys = Object.keys(r).filter(k => k.toLowerCase().includes("anexo") && r[k]);
-      const anexos = anexoKeys.map((k,i) => `<a href="${r[k]}" target="_blank">📎 Anexo ${i+1}</a>`).join("<br>");
+let hora = "--:--"
 
-      const pagamentoKeys = Object.keys(r).filter(k=> /pagamento/i.test(k) && !['pagamentoAntecipado','valorFinalPago','valorEstimado'].includes(k));
-      const pagamentos = pagamentoKeys.map((k,i)=> `💵 Pagamento ${i+1}: ${formatBRL(parseBRL(r[k]))}`).join('<br>');
+if(r.datahora){
 
-      return `<div class="res-item" data-id="${r.id}">
-        <div class="top">
-          <div>
-            <div class="name">${r.nome||'—'}</div>
-            <div class="meta">${hora} • ${r.mesa||'—'} • ${r.pessoas||'0'} pessoa(s)</div>
-          </div>
-          <div class="row" style="margin-left:auto">
-            <span class="chip">${status}</span>
-            ${r._semIdReal
-              ? `<button class="btn btn-ghost" style="width:auto" disabled title="Sem ID da planilha">Editar</button>`
-              : `<button class="btn btn-ghost btn-editar" data-id="${r.id}" style="width:auto">Editar</button>`
-            }
-            <button class="btn btn-danger btn-excluir" data-id="${r.id}" style="width:auto">Excluir</button>
-${status === 'Concluída'
-  ? `<span class="chip">Concluída</span>`
-  : `<button class="btn btn-primary btn-concluir" data-id="${r.id}" style="width:auto">Concluir</button>`
-}          </div>
-        </div>
-        <div class="meta"><b>Email:</b> ${r.email||'—'} • <b>Tel:</b> ${r.telefone||'—'}</div>
-        <div class="meta"><b>Cardápio:</b> ${r.cardapio||'—'} • <b>Banco:</b> ${r.banco||'—'}</div>
-        <div class="meta"><b>Obs:</b> ${r.observacoes||'—'}</div>
-        <div class="meta">
-Estimado: ${formatBRL(parseBRL(r.valorEstimado))} • 
-Adiantamento: ${formatBRL(parseBRL(r.pagamentoAntecipado))} • 
+const local = new Date(r.datahora)
+
+hora = local.toLocaleTimeString(
+'pt-BR',
+{
+hour:'2-digit',
+minute:'2-digit'
+}
+)
+
+}
+
+const status = r.status || "Pendente"
+
+/* anexos */
+const anexoKeys = Object.keys(r).filter(
+k => k.toLowerCase().includes("anexo") && r[k]
+)
+
+const anexos = anexoKeys.map((k,i)=>
+`<button class="btn btn-ghost btn-download"
+data-url="${r[k]}"
+data-name="anexo_${i+1}">
+📎 Baixar Anexo ${i+1}
+</button>`
+).join("<br>")
+
+/* pagamentos extras */
+const pagamentoKeys = Object.keys(r).filter(
+k=> /pagamento/i.test(k) &&
+!['pagamentoAntecipado','valorFinalPago','valorEstimado'].includes(k)
+)
+
+/* ==============================
+   MOSTRAR PAGAMENTOS SOMENTE VIP
+============================== */
+
+const local = (r.mesa || "").toLowerCase().trim()
+
+const isVIP =
+local === "sala vip" ||
+local === "sala vip 1" ||
+local === "sala vip 2"
+
+let pagamentos = ""
+
+if(isVIP){
+
+pagamentos = pagamentoKeys.map((k,i)=>
+`💵 Pagamento ${i+1}: ${formatBRL(parseBRL(r[k]))}`
+).join("<br>")
+
+}
+return `
+<div class="res-item" data-id="${r.id}">
+<div class="top">
+
+<div>
+<div class="name">${r.nome||'—'}</div>
+<div class="meta">
+${hora} • ${r.mesa||'—'} • ${r.pessoas||'0'} pessoa(s)
+</div>
+</div>
+
+<div class="row" style="margin-left:auto">
+
+<button class="btn btn-primary btn-whatsapp"
+data-nome="${r.nome}"
+data-telefone="${r.telefone}"
+data-data="${hora}"
+data-pessoas="${r.pessoas}"
+data-local="${r.mesa}"
+data-cardapio="${r.cardapio||''}"
+style="width:auto">
+WhatsApp
+</button>
+
+<span class="chip ${
+status
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,'')
+}">
+${status}
+</span>
+
+<button class="btn btn-ghost btn-editar"
+data-id="${r.id}"
+style="width:auto">
+Editar
+</button>
+
+<button class="btn btn-danger btn-excluir"
+data-id="${r.id}"
+style="width:auto">
+Excluir
+</button>
+
+<select class="status-select"
+data-id="${r.id}"
+style="width:auto">
+
+<option value="Pendente" ${status==="Pendente"?"selected":""}>
+Pendente
+</option>
+
+<option value="Confirmada" ${status==="Confirmada"?"selected":""}>
+Confirmada
+</option>
+
+<option value="Concluída" ${status==="Concluída"?"selected":""}>
+Concluída
+</option>
+
+<option value="Cancelada" ${status==="Cancelada"?"selected":""}>
+Cancelada
+</option>
+
+</select>
+
+</div>
+</div>
+
+<div class="meta">
+<b>Email:</b> ${r.email||'—'} • <b>Tel:</b> ${r.telefone||'—'}
+</div>
+
+<div class="meta">
+<b>Cardápio:</b> ${r.cardapio||'—'} 
+• <b>Comanda Individual:</b> ${r.comandaIndividual||'Não'}
+• <b>Banco:</b> ${r.banco||'—'}
+</div>
+
+<div class="meta">
+<b>Obs:</b> ${r.observacoes||'—'}
+</div>
+
+<div class="meta">
+Estimado: ${formatBRL(parseBRL(r.valorEstimado))}
+•
+Adiantamento: ${formatBRL(parseBRL(r.pagamentoAntecipado))}
+•
 Final pago: ${formatBRL(parseBRL(r.valorFinalPago))}
 </div>
 
-        ${pagamentos? `<div class="meta">${pagamentos}</div>`:""}
-        ${anexos? `<div class="meta">${anexos}</div>`:""}
-      </div>`;
-    }
+${pagamentos ? `<div class="meta">${pagamentos}</div>` : ""}
+${anexos ? `<div class="meta">${anexos}</div>` : ""}
+
+</div>
+`
+}
 
     /* ==============================
        Form & validações
@@ -1434,7 +1823,7 @@ Final pago: ${formatBRL(parseBRL(r.valorFinalPago))}
     const form = $('#reservaForm');
     const spinner = $('#spinner');
     const submitBtn = $('#submitBtn');
-    const cancelEditBtn = $('#cancelEdit');
+const cancelEditBtn = $('#cancelEdit') || {style:{display:'none'}};
     const statusChip = $('#statusChip');
 
     const inputTelefone = $('#telefone');
@@ -1521,22 +1910,63 @@ moneyInputs.forEach(inp => {
 
       spinner.classList.remove('show'); submitBtn.disabled = false;
     });
+function collectPayload(){
 
-    function collectPayload(){
-      const fd = new FormData(form);
-      const obj = Object.fromEntries(fd.entries());
-const dtLocal = new Date(obj.datahora);
-dtLocal.setMinutes(dtLocal.getMinutes() - dtLocal.getTimezoneOffset());
-obj.datahora = dtLocal.toISOString().slice(0,19).replace('T',' ');
-obj.valorEstimado = String(parseBRL(obj.valorEstimado||0));
-obj.pagamentoAntecipado = String(parseBRL(obj.pagamentoAntecipado||0));
-      return obj;
-    }
+const fd = new FormData(form)
 
+const obj = Object.fromEntries(fd.entries())
+
+// remover id vazio
+if(!obj.id){
+delete obj.id
+}
+
+/* =========================
+   CORREÇÃO DE TIMEZONE
+========================= */
+
+if(obj.datahora){
+const d = new Date(obj.datahora)
+
+const offset = d.getTimezoneOffset() * 60000
+
+const localISO = new Date(d - offset)
+.toISOString()
+.slice(0,19)
+
+obj.datahora = localISO}
+
+obj.valorEstimado = parseBRL(obj.valorEstimado || 0)
+
+obj.pagamentoAntecipado = parseBRL(obj.pagamentoAntecipado || 0)
+
+/* =========================
+   PAGAMENTOS EXTRAS
+========================= */
+
+const extras = document.querySelectorAll(".extraValor")
+
+extras.forEach((input,i)=>{
+
+const valor = parseBRL(input.value)
+
+if(valor > 0){
+
+obj["pagamentoextra"+(i+1)] = valor
+
+}
+
+})
+
+return obj
+
+}
     /* ==============================
        Ações: Editar / Concluir / Excluir
     ============================== */
     function onClickEditar(e){
+    document.getElementById("extrasList").innerHTML = ""
+extrasCount = 0
       const id = e.currentTarget.dataset.id;
       const r = state.reservas.find(x=>String(x.id)===String(id));
       if(!r) return;
@@ -1546,30 +1976,43 @@ obj.pagamentoAntecipado = String(parseBRL(obj.pagamentoAntecipado||0));
         return;
       }
 
-      // Marca edição
-      state.editingId = r.id;
-      $('#reservaId').value = r.id;
-      $('#cancelEdit').style.display = ''; // mostra "Cancelar edição"
+state.editingId = r.id
 
-      // Preenche formulário principal
-      $('#nome').value = r.nome || '';
-      $('#email').value = r.email || '';
-      $('#telefone').value = r.telefone || '';
-      $('#pessoas').value = r.pessoas || '';
-      $('#mesa').value = r.mesa || '';
-      $('#cardapio').value = r.cardapio || '';
-      $('#observacoes').value = r.observacoes || '';
+document.getElementById("editId").value = r.id
 
-      // Data/hora no formato local
-      if (r.datahora){
-        const dt = new Date(r.datahora);
-        const off = new Date(dt);
-        off.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
-        $('#datahora').value = off.toISOString().slice(0,16);
-      } else {
-        $('#datahora').value = '';
-      }
+$('#reservaId').value = r.id
+      
+document.getElementById("e_nome").value = r.nome || ""
+document.getElementById("e_email").value = r.email || ""
+document.getElementById("e_telefone").value = r.telefone || ""
+document.getElementById("e_pessoas").value = r.pessoas || ""
 
+document.getElementById("e_mesa").value = r.mesa || ""
+document.getElementById("e_cardapio").value = r.cardapio || ""
+document.getElementById("e_comandaIndividual").value = r.comandaIndividual || ""
+
+document.getElementById("e_observacoes").value = r.observacoes || ""
+
+document.getElementById("e_banco").value = r.banco || ""
+
+document.getElementById("e_valorEstimado").value =
+formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100))
+
+document.getElementById("e_pagamentoAntecipado").value =
+formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100))
+
+if(r.datahora){
+
+const d = new Date(r.datahora)
+
+const offset = d.getTimezoneOffset() * 60000
+
+const local = new Date(d - offset)
+
+document.getElementById("e_datahora").value =
+local.toISOString().slice(0,16)
+
+} 
 $('#valorEstimado').value = formatBRLInput(String(parseBRL(r.valorEstimado || 0) * 100).replace(/\D/g,''));
 $('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAntecipado || 0) * 100).replace(/\D/g,''));
       $('#banco').value = r.banco || '';
@@ -1583,25 +2026,38 @@ $('#pagamentoAntecipado').value = formatBRLInput(String(parseBRL(r.pagamentoAnte
       $('#banco').required = has;
       $('#bancoReq').style.display = has ? '' : 'none';
 
-      toast('✏️ Editando reserva — altere no formulário e clique em "Salvar Reserva".');
-      // Fecha o modal do dia, se estiver aberto
-      $('#dayModal').classList.remove('show');
+toast('✏️ Editando reserva');
+
+$('#dayModal').classList.remove('show');
+
+document.getElementById("editModal").classList.add("show");
     }
 
-    async function onClickExcluir(e){
-      const id = e.currentTarget.dataset.id;
-      const r = state.reservas.find(x=>String(x.id)===String(id));
-      if(!r) return;
-      const ok = confirm(`Excluir a reserva de ${r.nome||'—'} em ${new Date(r.datahora).toLocaleString('pt-BR')}? Esta ação não pode ser desfeita.`);
-      if(!ok) return;
-      const resp = await api.excluir(id);
-      if(resp.ok){
-        toast('🗑️ Reserva excluída');
-        await loadMonth(state.ano, state.mes);
-      }else{
-        toast('⚠️ ' + resp.message);
-      }
-    }
+function onClickExcluir(e){
+
+const id = e.currentTarget.dataset.id
+
+if(!id){
+toast("Registro sem ID. Não é possível excluir.")
+return
+}
+
+const r = state.reservas.find(x=>String(x.id)===String(id))
+if(!r){
+toast("Reserva não encontrada")
+return
+}
+
+deleteId = id
+
+deleteText.innerHTML =
+`Tem certeza que deseja excluir a reserva de <b>${r.nome}</b><br>
+ em <b>${r.datahora ? new Date(r.datahora).toLocaleString('pt-BR') : 'Data inválida'}</b>?`
+
+dayModal.classList.remove("show")
+deleteModal.classList.add("show")
+
+}
 
     // Concluir fluxo com modal
     const finishModal = $('#finishModal');
@@ -1632,17 +2088,48 @@ finalPagoInput.value = formatBRLInput('');
       }
     });
 
-    // Cancelar edição
-    cancelEditBtn.addEventListener('click', ()=>{
-      state.editingId = null;
-      $('#reservaId').value = '';
-      $('#cancelEdit').style.display = 'none';
-      form.reset();
-      $('#statusChip').textContent = 'PENDENTE';
-      $('#fileBox').style.display='none';
-      $('#datahora').min = nowLocalMin();
-      toast('Edição cancelada.');
-    });
+
+
+$('#cancelDelete').addEventListener('click', ()=>{
+  deleteModal.classList.remove('show');
+  deleteId = null;
+});
+
+deleteModal.addEventListener('click', (e)=>{
+  if(e.target===deleteModal){
+    deleteModal.classList.remove('show');
+    deleteId = null;
+  }
+});
+
+$('#confirmDelete').addEventListener('click', async ()=>{
+
+  if(!deleteId) return;
+
+  const resp = await api.excluir(deleteId);
+
+  if(resp.ok){
+
+    toast('🗑️ Reserva excluída');
+
+    state.reservas = state.reservas.filter(r=>String(r.id)!==String(deleteId));
+
+    const el = document.querySelector(`.res-item[data-id="${deleteId}"]`);
+    if(el) el.remove();
+
+    buildCalendar();
+    updateSummary();
+
+  }else{
+    toast('⚠️ ' + resp.message);
+  }
+
+  deleteModal.classList.remove('show');
+  deleteId = null;
+
+});
+
+
 
     /* ==============================
        Navegação e Carregamento
@@ -1656,10 +2143,13 @@ finalPagoInput.value = formatBRLInput('');
       try{
         const data = await api.listar(ano, mes);
 state.reservas = data.map((r,i)=> {
-  const idReal = r.id ?? r.ID ?? r.Id ?? r.IdReserva ?? r.IdPlanilha ?? r['Id'] ?? '';
-  return {
-    id: idReal || `ROW-${i+1}`,
-    _semIdReal: !idReal,
+const idReal = r.id ?? r.ID ?? r.Id ?? r.IdReserva ?? r.IdPlanilha ?? r['Id'];
+
+return {
+
+id: idReal ? String(idReal) : null,
+  
+_semIdReal: !idReal,
     nome: r.nome||r.Nome||'',
     email:r.email||r.Email||'',
     telefone: r.telefone || r.Telefone || r.Fone || '',
@@ -1672,8 +2162,9 @@ state.reservas = data.map((r,i)=> {
     pagamentoAntecipado: String(r.pagamentoAntecipado ?? r.Adiantamento ?? '0'),
     valorFinalPago: String(r.valorFinalPago ?? r.FinalPago ?? '0'),
     banco: r.banco || r.Banco || '',
-    status: r.status || r.Status || 'Pendente',
-    ...r
+status: (r.status || r.Status || 'Pendente')
+.toString()
+.trim(),    ...r
   };
 });
 
@@ -1684,13 +2175,305 @@ state.reservas = data.map((r,i)=> {
       buildCalendar(); updateSummary();
     }
 
-    function refreshAll(){ buildCalendar(); updateSummary(); loadMonth(state.ano, state.mes); }
+async function refreshAll(){
 
+await loadMonth(state.ano, state.mes)
+
+updateSummary()
+
+}
     // Inicialização
     window.addEventListener('DOMContentLoaded', ()=>{
       $('#datahora').min = nowLocalMin();
       refreshAll();
     });
-  </script>
+
+
+
+/* ==============================
+   SALVAR EDIÇÃO (MODAL)
+============================== */
+
+document.getElementById("saveEditBtn").addEventListener("click", async ()=>{
+
+const id = document.getElementById("editId").value
+
+if(!id){
+toast("Reserva inválida")
+return
+}
+
+const dh = document.getElementById("e_datahora").value
+
+let datahora = dh
+
+if(dh){
+
+const d = new Date(dh)
+
+const offset = d.getTimezoneOffset() * 60000
+
+datahora = new Date(d - offset)
+.toISOString()
+.slice(0,19)
+
+}
+
+const payload = {
+
+nome: document.getElementById("e_nome").value,
+email: document.getElementById("e_email").value,
+telefone: document.getElementById("e_telefone").value,
+pessoas: document.getElementById("e_pessoas").value,
+
+mesa: document.getElementById("e_mesa").value,
+cardapio: document.getElementById("e_cardapio").value,
+comandaIndividual: document.getElementById("e_comandaIndividual").value,
+
+datahora: datahora,
+
+valorEstimado: parseBRL(document.getElementById("e_valorEstimado").value),
+
+pagamentoAntecipado: parseBRL(document.getElementById("e_pagamentoAntecipado").value),
+
+banco: document.getElementById("e_banco").value,
+
+observacoes: document.getElementById("e_observacoes").value
+
+}
+/* ======================
+   PAGAMENTOS EXTRAS
+====================== */
+
+const extras = document.querySelectorAll("#extrasList .extraValor")
+
+extras.forEach((input,i)=>{
+
+const v = parseBRL(input.value)
+
+if(v>0){
+payload["pagamentoExtra"+(i+1)] = v
+}
+
+})
+
+const resp = await api.atualizar(id,payload)
+
+if(resp.ok){
+
+toast("✅ Reserva atualizada")
+
+document.getElementById("editModal").classList.remove("show")
+
+await loadMonth(state.ano,state.mes)
+
+}else{
+
+toast("⚠️ "+resp.message)
+
+}
+
+})
+
+
+
+/* ==============================
+   CANCELAR EDIÇÃO DO MODAL
+============================== */
+
+document.getElementById("cancelEditModal").addEventListener("click", ()=>{
+
+document.getElementById("editModal").classList.remove("show")
+
+state.editingId = null
+
+document.getElementById("editId").value = ""
+
+document.getElementById("extrasList").innerHTML = ""
+
+extrasCount = 0
+
+toast("Edição cancelada")
+
+})
+
+
+
+
+
+
+
+
+
+    
+let extrasCount = 0
+
+document.getElementById("addExtraBtn").addEventListener("click",()=>{
+
+if(extrasCount >= 5){
+
+toast("Máximo de 5 pagamentos extras")
+
+return
+
+}
+
+extrasCount++
+
+const div = document.createElement("div")
+
+div.className = "item-row-3"
+
+div.innerHTML = `
+
+<input class="extraValor" placeholder="Valor (R$)" inputmode="decimal">
+
+<select class="extraBanco">
+
+<option value="">Banco</option>
+
+<option>SICREDI</option>
+<option>ITAÚ</option>
+<option>CRÉDITO POS</option>
+<option>DÉBITO POS</option>
+
+</select>
+
+<button type="button" class="btn btn-danger removerExtra">Remover</button>
+
+`
+
+document.getElementById("extrasList").appendChild(div)
+
+const input = div.querySelector(".extraValor")
+
+input.addEventListener("input",e=>{
+e.target.value = formatBRLInput(e.target.value)
+})
+
+div.querySelector(".removerExtra").onclick = ()=>{
+
+div.remove()
+
+extrasCount--
+
+}
+
+})
+function baixarArquivo(url,nome){
+
+const a = document.createElement("a")
+
+if(!url){
+toast("Arquivo inválido")
+return
+}
+
+if(url.startsWith("data:")){
+a.href = url
+}else{
+a.href = "data:application/octet-stream;base64," + url
+}
+
+a.download = nome || "arquivo"
+
+document.body.appendChild(a)
+
+a.click()
+
+a.remove()
+
+}
+function enviarWhatsApp(e){
+
+const btn = e.currentTarget
+
+let telefone = (btn.dataset.telefone || "").replace(/\D/g,'')
+
+if(!telefone){
+toast("Telefone não informado")
+return
+}
+
+if(telefone.length === 11){
+telefone = "55"+telefone
+}
+
+const nome = btn.dataset.nome || ""
+const pessoas = btn.dataset.pessoas || ""
+const local = btn.dataset.local || ""
+const cardapio = btn.dataset.cardapio || ""
+const hora = btn.dataset.data || ""
+
+const mensagem =
+`Olá ${nome}!
+
+Sua reserva foi registrada no Mercatto Delícia.
+
+Horário: ${hora}
+Pessoas: ${pessoas}
+Local: ${local}
+Cardápio: ${cardapio}
+
+Aguardamos você!
+
+Mercatto Delícia`
+
+const url =
+`https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`
+
+window.open(url,"_blank")
+
+}
+async function alterarStatus(e){
+
+const select = e.currentTarget
+const id = select.dataset.id
+const novoStatus = select.value
+
+const resp = await supabaseClient
+.from("reservas_villa")
+.update({status:novoStatus})
+.eq("id",id)
+
+if(resp.error){
+
+toast("Erro ao atualizar status")
+return
+
+}
+
+toast("Status atualizado para "+novoStatus)
+
+/* atualizar estado local */
+const reserva = state.reservas.find(r=>String(r.id)===String(id))
+if(reserva){
+reserva.status = novoStatus
+}
+
+const item = select.closest(".res-item")
+
+if(!item) return
+
+const chip = item.querySelector(".chip")
+
+const classe =
+novoStatus
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,'')
+
+if(chip){
+chip.textContent = novoStatus
+chip.className = "chip " + classe
+}
+/* atualizar calendário e resumo */
+buildCalendar()
+updateSummary()
+
+}
+  
+  
+</script>
 </body>
 </html>
