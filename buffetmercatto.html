@@ -415,13 +415,25 @@ button.ghost{
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <h3>✏️ Editar lançamento</h3>
-    <div class="grid">
-      <input id="editQuantidade" type="number" step="0.001" placeholder="Quantidade">
-      <select id="editUnidade">
-        <option value="KG">KG</option>
-        <option value="UN">UN</option>
-      </select>
-      <select id="editTipo" style="grid-column:1/-1">
+
+
+    
+<div class="grid">
+  <input id="editQuantidade" type="number" step="0.001" placeholder="Quantidade">
+
+  <input id="editTara" type="number" step="0.001" placeholder="Tara">
+
+  <select id="editUnidade">
+    <option value="KG">KG</option>
+    <option value="UN">UN</option>
+  </select>
+
+  <select id="editTipo" style="grid-column:1/-1">
+
+
+
+
+        
         <option value="MONTAGEM">Montagem</option>
         <option value="REPOSICAO">Reposição</option>
         <option value="RETIRADA">Retirada</option>
@@ -730,7 +742,7 @@ lista.innerHTML += `
     </div>
 
     <div style="display:flex;gap:10px;align-items:flex-start">
-      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}')">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}', ${l.tara || 0})">
         <i class="ri-edit-2-line"></i>
       </button>
       <button class="icon-btn danger" onclick="excluir('${l.id}')">
@@ -871,11 +883,12 @@ function showSaving(){
 function hideSaving(){
   document.getElementById("savingOverlay").style.display = "none";
 }
-function abrirModal(id, qtd, un, tipo){
+function abrirModal(id, qtd, un, tipo, tara){
+  
   editId = id;
   document.getElementById("editQuantidade").value = qtd;
   document.getElementById("editUnidade").value = un;
-
+  document.getElementById("editTara").value = tara || 0;
   const editTipo = document.getElementById("editTipo");
 
 if (tipo === "CONSUMO") {
@@ -901,6 +914,7 @@ async function confirmarEdicao(){
   const qtd = parseFloat(document.getElementById("editQuantidade").value);
   const un = document.getElementById("editUnidade").value;
   const tipo = document.getElementById("editTipo").value;
+  const tara = parseFloat(document.getElementById("editTara").value || 0);
 
   if(!qtd){ alert("Quantidade inválida"); return; }
 
@@ -917,8 +931,14 @@ async function confirmarEdicao(){
   }
 
   await sb.from("buffet_lancamentos")
-    .update({ quantidade:qtd, unidade:un, tipo })
-    .eq("id", editId);
+.update({ 
+  quantidade: qtd,
+  unidade: un,
+  tipo,
+  tara: tara
+})
+    
+.eq("id", editId);
 
   fecharModal(); 
   carregarLancamentos();
