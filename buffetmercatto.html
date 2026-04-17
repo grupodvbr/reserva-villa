@@ -742,7 +742,7 @@ lista.innerHTML += `
     </div>
 
     <div style="display:flex;gap:10px;align-items:flex-start">
-      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}', '${l.produto_nome}')" , ${l.tara || 0})">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}', ${l.tara || 0}, '${l.produto_nome}')">
         <i class="ri-edit-2-line"></i>
       </button>
       <button class="icon-btn danger" onclick="excluir('${l.id}')">
@@ -883,12 +883,20 @@ function showSaving(){
 function hideSaving(){
   document.getElementById("savingOverlay").style.display = "none";
 }
-function abrirModal(id, qtd, un, tipo,tara, nome){ 
+function abrirModal(id, qtd, un, tipo, tara, nome){ 
   
   editId = id;
+
   document.getElementById("editQuantidade").value = qtd;
   document.getElementById("editUnidade").value = un;
   document.getElementById("editTara").value = tara || 0;
+
+  // ✅ AQUI É O LUGAR CERTO
+  document.getElementById("tituloEdicao").innerHTML =
+    `✏️ Editando: <b>${nome}</b>`;
+
+
+  
   const editTipo = document.getElementById("editTipo");
 
 
@@ -912,10 +920,6 @@ function fecharModal(){
   document.getElementById("modalBackdrop").style.display = "none";
   document.getElementById("editTipo").disabled = false;    // 🔓 destrava tipo
   document.getElementById("editUnidade").disabled = false; // 🔓 destrava unidade
-    // 👇 AQUI (EXATO LUGAR)
-  document.getElementById("tituloEdicao").innerHTML =
-    `✏️ Editando: <b>${nome}</b>`;
-  
   editId = null;
 }
 async function confirmarEdicao(){
