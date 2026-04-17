@@ -403,7 +403,7 @@ button.ghost{
   </div>
 
   <div class="card">
-    <b>📋 Lançamentos de Hoje</b>
+    <b>Lançamentos de Hoje</b>
     <div class="list" id="lista"></div>
   </div>
 
@@ -414,7 +414,7 @@ button.ghost{
 <!-- MODAL DE EDIÇÃO -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
-    <h3>✏️ Editar lançamento</h3>
+   <h3 id="tituloEdicao">Editar lançamento</h3>
 
 
     
@@ -742,7 +742,7 @@ lista.innerHTML += `
     </div>
 
     <div style="display:flex;gap:10px;align-items:flex-start">
-      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}', ${l.tara || 0})">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}', '${l.produto_nome}')" , ${l.tara || 0})">
         <i class="ri-edit-2-line"></i>
       </button>
       <button class="icon-btn danger" onclick="excluir('${l.id}')">
@@ -883,7 +883,7 @@ function showSaving(){
 function hideSaving(){
   document.getElementById("savingOverlay").style.display = "none";
 }
-function abrirModal(id, qtd, un, tipo, tara){
+function abrirModal(id, qtd, un, tipo,tara, nome){ 
   
   editId = id;
   document.getElementById("editQuantidade").value = qtd;
@@ -891,6 +891,10 @@ function abrirModal(id, qtd, un, tipo, tara){
   document.getElementById("editTara").value = tara || 0;
   const editTipo = document.getElementById("editTipo");
 
+
+
+
+  
 if (tipo === "CONSUMO") {
   editTipo.value = "MONTAGEM";     
   editTipo.disabled = true;       
@@ -908,6 +912,10 @@ function fecharModal(){
   document.getElementById("modalBackdrop").style.display = "none";
   document.getElementById("editTipo").disabled = false;    // 🔓 destrava tipo
   document.getElementById("editUnidade").disabled = false; // 🔓 destrava unidade
+    // 👇 AQUI (EXATO LUGAR)
+  document.getElementById("tituloEdicao").innerHTML =
+    `✏️ Editando: <b>${nome}</b>`;
+  
   editId = null;
 }
 async function confirmarEdicao(){
