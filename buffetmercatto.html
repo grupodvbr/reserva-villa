@@ -341,12 +341,18 @@ button.ghost{
   </div>
 
   <!-- Seleção de empresa -->
-  <div class="card company-row">
-    <b>Empresa:</b>
-    <select id="empresaSelect">
-      <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
-    </select>
-  </div>
+<div class="card company-row">
+  <b>Empresa:</b>
+
+  <select id="empresaSelect">
+    <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
+  </select>
+
+  <!-- 🔥 BOTÃO AUTOMÁTICO -->
+  <button class="primary" onclick="abrirModalSemana()" style="height:42px">
+    ⚡ Lançamento Automático
+  </button>
+</div>
 
   <div class="card">
 <div class="form-grid tablet-row">
@@ -419,10 +425,22 @@ button.ghost{
 
     
 <div class="grid">
-  <input id="editQuantidade" type="number" step="0.001" placeholder="Quantidade">
+<input id="editQuantidade" inputmode="decimal" placeholder="Quantidade">
+<input id="editTara" inputmode="decimal" placeholder="Tara">
 
-  <input id="editTara" type="number" step="0.001" placeholder="Tara">
 
+
+  <div id="previewEdit" style="
+  font-size:13px;
+  color:#6b7280;
+  margin-top:6px;
+">
+  Líquido: <b>0,000 kg</b>
+</div>
+
+
+
+  
   <select id="editUnidade">
     <option value="KG">KG</option>
     <option value="UN">UN</option>
@@ -472,6 +490,10 @@ button.ghost{
   const quantidadeInput = document.getElementById("quantidade");
   const taraInput = document.getElementById("tara");
   const unidadeSelect = document.getElementById("unidade");
+  const editQuantidade = document.getElementById("editQuantidade");
+const editTara = document.getElementById("editTara");
+
+  
   /* ================= AJUSTE VISUAL POR UNIDADE ================= */
 
 unidadeSelect.addEventListener("change", () => {
@@ -506,6 +528,7 @@ unidadeSelect.addEventListener("change", () => {
   const btnLimpar = document.getElementById("btnLimpar");
 const empresaSelect = document.getElementById("empresaSelect");
   let salvandoAgora = false;
+  let modoModal = null;
 const consumoAutorizado = document.getElementById("consumoAutorizado");
 
 // 🔒 nunca mostrar a flag na tela
@@ -742,7 +765,7 @@ lista.innerHTML += `
     </div>
 
     <div style="display:flex;gap:10px;align-items:flex-start">
-      <button class="icon-btn" onclick="abrirModal('${l.id}', ${l.quantidade}, '${l.unidade}', '${l.tipo}', ${l.tara || 0}, '${l.produto_nome}')">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${Number(l.quantidade) + Number(l.tara || 0)}, '${l.unidade}', '${l.tipo}', ${l.tara || 0}, '${l.produto_nome}')">
         <i class="ri-edit-2-line"></i>
       </button>
       <button class="icon-btn danger" onclick="excluir('${l.id}')">
@@ -887,9 +910,8 @@ function abrirModal(id, qtd, un, tipo, tara, nome){
   
   editId = id;
 
-  document.getElementById("editQuantidade").value = qtd;
-  document.getElementById("editUnidade").value = un;
-  document.getElementById("editTara").value = tara || 0;
+document.getElementById("editQuantidade").value = formatPeso(qtd);
+document.getElementById("editTara").value = formatPeso(tara || 0);
 
   // ✅ AQUI É O LUGAR CERTO
   document.getElementById("tituloEdicao").innerHTML =
@@ -914,7 +936,12 @@ if (tipo === "CONSUMO") {
   document.getElementById("editUnidade").disabled = false;
 }
 
-  document.getElementById("modalBackdrop").style.display = "flex";
+document.getElementById("modalBackdrop").style.display = "flex";
+
+atualizarPreviewEdit(); // 🔥 ESSENCIAL
+
+
+
 }
 function fecharModal(){
   document.getElementById("modalBackdrop").style.display = "none";
@@ -922,39 +949,46 @@ function fecharModal(){
   document.getElementById("editUnidade").disabled = false; // 🔓 destrava unidade
   editId = null;
 }
+
+
+
+  
 async function confirmarEdicao(){
-  const qtd = parseFloat(document.getElementById("editQuantidade").value);
+
+const bruto = parsePeso(document.getElementById("editQuantidade").value);
+const tara = parsePeso(document.getElementById("editTara").value || 0);
+
+  
   const un = document.getElementById("editUnidade").value;
   const tipo = document.getElementById("editTipo").value;
-  const tara = parseFloat(document.getElementById("editTara").value || 0);
 
-  if(!qtd){ alert("Quantidade inválida"); return; }
+  if(!bruto){ 
+    alert("Quantidade inválida"); 
+    return; 
+  }
 
-  // 🔒 não permite alterar tipo de um CONSUMO
-  const { data:atual } = await sb
-    .from("buffet_lancamentos")
-    .select("tipo, produto_nome")
-    .eq("id", editId)
-    .maybeSingle();
-
-  if (atual?.tipo === "CONSUMO" && tipo !== "CONSUMO") {
-    alert("Lançamentos de CONSUMO não podem ter o tipo alterado.");
+  if(tara > bruto){
+    alert("Tara não pode ser maior que o peso bruto");
     return;
   }
 
+  const liquido = Number((bruto - tara).toFixed(3));
+
   await sb.from("buffet_lancamentos")
-.update({ 
-  quantidade: qtd,
-  unidade: un,
-  tipo,
-  tara: tara
-})
-    
-.eq("id", editId);
+  .update({ 
+    quantidade: liquido, // ✅ correto
+    unidade: un,
+    tipo: tipo,
+    tara: tara
+  })
+  .eq("id", editId);
 
   fecharModal(); 
   carregarLancamentos();
 }
+
+
+  
 
   async function excluir(id){
     if(!confirm("Excluir esse lançamento?")) return;
@@ -1032,6 +1066,10 @@ function aplicarMascaraKg(input){
   input.value = (Number(inteiro) || 0) + "," + dec;
 }
 
+
+
+  
+
 quantidadeInput.addEventListener("input", () => {
 
   if(unidadeSelect.value === "KG"){
@@ -1051,6 +1089,27 @@ taraInput.addEventListener("input", () => {
 });
 
 
+
+editQuantidade.addEventListener("input", () => {
+
+  if(document.getElementById("editUnidade").value === "KG"){
+    aplicarMascaraKg(editQuantidade);
+  }
+
+  atualizarPreviewEdit(); // 🔥 AQUI resolve o preview
+});
+
+editTara.addEventListener("input", () => {
+
+  if(document.getElementById("editUnidade").value === "KG"){
+    aplicarMascaraKg(editTara);
+  }
+
+  atualizarPreviewEdit(); // 🔥 AQUI resolve o preview
+});
+
+
+  
 function abrirConsumo(){
   const titulo = document.getElementById("tituloModalConsumo");
 
@@ -1109,6 +1168,99 @@ async function confirmarConsumo(){
   fecharConsumo();
   salvar(nome);
 }
+
+
+// ================== MODAL SEMANA ==================
+function abrirModalSemana(){
+  document.getElementById("modalSemana").style.display = "flex";
+}
+
+function fecharSemana(){
+  document.getElementById("modalSemana").style.display = "none";
+}
+
+// ================== CARDÁPIO ==================
+let cardapioSelecionado = [];
+
+async function abrirCardapio(dia){
+
+  fecharSemana();
+
+  const empresa = empresaSelect.value;
+
+  const { data } = await sb
+    .from("cardapio_dia_buffet") // 🔥 AQUI MUDOU
+    .select("*")
+    .eq("empresa", empresa)
+    .eq("dia_semana", dia);
+
+  const container = document.getElementById("listaCardapio");
+  container.innerHTML = "";
+
+  cardapioSelecionado = data || [];
+
+  data?.forEach(item=>{
+    container.innerHTML += `
+      <label style="display:flex;gap:10px;margin-bottom:6px">
+        <input type="checkbox" checked data-nome="${item.produto_nome}">
+        <span>${item.produto_nome}</span>
+      </label>
+    `;
+  });
+
+  document.getElementById("tituloCardapio").innerText = "Cardápio - " + dia;
+  document.getElementById("modalCardapio").style.display = "flex";
+}
+function fecharCardapio(){
+  document.getElementById("modalCardapio").style.display = "none";
+}
+
+// ================== LANÇAMENTO AUTOMÁTICO ==================
+async function lancarCardapio(){
+
+  showSaving();
+
+  const empresa = empresaSelect.value;
+  const checkboxes = document.querySelectorAll("#listaCardapio input:checked");
+
+  for(const checkbox of checkboxes){
+
+    const nome = checkbox.dataset.nome;
+
+    const item = cardapioSelecionado.find(p => p.produto_nome === nome);
+
+    if(!item) continue;
+
+    const tara = Number(item.tara_padrao || 0);
+
+    await sb.from("buffet_lancamentos").insert({
+      empresa: empresa,
+      produto_nome: item.produto_nome,
+      tipo: "MONTAGEM",
+      quantidade: 0.001, // 🔥 1g
+      unidade: "KG",
+      data: dataISO,
+      hora: new Date().toTimeString().slice(0,8),
+      tara: tara
+    });
+  }
+
+  fecharCardapio();
+  hideSaving();
+  carregarLancamentos();
+}
+
+function atualizarPreviewEdit(){
+
+  const bruto = parsePeso(editQuantidade.value);
+  const tara = parsePeso(editTara.value);
+
+  const liquido = Math.max(0, bruto - tara);
+
+  document.getElementById("previewEdit").innerHTML =
+    `Líquido: <b>${formatPeso(liquido)} kg</b>`;
+}
+  
 </script>
 <!-- OVERLAY DE SALVAMENTO -->
 <div id="savingOverlay" style="
@@ -1129,4 +1281,42 @@ async function confirmarConsumo(){
   </div>
 </div>
 </body>
+
+
+<!-- 🔥 MODAL SEMANA -->
+<div class="modal-backdrop" id="modalSemana">
+  <div class="modal">
+    <h3>Selecionar dia</h3>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <button onclick="abrirCardapio('SEGUNDA')">Segunda</button>
+      <button onclick="abrirCardapio('TERCA')">Terça</button>
+      <button onclick="abrirCardapio('QUARTA')">Quarta</button>
+      <button onclick="abrirCardapio('QUINTA')">Quinta</button>
+      <button onclick="abrirCardapio('SEXTA')">Sexta</button>
+      <button onclick="abrirCardapio('SABADO')">Sábado</button>
+      <button onclick="abrirCardapio('DOMINGO')">Domingo</button>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharSemana()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 🔥 MODAL CARDÁPIO -->
+<div class="modal-backdrop" id="modalCardapio">
+  <div class="modal" style="width:600px">
+    <h3 id="tituloCardapio">Cardápio</h3>
+
+    <div id="listaCardapio" style="max-height:300px;overflow:auto"></div>
+
+    <div class="actions">
+      <button class="ghost" onclick="fecharCardapio()">Cancelar</button>
+      <button class="primary" onclick="lancarCardapio()">Lançar</button>
+    </div>
+  </div>
+</div>
 </html>
