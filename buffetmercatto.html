@@ -930,8 +930,7 @@ async function salvar(consumoPara){
     const quantidadeLiquida = Number((pesoBruto - tara).toFixed(3));
 
     // ================= 🔒 REGRA DE NEGÓCIO (RETIRADA) =================
-    if (tipo === "RETIRADA") {
-
+if (tipo === "RETIRADA" && produtoNome !== "CONSUMO AUTORIZADO") {
       const { data: historico } = await sb
         .from("buffet_lancamentos")
         .select("tipo, quantidade")
