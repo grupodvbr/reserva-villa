@@ -368,10 +368,7 @@ button.ghost{
 <div class="app">
 
   <div class="header">
-<div class="title" onclick="abrirManual()" style="cursor:pointer">
-  🍽️ Buffet • Mercatto Delícia
-</div>
-    
+    <div class="title">🍽️ Buffet • Mercatto Delícia</div>
     <span class="badge">Hoje: <b id="dataHoje"></b></span>
   </div>
 
@@ -388,13 +385,12 @@ button.ghost{
     ⚡ Lançamento Automático
   </button>
 
-<div style="width:100%;margin-top:10px;display:flex;gap:10px">
-
+<div style="width:100%;margin-top:10px">
   <input 
     id="buscaLancamentos"
     placeholder="🔍 Buscar lançamento..."
     style="
-      flex:1;
+      width:100%;
       height:44px;
       border-radius:10px;
       border:1px solid var(--border);
@@ -402,24 +398,6 @@ button.ghost{
       font-size:14px;
     "
   >
-
-  <!-- 🔥 AJUDA -->
-  <button onclick="abrirManual()" style="
-    height:44px;
-    padding:0 16px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:#fff;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-weight:700;
-    cursor:pointer;
-  ">
-    <i class="ri-question-line"></i>
-    Ajuda
-  </button>
-
 </div>
 
 
@@ -621,6 +599,9 @@ const consumoAutorizado = document.getElementById("consumoAutorizado");
 // 🔒 nunca mostrar a flag na tela
 consumoAutorizado.closest(".field").style.display = "none";
 
+
+
+  
 produtoInput.addEventListener("input", () => {
   const nome = produtoInput.value.trim().toUpperCase();
 
@@ -642,6 +623,8 @@ produtoInput.addEventListener("input", () => {
     campoTipo.style.display = "flex";
   }
 });
+
+  
 btnSalvar.onclick = () => {
   if (salvandoAgora) return;
   salvandoAgora = true;
@@ -820,153 +803,104 @@ async function carregarLancamentos(){
   lista.innerHTML = "";
 const termo = (buscaInput.value || "").toLowerCase();
 
-const agrupados = {};
-
 (data || [])
-  .filter(l =>
+  .filter(l => 
     l.produto_nome.toLowerCase().includes(termo)
   )
-  .forEach(l => {
+  .forEach(l=>{
+    
+    lista.innerHTML += `
+  <div class="item" style="padding:14px 14px 16px">
+    <div>
 
-    if (!agrupados[l.produto_nome]) {
+      <!-- TÍTULO -->
+<div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
 
-      agrupados[l.produto_nome] = {
-        nome: l.produto_nome,
-        unidade: l.unidade,
-        montagem: 0,
-        reposicao: 0,
-        retirada: 0,
-        desperdicio: 0,
-        registros: []
-      };
+  <span>${l.produto_nome}</span>
 
-    }
+  ${
+    l.tipo === "MONTAGEM" && Number(l.quantidade) < 0.05
+      ? `<span class="alerta-dot"></span>`
+      : ``
+  }
 
-if (l.tipo === "MONTAGEM" || l.tipo === "EMPORIO") {
-  agrupados[l.produto_nome].montagem += parseFloat(l.quantidade) || 0;
-}
-
-if (l.tipo === "REPOSICAO") {
-  agrupados[l.produto_nome].reposicao += parseFloat(l.quantidade) || 0;
-}
-
-if (l.tipo === "RETIRADA") {
-  agrupados[l.produto_nome].retirada += parseFloat(l.quantidade) || 0;
-}
-
-if (l.tipo === "DEVOLUCAO") {
-  agrupados[l.produto_nome].desperdicio += parseFloat(l.quantidade) || 0;
-}
-
-    agrupados[l.produto_nome].registros.push(l);
-
-  });
-
-Object.values(agrupados).forEach(item => {
-
-  const total =
-    item.montagem +
-    item.reposicao -
-    item.retirada -
-    item.desperdicio;
-
-  lista.innerHTML += `
-
-    <div class="item">
-
-      <div>
-
-        <div class="name" style="
-          display:flex;
-          align-items:center;
-          gap:10px;
-          margin-bottom:8px;
-        ">
-          ${item.nome}
-
-${
-  total <= 0.001
-    ? `<span class="alerta-dot"></span>`
-    : ``
-}
-
-        </div>
-
-        <div class="meta" style="line-height:1.8">
-
-          🍽️ Montado:
-          <b>${formatPeso(item.montagem)} ${item.unidade.toLowerCase()}</b>
-
-          <br>
-
-          🔄 Reposto:
-          <b>${formatPeso(item.reposicao)} ${item.unidade.toLowerCase()}</b>
-
-          <br>
-
-          🧾 Retirado:
-          <b>${formatPeso(item.retirada)} ${item.unidade.toLowerCase()}</b>
-
-          <br>
-
-          🗑️ Desperdício:
-          <b>${formatPeso(item.desperdicio)} ${item.unidade.toLowerCase()}</b>
-
-          <br><br>
-
-          ✅ Total Vendido:
-          <b style="
-           color:${total <= 0.001 ? '#dc2626' : '#16a34a'};
-            font-size:15px;
+  ${
+    (l.consumo_para_nome && l.tipo === "RETIRADA") ||
+    (l.consumo_autorizado && l.consumo_para_nome)
+      ? `<span style="
+            background:#ede9fe;
+            color:#5b21b6;
+            padding:6px 12px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            line-height:1;
           ">
-            ${formatPeso(total)} ${item.unidade.toLowerCase()}
-          </b>
-
-        </div>
-
-      </div>
-
-<div style="
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-">
-
-  <!-- EDITAR -->
-  <button class="icon-btn"
-    onclick="abrirModal(
-      '${item.registros[0].id}',
-      '${item.registros[0].quantidade}',
-      '${item.registros[0].unidade}',
-      '${item.registros[0].tipo}',
-      '${item.registros[0].tara || 0}',
-      '${item.nome}'
-    )">
-    <i class="ri-edit-line"></i>
-  </button>
-
-  <!-- VER DETALHES -->
-  <button class="icon-btn"
-    onclick="abrirDetalhes('${item.nome}')">
-    <i class="ri-eye-line"></i>
-  </button>
-
-  <!-- EXCLUIR TODOS -->
-  <button class="icon-btn danger"
-    onclick="excluirAgrupado('${item.nome}')">
-    <i class="ri-delete-bin-6-line"></i>
-  </button>
-
+            👤 ${l.consumo_para_nome}
+          </span>`
+      : ``
+  }
 </div>
-    </div>
 
+
+      <!-- META -->
+${(() => {
+
+  const unidade = l.unidade === "UN" ? "un" : "kg";
+
+  const bruto = Number(l.quantidade) + Number(l.tara || 0);
+
+  const brutoFormatado = l.unidade === "UN"
+    ? bruto
+    : formatPeso(bruto);
+
+  const taraFormatado = l.unidade === "UN"
+    ? Number(l.tara || 0)
+    : formatPeso(l.tara || 0);
+
+  const liquidoFormatado = l.unidade === "UN"
+    ? Number(l.quantidade)
+    : formatPeso(l.quantidade);
+
+  return `
+    <div class="meta" style="line-height:1.5; margin-bottom:8px">
+      Bruto: <b>${brutoFormatado} ${unidade}</b>
+      • Tara: <b>${taraFormatado} ${unidade}</b>
+      • Líquido: <b>${liquidoFormatado} ${unidade}</b><br>
+      <span style="color:#6b7280">⏱ ${l.hora}</span>
+    </div>
   `;
 
-});
+})()}
 
-// 🔥 FECHA A FUNÇÃO
-}
 
+
+
+      <!-- TAG -->
+      ${
+        l.consumo_autorizado
+          ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
+          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">
+  ${l.tipo === "DEVOLUCAO" ? "DESPERDÍCIO" : l.tipo}
+</span>`
+      }
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${Number(l.quantidade) + Number(l.tara || 0)}, '${l.unidade}', '${l.tipo}', ${l.tara || 0}, '${l.produto_nome}')">
+        <i class="ri-edit-2-line"></i>
+      </button>
+      <button class="icon-btn danger" onclick="excluir('${l.id}')">
+        <i class="ri-delete-bin-6-line"></i>
+      </button>
+    </div>
+  </div>
+`;
+    });
+  }
 
 async function salvar(consumoPara){
   try{
@@ -1540,35 +1474,6 @@ function atualizarPreviewEdit(){
   document.getElementById("previewEdit").innerHTML =
     `Líquido: <b>${formatPeso(liquido)} kg</b>`;
 }
-
-
-function abrirManual(){
-  document.getElementById("modalManual").style.display = "flex";
-  document.body.style.overflow = "hidden";
-}
-
-function fecharManual(){
-  document.getElementById("modalManual").style.display = "none";
-  document.body.style.overflow = "auto";
-}
-async function excluirAgrupado(nome){
-
-  if(!confirm(`Excluir TODOS os lançamentos de ${nome}?`)){
-    return;
-  }
-
-  const empresa = empresaSelect.value;
-
-  await sb
-    .from("buffet_lancamentos")
-    .delete()
-    .eq("empresa", empresa)
-    .eq("produto_nome", nome)
-    .eq("data", dataISO);
-
-  carregarLancamentos();
-}
-
   
 </script>
 <!-- OVERLAY DE SALVAMENTO -->
@@ -1628,63 +1533,4 @@ async function excluirAgrupado(nome){
     </div>
   </div>
 </div>
-
-
-  <!-- 🔥 MODAL MANUAL CORRIGIDO -->
-<div class="modal-backdrop" id="modalManual">
-
-  <div style="
-width:90vw;
-max-width:1200px;
-height:90vh;
-    background:#fff;
-    border-radius:18px;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-    box-shadow:0 30px 80px rgba(0,0,0,.35);
-  ">
-
-    <!-- HEADER -->
-    <div style="
-      padding:14px 18px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom:1px solid #e5e7eb;
-      background:#fff;
-      flex-shrink:0;
-    ">
-      <b style="font-size:16px">📘 Manual do Sistema</b>
-
-      <button onclick="fecharManual()" style="
-        border:none;
-        background:#f3f4f6;
-        padding:8px 14px;
-        border-radius:10px;
-        cursor:pointer;
-        font-weight:700;
-      ">
-        Fechar
-      </button>
-    </div>
-
-    <!-- CONTEÚDO -->
-<div style="flex:1; overflow:hidden;">
-<iframe 
-  src="manuais/buffet.html"
-  style="
-    width:100%;
-    height:100%;
-    border:none;
-    display:block;
-  ">
-</iframe>
-
-    </div>
-
-  </div>
-
-</div>
-  
 </html>
