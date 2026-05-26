@@ -842,21 +842,21 @@ const agrupados = {};
 
     }
 
-    if (l.tipo === "MONTAGEM" || l.tipo === "EMPORIO") {
-      agrupados[l.produto_nome].montagem += Number(l.quantidade || 0);
-    }
+if (l.tipo === "MONTAGEM" || l.tipo === "EMPORIO") {
+  agrupados[l.produto_nome].montagem += parseFloat(l.quantidade) || 0;
+}
 
-    if (l.tipo === "REPOSICAO") {
-      agrupados[l.produto_nome].reposicao += Number(l.quantidade || 0);
-    }
+if (l.tipo === "REPOSICAO") {
+  agrupados[l.produto_nome].reposicao += parseFloat(l.quantidade) || 0;
+}
 
-    if (l.tipo === "RETIRADA") {
-      agrupados[l.produto_nome].retirada += Number(l.quantidade || 0);
-    }
+if (l.tipo === "RETIRADA") {
+  agrupados[l.produto_nome].retirada += parseFloat(l.quantidade) || 0;
+}
 
-    if (l.tipo === "DEVOLUCAO") {
-      agrupados[l.produto_nome].desperdicio += Number(l.quantidade || 0);
-    }
+if (l.tipo === "DEVOLUCAO") {
+  agrupados[l.produto_nome].desperdicio += parseFloat(l.quantidade) || 0;
+}
 
     agrupados[l.produto_nome].registros.push(l);
 
@@ -884,11 +884,11 @@ Object.values(agrupados).forEach(item => {
         ">
           ${item.nome}
 
-          ${
-            total <= 0
-              ? `<span class="alerta-dot"></span>`
-              : ``
-          }
+${
+  total <= 0.001
+    ? `<span class="alerta-dot"></span>`
+    : ``
+}
 
         </div>
 
@@ -916,7 +916,7 @@ Object.values(agrupados).forEach(item => {
 
           ✅ Total Vendido:
           <b style="
-            color:${total <= 0 ? '#dc2626' : '#16a34a'};
+           color:${total <= 0.001 ? '#dc2626' : '#16a34a'};
             font-size:15px;
           ">
             ${formatPeso(total)} ${item.unidade.toLowerCase()}
