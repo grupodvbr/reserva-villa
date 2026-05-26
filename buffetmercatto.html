@@ -1,906 +1,392 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Buffet • Mercatto Delícia</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    :root {
-
-      --primary: #ff6a00;
-      --primary-dark: #ea580c;
-
-      --bg: #eef2f7;
-
-      --card: #ffffffcc;
-
-      --border: #e5e7eb;
-
-      --text: #0f172a;
-
-      --muted: #64748b;
-
-      --success: #16a34a;
-      --danger: #dc2626;
-      --warning: #f59e0b;
-      --info: #2563eb;
-
-      --radius: 24px;
-
-      --shadow:
-        0 10px 40px rgba(15, 23, 42, .08);
-
-      --glass:
-        blur(16px);
-
-    }
-
-    /* ======================================================
-RESET
-====================================================== */
-
-    * {
-
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-
-      font-family:
-        Inter,
-        sans-serif;
-
-      -webkit-tap-highlight-color:
-        transparent;
-
-    }
-
-    html,
-    body {
-
-      width: 100%;
-      min-height: 100%;
-
-      overflow-x: hidden;
-
-      background:
-        linear-gradient(180deg,
-          #f8fafc,
-          #eef2f7);
-
-      color: var(--text);
-
-    }
-
-
-
-    body {
-
-      transform: scale(.88);
-      transform-origin: top left;
-
-      width: 113.6%;
-
-    }
-
-
-
-
-
-
-
-
-    /* ======================================================
-SCROLL
-====================================================== */
-
-    ::-webkit-scrollbar {
-      width: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #d1d5db;
-      border-radius: 999px;
-    }
-
-    /* ======================================================
-APP
-====================================================== */
-
-    .app {
-
-      width: 100%;
-
-      min-height: 100vh;
-
-      padding:
-        24px clamp(14px, 3vw, 36px) 120px;
-
-    }
-
-    /* ======================================================
-HEADER
-====================================================== */
-
-    .header {
-
-      position: sticky;
-
-      top: 0;
-
-      z-index: 50;
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: space-between;
-
-      gap: 20px;
-
-      margin-bottom: 22px;
-
-      padding:
-        18px 22px;
-
-      border-radius:
-        0 0 28px 28px;
-
-      background:
-        rgba(255, 255, 255, .75);
-
-      backdrop-filter:
-        blur(18px);
-
-      border:
-        1px solid rgba(255, 255, 255, .4);
-
-      box-shadow:
-        0 10px 35px rgba(0, 0, 0, .05);
-
-    }
-
-    .title {
-
-      font-size:
-        clamp(24px, 4vw, 38px);
-
-      font-weight: 900;
-
-      letter-spacing: -1px;
-
-      color: #111827;
-
-    }
-
-    .badge {
-
-      padding:
-        10px 18px;
-
-      border-radius: 999px;
-
-      background:
-        linear-gradient(135deg,
-          #111827,
-          #1f2937);
-
-      color: #fff;
-
-      font-size: 13px;
-
-      font-weight: 800;
-
-      box-shadow:
-        0 8px 20px rgba(0, 0, 0, .18);
-
-    }
-
-    /* ======================================================
-CARDS
-====================================================== */
-
-    .card {
-
-      background:
-        rgba(255, 255, 255, .78);
-
-      backdrop-filter:
-        blur(18px);
-
-      border:
-        1px solid rgba(255, 255, 255, .55);
-
-      border-radius:
-        30px;
-
-      padding: 24px;
-
-      box-shadow:
-        0 15px 50px rgba(15, 23, 42, .06);
-
-      margin-bottom: 20px;
-
-    }
-
-    /* ======================================================
-EMPRESA
-====================================================== */
-
-    .company-row {
-
-      display: grid;
-
-      grid-template-columns:
-        auto 280px auto 1fr;
-
-      gap: 14px;
-
-      align-items: center;
-
-    }
-
-    /* ======================================================
-FORM GRID
-====================================================== */
-
-    .form-grid {
-
-      display: grid;
-
-      grid-template-columns:
-        3fr 1.5fr 1.5fr 1.5fr;
-
-      gap: 18px;
-
-      align-items: end;
-
-    }
-
-    /* ======================================================
-FIELD
-====================================================== */
-
-    .field {
-
-      display: flex;
-
-      flex-direction: column;
-
-      gap: 8px;
-
-    }
-
-    .field label {
-
-      font-size: 11px;
-
-      font-weight: 900;
-
-      color: #475569;
-
-      letter-spacing: .8px;
-
-      text-transform: uppercase;
-
-    }
-
-    /* ======================================================
-INPUTS
-====================================================== */
-
-    input,
-    select {
-
-      width: 100%;
-
-      height: 54px;
-
-      border-radius: 18px;
-
-      border:
-        1px solid #e2e8f0;
-
-      background:
-        rgba(255, 255, 255, .95);
-
-      padding:
-        0 18px;
-
-      font-size: 15px;
-
-      font-weight: 600;
-
-      color: #111827;
-
-      transition: .2s;
-
-    }
-
-    input:focus,
-    select:focus {
-
-      outline: none;
-
-      border-color:
-        var(--primary);
-
-      box-shadow:
-        0 0 0 4px rgba(255, 106, 0, .12);
-
-      transform:
-        translateY(-1px);
-
-    }
-
-    /* ======================================================
-INLINE
-====================================================== */
-
-    .inline-input {
-
-      display: flex;
-
-      width: 100%;
-
-    }
-
-    .inline-input input {
-
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
-
-    }
-
-    .inline-input select {
-
-      width: 95px;
-
-      border-left: none;
-
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
-
-      background: #f8fafc;
-
-    }
-
-    /* ======================================================
-PREVIEW
-====================================================== */
-
-    .net-preview {
-
-      margin-top: 5px;
-
-      font-size: 13px;
-
-      color: #64748b;
-
-      font-weight: 600;
-
-    }
-
-    /* ======================================================
-BOTÕES
-====================================================== */
-
-    button {
-
-      height: 52px;
-
-      border: none;
-
-      border-radius: 18px;
-
-      cursor: pointer;
-
-      font-size: 14px;
-
-      font-weight: 900;
-
-      transition: .2s;
-
-    }
-
-    button:hover {
-
-      transform:
-        translateY(-2px);
-
-    }
-
-    .primary {
-
-      background:
-        linear-gradient(135deg,
-          #ff6a00,
-          #ea580c);
-
-      color: #fff;
-
-      box-shadow:
-        0 10px 25px rgba(255, 106, 0, .28);
-
-    }
-
-    .primary:hover {
-
-      filter: brightness(1.05);
-
-    }
-
-    .ghost {
-
-      background: #fff;
-
-      border:
-        1px solid #e2e8f0;
-
-      color: #111827;
-
-    }
-
-    /* ======================================================
-LISTA
-====================================================== */
-
-    .list {
-
-      width: 100%;
-
-      display: grid;
-
-      grid-template-columns:
-        repeat(auto-fill, minmax(480px, 1fr));
-
-      gap: 18px;
-
-      margin-top: 18px;
-
-    }
-
-    /* ======================================================
-ITEM
-====================================================== */
-
-    .item {
-
-      position: relative;
-
-      overflow: hidden;
-
-      background:
-        linear-gradient(180deg,
-          rgba(255, 255, 255, .96),
-          rgba(248, 250, 252, .92));
-
-      border:
-        1px solid rgba(255, 255, 255, .65);
-
-      border-radius: 28px;
-
-      padding: 22px;
-
-      display: grid;
-
-      grid-template-columns:
-        1fr auto;
-
-      gap: 18px;
-
-      align-items: flex-start;
-
-      box-shadow:
-        0 15px 40px rgba(15, 23, 42, .06);
-
-      transition: .22s;
-
-    }
-
-    .item:hover {
-
-      transform:
-        translateY(-3px);
-
-      box-shadow:
-        0 20px 50px rgba(15, 23, 42, .10);
-
-    }
-
-    /* ======================================================
-NAME
-====================================================== */
-
-    .name {
-
-      font-size: 19px;
-
-      font-weight: 900;
-
-      color: #0f172a;
-
-      line-height: 1.3;
-
-    }
-
-    /* ======================================================
-META
-====================================================== */
-
-    .meta {
-
-      font-size: 13px;
-
-      line-height: 1.8;
-
-      color: #64748b;
-
-    }
-
-    /* ======================================================
-TAGS
-====================================================== */
-
-    .tag {
-
-      display: inline-flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      gap: 6px;
-
-      min-height: 38px;
-
-      padding:
-        8px 16px;
-
-      border-radius: 999px;
-
-      font-size: 12px;
-
-      font-weight: 900;
-
-      letter-spacing: .3px;
-
-      backdrop-filter:
-        blur(10px);
-
-    }
-
-    /* ======================================================
-TIPOS
-====================================================== */
-
-    .MONTAGEM {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .REPOSICAO {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .RETIRADA {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .DEVOLUCAO {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .EMPORIO {
-      background: #ccfbf1;
-      color: #065f46;
-    }
-
-    .CONSUMO {
-      background: #ede9fe;
-      color: #5b21b6;
-    }
-
-    /* ======================================================
-AÇÕES
-====================================================== */
-
-    .icon-btn {
-
-      width: 46px;
-      height: 46px;
-
-      border-radius: 16px;
-
-      background: #fff;
-
-      border:
-        1px solid #e5e7eb;
-
-      display: flex;
-
-      align-items: center;
-      justify-content: center;
-
-      font-size: 18px;
-
-      box-shadow:
-        0 8px 18px rgba(0, 0, 0, .04);
-
-    }
-
-    .icon-btn:hover {
-
-      background: #f8fafc;
-
-    }
-
-    .icon-btn.danger {
-
-      color: #dc2626;
-
-      border-color: #fecaca;
-
-    }
-
-    /* ======================================================
-MODAL
-====================================================== */
-
-    .modal-backdrop {
-
-      position: fixed;
-      inset: 0;
-
-      background:
-        rgba(15, 23, 42, .55);
-
-      backdrop-filter:
-        blur(10px);
-
-      display: none;
-
-      align-items: center;
-      justify-content: center;
-
-      z-index: 99999;
-
-      padding: 20px;
-
-    }
-
-    .modal {
-
-      width: min(94vw, 560px);
-
-      background:
-        rgba(255, 255, 255, .96);
-
-      border-radius: 30px;
-
-      padding: 28px;
-
-      box-shadow:
-        0 25px 70px rgba(0, 0, 0, .22);
-
-    }
-
-    .modal h3 {
-
-      font-size: 24px;
-
-      font-weight: 900;
-
-      margin-bottom: 20px;
-
-    }
-
-    .modal .grid {
-
-      display: grid;
-
-      grid-template-columns:
-        1fr 1fr;
-
-      gap: 14px;
-
-    }
-
-    .modal .actions {
-
-      display: flex;
-
-      gap: 12px;
-
-      margin-top: 20px;
-
-    }
-
-    /* ======================================================
-RESPONSIVO
-====================================================== */
-
-    @media(max-width:1100px) {
-
-      .form-grid {
-
-        grid-template-columns:
-          1fr 1fr;
-
-      }
-
-      .company-row {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-      .list {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-    }
-
-    @media(max-width:700px) {
-
-      .app {
-
-        padding:
-          12px 12px 120px;
-
-      }
-
-      .header {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        border-radius: 22px;
-
-      }
-
-      .form-grid {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-      .modal .grid {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-      .item {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-      button {
-
-        width: 100%;
-
-      }
-
-    }
-
-    /* ======================================================
-ANIMAÇÕES
-====================================================== */
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes fadeUp {
-
-      from {
-        opacity: 0;
-        transform:
-          translateY(12px);
-      }
-
-      to {
-        opacity: 1;
-        transform:
-          translateY(0);
-      }
-
-    }
-
-    .item {
-      animation:
-        fadeUp .25s ease;
-    }
-
-    .notificacao-dot {
-
-      width: 14px;
-      height: 14px;
-
-      min-width: 14px;
-
-      border-radius: 50%;
-
-      background: #ef4444;
-
-      animation:
-        pulseRed 1.3s infinite;
-
-      box-shadow:
-        0 0 0 rgba(239, 68, 68, .7);
-
-    }
-
-    @keyframes pulseRed {
-
-      0% {
-        transform: scale(.95);
-
-        box-shadow:
-          0 0 0 0 rgba(239, 68, 68, .75);
-      }
-
-      70% {
-        transform: scale(1);
-
-        box-shadow:
-          0 0 0 12px rgba(239, 68, 68, 0);
-      }
-
-      100% {
-        transform: scale(.95);
-
-        box-shadow:
-          0 0 0 0 rgba(239, 68, 68, 0);
-      }
-
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Buffet • Mercatto Delícia</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --primary-dark:#ea580c;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --muted:#6b7280;
+  --radius:14px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+*{
+  box-sizing:border-box;
+  font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  background:var(--bg);
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+/* ================= APP ================= */
+
+.app{
+  max-width:1500px;
+  margin:0 auto;
+  padding:20px;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ================= HEADER ================= */
+
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+}
+
+.title{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:-0.5px;
+}
+
+.badge{
+  background:#111827;
+  color:#fff;
+  padding:7px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+}
+
+/* ================= CARD ================= */
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:16px;
+}
+
+/* ================= EMPRESA ================= */
+
+.company-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.company-row select{
+  width:300px;
+}
+
+/* ================= FORM GRID ================= */
+
+.form-grid{
+  display:grid;
+  grid-template-columns: 2.8fr 1.8fr 1.4fr 1.4fr;
+  gap:16px;
+  align-items:end;
+}
+
+/* ================= FIELD ================= */
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field label{
+  font-size:11px;
+  font-weight:800;
+  color:#374151;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+}
+
+/* ================= INPUTS ================= */
+
+input, select{
+  height:44px;
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:14px;
+  background:#fff;
+  transition:all .2s ease;
+}
+
+input:focus, select:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,106,0,.12);
+  outline:none;
+}
+
+/* ================= INLINE QUANTIDADE + UNIDADE ================= */
+
+.inline-group .inline-input{
+  display:flex;
+  width:100%;
+}
+
+.inline-group input{
+  flex:1;
+  border-top-right-radius:0;
+  border-bottom-right-radius:0;
+}
+
+.inline-group select{
+  width:85px;
+  border-left:none;
+  border-top-left-radius:0;
+  border-bottom-left-radius:0;
+  background:#f9fafb;
+  font-weight:700;
+}
+
+/* ================= PREVIEW LIQUIDO ================= */
+
+.net-preview{
+  font-size:12px;
+  margin-top:4px;
+  color:#6b7280;
+}
+
+/* ================= BOTÕES ================= */
+
+button{
+  height:44px;
+  padding:0 18px;
+  border-radius:10px;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button.primary{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+}
+
+button.primary:hover{
+  background:var(--primary-dark);
+}
+
+button.ghost{
+  background:#fff;
+  border:1px solid var(--border);
+}
+
+/* ================= LISTA ================= */
+
+.list{
+  flex:1;
+  overflow:auto;
+  display:grid;
+  gap:12px;
+  padding-right:4px;
+}
+
+.item{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:14px;
+  padding:16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#fff;
+  align-items:center;
+  transition:.15s;
+}
+
+.item:hover{
+  box-shadow:0 6px 18px rgba(0,0,0,.05);
+}
+
+.item .name{
+  font-weight:900;
+  font-size:15px;
+}
+
+.meta{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.tag{
+  padding:7px 14px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+}
+
+/* ================= TAG CORES ================= */
+
+.MONTAGEM{background:#dcfce7;color:#166534}
+.REPOSICAO{background:#e0f2fe;color:#075985}
+.RETIRADA{background:#fee2e2;color:#991b1b}
+.DEVOLUCAO{background:#fef3c7;color:#92400e}
+.CONSUMO{background:#ede9fe;color:#5b21b6}
+.EMPORIO{background:#ccfbf1;color:#065f46} /* 🔥 verde água premium */
+
+/* ================= ICON BUTTON ================= */
+
+.icon-btn{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:10px;
+  padding:6px 9px;
+  transition:.2s;
+}
+
+.icon-btn:hover{
+  background:#f9fafb;
+}
+
+.icon-btn.danger{
+  border-color:#fecaca;
+  color:#b91c1c;
+}
+
+/* ================= MODAL ================= */
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal{
+  width:480px;
+  background:#fff;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
+}
+
+.modal .grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.modal .actions{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
+
+/* ================= RESPONSIVO TABLET ================= */
+
+@media(max-width:1200px){
+  .form-grid{
+    grid-template-columns: 2fr 1.5fr 1fr 1fr;
+  }
+}
+
+/* ================= RESPONSIVO CELULAR ================= */
+
+@media(max-width:768px){
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .company-row{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .company-row select{
+    width:100%;
+  }
+
+  button{
+    width:100%;
+  }
+
+  .item{
+    grid-template-columns:1fr;
+  }
+
+}
+.alerta-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#ef4444;
+  box-shadow:0 0 0 rgba(239,68,68,0.7);
+  animation:pulseRed 1.2s infinite;
+}
+
+@keyframes pulseRed{
+  0%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(239,68,68,0.7);
+  }
+  70%{
+    transform:scale(1.4);
+    box-shadow:0 0 0 10px rgba(239,68,68,0);
+  }
+  100%{
+    transform:scale(1);
+    box-shadow:0 0 0 0 rgba(239,68,68,0);
+  }
+}
+
+
+
+
+
+
+
+  
+</style>
 </head>
 
 <body>
-  <div class="app">
+<div class="app">
 
-    <div class="header">
-      <div class="title">🍽️ Buffet • Mercatto Delícia</div>
-      <span class="badge">Hoje: <b id="dataHoje"></b></span>
-    </div>
+  <div class="header">
+    <div class="title">🍽️ Buffet • Mercatto Delícia</div>
+    <span class="badge">Hoje: <b id="dataHoje"></b></span>
+  </div>
 
-    <!-- Seleção de empresa -->
-    <div class="card company-row">
-      <b>Empresa:</b>
+  <!-- Seleção de empresa -->
+<div class="card company-row">
+  <b>Empresa:</b>
 
-      <select id="empresaSelect">
+  <select id="empresaSelect">
     <option value="MERCATTO DELÍCIA">Mercatto Delícia</option>
   </select>
 
-      <!-- 🔥 BOTÃO AUTOMÁTICO -->
-      <button class="primary" onclick="abrirModalSemana()" style="height:42px">
-    ⚡ Lançamento
+  <!-- 🔥 BOTÃO AUTOMÁTICO -->
+  <button class="primary" onclick="abrirModalSemana()" style="height:42px">
+    ⚡ Lançamento Automático
   </button>
 
-      <div style="width:100%;margin-top:10px">
-        <input
+<div style="width:100%;margin-top:10px">
+  <input 
     id="buscaLancamentos"
     placeholder="🔍 Buscar lançamento..."
     style="
@@ -912,145 +398,145 @@ ANIMAÇÕES
       font-size:14px;
     "
   >
-      </div>
+</div>
 
 
 
 
 
+  
+</div>
 
-    </div>
+  <div class="card">
+<div class="form-grid tablet-row">
+  <div class="field">
+    <label>Prato</label>
+    <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
+  </div>
 
-    <div class="card">
-      <div class="form-grid tablet-row">
-        <div class="field">
-          <label>Prato</label>
-          <input id="produto" placeholder="Digite o prato (busca + cadastra + consumo)" list="produtosList">
-        </div>
-
-        <!-- QUANTIDADE + UNIDADE JUNTOS -->
-        <div class="field inline-group">
-          <label id="labelPeso">Peso bruto (kg)</label>
-          <div class="inline-input">
-            <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
-            <select id="unidade">
+<!-- QUANTIDADE + UNIDADE JUNTOS -->
+<div class="field inline-group">
+  <label id="labelPeso">Peso bruto (kg)</label>
+  <div class="inline-input">
+    <input id="quantidade" class="input-weight" inputmode="decimal" placeholder="0,000">
+    <select id="unidade">
       <option value="KG">KG</option>
       <option value="UN">UN</option>
     </select>
-          </div>
-        </div>
+  </div>
+</div>
 
-        <!-- TARA -->
-        <div class="field">
-          <label id="labelTara">Tara (kg)</label>
-          <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
-          <div class="net-preview" id="pesoLiquidoPreview">
-            Líquido: <b>0,000 kg</b>
-          </div>
-        </div>
+<!-- TARA -->
+<div class="field">
+  <label id="labelTara">Tara (kg)</label>
+  <input id="tara" class="input-tara" inputmode="decimal" placeholder="0,000">
+  <div class="net-preview" id="pesoLiquidoPreview">
+    Líquido: <b>0,000 kg</b>
+  </div>
+</div>
 
-        <!-- TIPO -->
-        <div class="field">
-          <label>Tipo</label>
-<select id="tipo">
-  <option value="MONTAGEM">Montagem</option>
-  <option value="EMPORIO">Vindo do Empório</option>
-  <option value="REPOSICAO">Reposição</option>
-  <option value="RETIRADA">Retirada</option>
-  <option value="DEVOLUCAO">Desperdício</option>
-  <option value="CONSUMO">Consumo Funcionários</option>
-</select>
-        </div>
+<!-- TIPO -->
+<div class="field">
+  <label>Tipo</label>
+  <select id="tipo">
+<option value="MONTAGEM">Montagem</option>
+<option value="EMPORIO">Vindo do Empório</option> <!-- 🔥 NOVO -->
+<option value="REPOSICAO">Reposição</option>
+<option value="RETIRADA">Retirada</option>
+<option value="DEVOLUCAO">Desperdício</option>
+<option value="MONTAGEM">Consumo Funcionários</option>
+  </select>
+</div>
 
-        <div class="field" style="display:none">
-          <label style="display:flex;gap:8px;align-items:center">
+<div class="field" style="display:none">
+  <label style="display:flex;gap:8px;align-items:center">
     <input type="checkbox" id="consumoAutorizado" hidden>
     Consumo autorizado
   </label>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-        <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
-        <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
-      </div>
-      <small>Data é travada no dia atual e hora é automática.</small>
+</div>
+</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <button class="primary" id="btnSalvar"><i class="ri-save-3-line"></i> Salvar</button>
+      <button class="ghost" id="btnLimpar"><i class="ri-eraser-line"></i> Limpar</button>
     </div>
-
-    <div class="card">
-      <b>Lançamentos de Hoje</b>
-      <div class="list" id="lista"></div>
-    </div>
-
+    <small>Data é travada no dia atual e hora é automática.</small>
   </div>
 
-  <datalist id="produtosList"></datalist>
+  <div class="card">
+    <b>Lançamentos de Hoje</b>
+    <div class="list" id="lista"></div>
+  </div>
 
-  <!-- MODAL DE EDIÇÃO -->
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-      <h3 id="tituloEdicao">Editar lançamento</h3>
+</div>
+
+<datalist id="produtosList"></datalist>
+
+<!-- MODAL DE EDIÇÃO -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+   <h3 id="tituloEdicao">Editar lançamento</h3>
+
+
+    
+<div class="grid">
+<input id="editQuantidade" inputmode="decimal" placeholder="Quantidade">
+<input id="editTara" inputmode="decimal" placeholder="Tara">
 
 
 
-      <div class="grid">
-        <input id="editQuantidade" inputmode="decimal" placeholder="Quantidade">
-        <input id="editTara" inputmode="decimal" placeholder="Tara">
-
-
-
-        <div id="previewEdit" style="
+  <div id="previewEdit" style="
   font-size:13px;
   color:#6b7280;
   margin-top:6px;
 ">
-          Líquido: <b>0,000 kg</b>
-        </div>
+  Líquido: <b>0,000 kg</b>
+</div>
 
 
 
-
-        <select id="editUnidade">
+  
+  <select id="editUnidade">
     <option value="KG">KG</option>
     <option value="UN">UN</option>
   </select>
 
-        <select id="editTipo" style="grid-column:1/-1">
+  <select id="editTipo" style="grid-column:1/-1">
 
 
 
 
-
+        
 <option value="MONTAGEM">Montagem</option>
 <option value="EMPORIO">Vindo do Empório</option> <!-- 🔥 NOVO -->
 <option value="REPOSICAO">Reposição</option>
 <option value="RETIRADA">Retirada</option>
 <option value="DEVOLUCAO">Desperdício</option>
       </select>
-      </div>
-      <div class="actions">
-        <button class="ghost" onclick="fecharModal()">Cancelar</button>
-        <button class="primary" onclick="confirmarEdicao()">Salvar</button>
-      </div>
+    </div>
+    <div class="actions">
+      <button class="ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="primary" onclick="confirmarEdicao()">Salvar alterações</button>
     </div>
   </div>
-  </div>
+</div>
+</div>
 
-  <!-- MODAL CONSUMO AUTORIZADO -->
-  <div class="modal-backdrop" id="modalConsumo">
-    <div class="modal">
-      <h3 id="tituloModalConsumo">Para quem é o consumo?</h3>
-      <input id="consumoNome" list="consumidoresList" placeholder="Digite o nome">
-      <datalist id="consumidoresList"></datalist>
+<!-- MODAL CONSUMO AUTORIZADO -->
+<div class="modal-backdrop" id="modalConsumo">
+  <div class="modal">
+<h3 id="tituloModalConsumo">Para quem é o consumo?</h3>
+    <input id="consumoNome" list="consumidoresList" placeholder="Digite o nome">
+    <datalist id="consumidoresList"></datalist>
 
-      <div class="actions">
-        <button class="ghost" onclick="fecharConsumo()">Cancelar</button>
-        <button class="primary" onclick="confirmarConsumo()">Confirmar</button>
-      </div>
+    <div class="actions">
+      <button class="ghost" onclick="fecharConsumo()">Cancelar</button>
+      <button class="primary" onclick="confirmarConsumo()">Confirmar</button>
     </div>
   </div>
+</div>
 
-  <script>
-    const sb = window.supabase.createClient(
+<script>
+  const sb = window.supabase.createClient(
     "https://dxkszikemntfusfyrzos.supabase.co",
     "sb_publishable_NNFvdfSXgOdGGVcSbphbjQ_brC3_9ed"
   );
@@ -1302,9 +788,7 @@ const { data } = await sb
   }
 
 async function carregarLancamentos(){
-
   const empresa = empresaSelect.value;
-
   const { data, error } = await sb
     .from("buffet_lancamentos")
     .select("*")
@@ -1313,248 +797,111 @@ async function carregarLancamentos(){
     .order("created_at", { ascending:false });
 
   if(error){
-    console.error(error);
-    return;
+    console.error("Erro ao carregar lançamentos:", error);
   }
 
   lista.innerHTML = "";
+const termo = (buscaInput.value || "").toLowerCase();
 
-  const termo =
-    (buscaInput.value || "")
-    .toLowerCase();
-
-  /* =========================================
-  AGRUPAR TOTAIS
-  ========================================= */
-
-  const totais = {};
-
-  (data || []).forEach(l=>{
-
-    if(!totais[l.produto_nome]){
-
-      totais[l.produto_nome] = {
-
-        montagem:0,
-        reposicao:0,
-        retirada:0,
-        desperdicio:0
-
-      };
-
-    }
-
-    if(
-      l.tipo === "MONTAGEM" ||
-      l.tipo === "EMPORIO"
-    ){
-
-      totais[l.produto_nome]
-      .montagem += Number(l.quantidade || 0);
-
-    }
-
-    if(l.tipo === "REPOSICAO"){
-
-      totais[l.produto_nome]
-      .reposicao += Number(l.quantidade || 0);
-
-    }
-
-    if(l.tipo === "RETIRADA"){
-
-      totais[l.produto_nome]
-      .retirada += Number(l.quantidade || 0);
-
-    }
-
-    if(l.tipo === "DEVOLUCAO"){
-
-      totais[l.produto_nome]
-      .desperdicio += Number(l.quantidade || 0);
-
-    }
-
-  });
-
-  /* =========================================
-  RENDER INDIVIDUAL
-  ========================================= */
-
-  (data || [])
-
-  .filter(l =>
-    l.produto_nome
-    .toLowerCase()
-    .includes(termo)
+(data || [])
+  .filter(l => 
+    l.produto_nome.toLowerCase().includes(termo)
   )
-
   .forEach(l=>{
-
-    const totalProduto =
-      totais[l.produto_nome];
-
-    const unidade =
-      l.unidade === "UN"
-      ? "un"
-      : "kg";
-
-    const bruto =
-      Number(l.quantidade)
-      +
-      Number(l.tara || 0);
-
+    
     lista.innerHTML += `
+  <div class="item" style="padding:14px 14px 16px">
+    <div>
 
-<div class="item" style="padding:14px 14px 16px">
+      <!-- TÍTULO -->
+<div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
 
-<div>
+  <span>${l.produto_nome}</span>
 
-<div class="name" style="
-display:flex;
-flex-wrap:wrap;
-gap:10px;
-align-items:center;
-margin-bottom:8px;
-">
+  ${
+    l.tipo === "MONTAGEM" && Number(l.quantidade) < 0.05
+      ? `<span class="alerta-dot"></span>`
+      : ``
+  }
 
-${
-(
-  totalProduto.montagem
-  +
-  totalProduto.reposicao
-  -
-  totalProduto.retirada
-) <= 0.010
-
-? `<div class="notificacao-dot"></div>`
-
-: ``
-}
-
-<span>${l.produto_nome}</span>
-
-${
-  l.consumo_para_nome
-  ? `
-    <span style="
-      background:#ede9fe;
-      color:#5b21b6;
-      padding:6px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-    ">
-      👤 ${l.consumo_para_nome}
-    </span>
-  `
-  : ``
-}
-
-</div>
-<!-- 🔥 TOTAIS -->
-<div style="
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-bottom:10px;
-">
-
-<div class="tag">
-🍽️ Montado:
-<b>
-${formatPeso(totalProduto.montagem)}
-</b>
+  ${
+    (l.consumo_para_nome && l.tipo === "RETIRADA") ||
+    (l.consumo_autorizado && l.consumo_para_nome)
+      ? `<span style="
+            background:#ede9fe;
+            color:#5b21b6;
+            padding:6px 12px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            line-height:1;
+          ">
+            👤 ${l.consumo_para_nome}
+          </span>`
+      : ``
+  }
 </div>
 
-<div class="tag">
-🔄 Reposto:
-<b>
-${formatPeso(totalProduto.reposicao)}
-</b>
-</div>
 
-<div class="tag">
-🧾 Retirado:
-<b>
-${formatPeso(totalProduto.retirada)}
-</b>
-</div>
+      <!-- META -->
+${(() => {
 
-<div class="tag">
-🗑️ Desp:
-<b>
-${formatPeso(totalProduto.desperdicio)}
-</b>
-</div>
+  const unidade = l.unidade === "UN" ? "un" : "kg";
 
-</div>
+  const bruto = Number(l.quantidade) + Number(l.tara || 0);
 
-<!-- REGISTRO -->
-<div class="meta" style="
-line-height:1.6;
-margin-bottom:10px;
-">
+  const brutoFormatado = l.unidade === "UN"
+    ? bruto
+    : formatPeso(bruto);
 
-Bruto:
-<b>${formatPeso(bruto)} ${unidade}</b>
+  const taraFormatado = l.unidade === "UN"
+    ? Number(l.tara || 0)
+    : formatPeso(l.tara || 0);
 
-•
+  const liquidoFormatado = l.unidade === "UN"
+    ? Number(l.quantidade)
+    : formatPeso(l.quantidade);
 
-Tara:
-<b>${formatPeso(l.tara || 0)} ${unidade}</b>
+  return `
+    <div class="meta" style="line-height:1.5; margin-bottom:8px">
+      Bruto: <b>${brutoFormatado} ${unidade}</b>
+      • Tara: <b>${taraFormatado} ${unidade}</b>
+      • Líquido: <b>${liquidoFormatado} ${unidade}</b><br>
+      <span style="color:#6b7280">⏱ ${l.hora}</span>
+    </div>
+  `;
 
-•
+})()}
 
-Líquido:
-<b>${formatPeso(l.quantidade)} ${unidade}</b>
 
-<br>
 
-⏱ ${l.hora}
 
-</div>
+      <!-- TAG -->
+      ${
+        l.consumo_autorizado
+          ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
+          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">
+  ${l.tipo === "DEVOLUCAO" ? "DESPERDÍCIO" : l.tipo}
+</span>`
+      }
+    </div>
 
-<span class="tag ${l.tipo}">
-${l.tipo}
-</span>
-
-</div>
-
-<div style="
-display:flex;
-gap:10px;
-align-items:flex-start;
-">
-
-<button
-class="icon-btn"
-onclick="abrirModal(
-'${l.id}',
-${bruto},
-'${l.unidade}',
-'${l.tipo}',
-${l.tara || 0},
-'${l.produto_nome}'
-)">
-<i class="ri-edit-line"></i>
-</button>
-
-<button
-class="icon-btn danger"
-onclick="excluir('${l.id}')">
-<i class="ri-delete-bin-6-line"></i>
-</button>
-
-</div>
-
-</div>
-
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <button class="icon-btn" onclick="abrirModal('${l.id}', ${Number(l.quantidade) + Number(l.tara || 0)}, '${l.unidade}', '${l.tipo}', ${l.tara || 0}, '${l.produto_nome}')">
+        <i class="ri-edit-2-line"></i>
+      </button>
+      <button class="icon-btn danger" onclick="excluir('${l.id}')">
+        <i class="ri-delete-bin-6-line"></i>
+      </button>
+    </div>
+  </div>
 `;
+    });
+  }
 
-  });
-
-}
 async function salvar(consumoPara){
   try{
     showSaving();
@@ -2128,25 +1475,25 @@ function atualizarPreviewEdit(){
     `Líquido: <b>${formatPeso(liquido)} kg</b>`;
 }
   
-  </script>
-  <!-- OVERLAY DE SALVAMENTO -->
-  <div id="savingOverlay" style="
+</script>
+<!-- OVERLAY DE SALVAMENTO -->
+<div id="savingOverlay" style="
   position:fixed; inset:0; z-index:9999;
   background:rgba(15,23,42,.55);
   display:none; align-items:center; justify-content:center;
   backdrop-filter: blur(2px);
 ">
-    <div style="
+  <div style="
     background:#fff; padding:22px 26px; border-radius:16px;
     display:flex; align-items:center; gap:12px;
     box-shadow:0 12px 30px rgba(0,0,0,.25)
   ">
-      <i class="ri-loader-4-line" style="
+    <i class="ri-loader-4-line" style="
       font-size:26px; color:#ff6a00; animation:spin 1s linear infinite
     "></i>
-      <b>Salvando...</b>
-    </div>
+    <b>Salvando...</b>
   </div>
+</div>
 </body>
 
 
@@ -2186,5 +1533,4 @@ function atualizarPreviewEdit(){
     </div>
   </div>
 </div>
-
 </html>
