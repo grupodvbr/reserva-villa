@@ -932,6 +932,19 @@ ${
   gap:8px;
 ">
 
+  <!-- EDITAR -->
+  <button class="icon-btn"
+    onclick="abrirModal(
+      '${item.registros[0].id}',
+      '${item.registros[0].quantidade}',
+      '${item.registros[0].unidade}',
+      '${item.registros[0].tipo}',
+      '${item.registros[0].tara || 0}',
+      '${item.nome}'
+    )">
+    <i class="ri-edit-line"></i>
+  </button>
+
   <!-- VER DETALHES -->
   <button class="icon-btn"
     onclick="abrirDetalhes('${item.nome}')">
@@ -945,7 +958,6 @@ ${
   </button>
 
 </div>
-
     </div>
 
   `;
