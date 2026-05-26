@@ -788,7 +788,9 @@ const { data } = await sb
   }
 
 async function carregarLancamentos(){
+
   const empresa = empresaSelect.value;
+
   const { data, error } = await sb
     .from("buffet_lancamentos")
     .select("*")
@@ -797,111 +799,235 @@ async function carregarLancamentos(){
     .order("created_at", { ascending:false });
 
   if(error){
-    console.error("Erro ao carregar lançamentos:", error);
+    console.error(error);
+    return;
   }
 
   lista.innerHTML = "";
-const termo = (buscaInput.value || "").toLowerCase();
 
-(data || [])
-  .filter(l => 
-    l.produto_nome.toLowerCase().includes(termo)
+  const termo =
+    (buscaInput.value || "")
+    .toLowerCase();
+
+  /* =========================================
+  AGRUPAR TOTAIS
+  ========================================= */
+
+  const totais = {};
+
+  (data || []).forEach(l=>{
+
+    if(!totais[l.produto_nome]){
+
+      totais[l.produto_nome] = {
+
+        montagem:0,
+        reposicao:0,
+        retirada:0,
+        desperdicio:0
+
+      };
+
+    }
+
+    if(
+      l.tipo === "MONTAGEM" ||
+      l.tipo === "EMPORIO"
+    ){
+
+      totais[l.produto_nome]
+      .montagem += Number(l.quantidade || 0);
+
+    }
+
+    if(l.tipo === "REPOSICAO"){
+
+      totais[l.produto_nome]
+      .reposicao += Number(l.quantidade || 0);
+
+    }
+
+    if(l.tipo === "RETIRADA"){
+
+      totais[l.produto_nome]
+      .retirada += Number(l.quantidade || 0);
+
+    }
+
+    if(l.tipo === "DEVOLUCAO"){
+
+      totais[l.produto_nome]
+      .desperdicio += Number(l.quantidade || 0);
+
+    }
+
+  });
+
+  /* =========================================
+  RENDER INDIVIDUAL
+  ========================================= */
+
+  (data || [])
+
+  .filter(l =>
+    l.produto_nome
+    .toLowerCase()
+    .includes(termo)
   )
+
   .forEach(l=>{
-    
+
+    const totalProduto =
+      totais[l.produto_nome];
+
+    const unidade =
+      l.unidade === "UN"
+      ? "un"
+      : "kg";
+
+    const bruto =
+      Number(l.quantidade)
+      +
+      Number(l.tara || 0);
+
     lista.innerHTML += `
-  <div class="item" style="padding:14px 14px 16px">
-    <div>
 
-      <!-- TÍTULO -->
-<div class="name" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">
+<div class="item" style="padding:14px 14px 16px">
 
-  <span>${l.produto_nome}</span>
+<div>
 
-  ${
-    l.tipo === "MONTAGEM" && Number(l.quantidade) < 0.05
-      ? `<span class="alerta-dot"></span>`
-      : ``
-  }
+<div class="name" style="
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+align-items:center;
+margin-bottom:8px;
+">
 
-  ${
-    (l.consumo_para_nome && l.tipo === "RETIRADA") ||
-    (l.consumo_autorizado && l.consumo_para_nome)
-      ? `<span style="
-            background:#ede9fe;
-            color:#5b21b6;
-            padding:6px 12px;
-            border-radius:999px;
-            font-size:12px;
-            font-weight:800;
-            display:inline-flex;
-            align-items:center;
-            gap:6px;
-            line-height:1;
-          ">
-            👤 ${l.consumo_para_nome}
-          </span>`
-      : ``
-  }
+<span>${l.produto_nome}</span>
+
+${
+  l.consumo_para_nome
+  ? `
+    <span style="
+      background:#ede9fe;
+      color:#5b21b6;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+    ">
+      👤 ${l.consumo_para_nome}
+    </span>
+  `
+  : ``
+}
+
 </div>
 
+<!-- 🔥 TOTAIS -->
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-bottom:10px;
+">
 
-      <!-- META -->
-${(() => {
+<div class="tag">
+🍽️ Montado:
+<b>
+${formatPeso(totalProduto.montagem)}
+</b>
+</div>
 
-  const unidade = l.unidade === "UN" ? "un" : "kg";
+<div class="tag">
+🔄 Reposto:
+<b>
+${formatPeso(totalProduto.reposicao)}
+</b>
+</div>
 
-  const bruto = Number(l.quantidade) + Number(l.tara || 0);
+<div class="tag">
+🧾 Retirado:
+<b>
+${formatPeso(totalProduto.retirada)}
+</b>
+</div>
 
-  const brutoFormatado = l.unidade === "UN"
-    ? bruto
-    : formatPeso(bruto);
+<div class="tag">
+🗑️ Desp:
+<b>
+${formatPeso(totalProduto.desperdicio)}
+</b>
+</div>
 
-  const taraFormatado = l.unidade === "UN"
-    ? Number(l.tara || 0)
-    : formatPeso(l.tara || 0);
+</div>
 
-  const liquidoFormatado = l.unidade === "UN"
-    ? Number(l.quantidade)
-    : formatPeso(l.quantidade);
+<!-- REGISTRO -->
+<div class="meta" style="
+line-height:1.6;
+margin-bottom:10px;
+">
 
-  return `
-    <div class="meta" style="line-height:1.5; margin-bottom:8px">
-      Bruto: <b>${brutoFormatado} ${unidade}</b>
-      • Tara: <b>${taraFormatado} ${unidade}</b>
-      • Líquido: <b>${liquidoFormatado} ${unidade}</b><br>
-      <span style="color:#6b7280">⏱ ${l.hora}</span>
-    </div>
-  `;
+Bruto:
+<b>${formatPeso(bruto)} ${unidade}</b>
 
-})()}
+•
 
+Tara:
+<b>${formatPeso(l.tara || 0)} ${unidade}</b>
 
+•
 
+Líquido:
+<b>${formatPeso(l.quantidade)} ${unidade}</b>
 
-      <!-- TAG -->
-      ${
-        l.consumo_autorizado
-          ? `<span class="tag RETIRADA" style="padding:8px 14px;font-size:12px">CONSUMO AUTORIZADO</span>`
-          : `<span class="tag ${l.tipo}" style="padding:8px 14px;font-size:12px">
-  ${l.tipo === "DEVOLUCAO" ? "DESPERDÍCIO" : l.tipo}
-</span>`
-      }
-    </div>
+<br>
 
-    <div style="display:flex;gap:10px;align-items:flex-start">
-      <button class="icon-btn" onclick="abrirModal('${l.id}', ${Number(l.quantidade) + Number(l.tara || 0)}, '${l.unidade}', '${l.tipo}', ${l.tara || 0}, '${l.produto_nome}')">
-        <i class="ri-edit-2-line"></i>
-      </button>
-      <button class="icon-btn danger" onclick="excluir('${l.id}')">
-        <i class="ri-delete-bin-6-line"></i>
-      </button>
-    </div>
-  </div>
+⏱ ${l.hora}
+
+</div>
+
+<span class="tag ${l.tipo}">
+${l.tipo}
+</span>
+
+</div>
+
+<div style="
+display:flex;
+gap:10px;
+align-items:flex-start;
+">
+
+<button
+class="icon-btn"
+onclick="abrirModal(
+'${l.id}',
+${bruto},
+'${l.unidade}',
+'${l.tipo}',
+${l.tara || 0},
+'${l.produto_nome}'
+)">
+<i class="ri-edit-line"></i>
+</button>
+
+<button
+class="icon-btn danger"
+onclick="excluir('${l.id}')">
+<i class="ri-delete-bin-6-line"></i>
+</button>
+
+</div>
+
+</div>
+
 `;
-    });
-  }
 
+  });
+
+}
 async function salvar(consumoPara){
   try{
     showSaving();
